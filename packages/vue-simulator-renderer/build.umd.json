@@ -1,0 +1,25 @@
+{
+  "entry": {
+    "vue-simulator-renderer": "./src/index.ts"
+  },
+  "sourceMap": false,
+  "library": "LCVueSimulatorRenderer",
+  "libraryTarget": "umd",
+  "externals": {
+    "vue": "var window.Vue",
+    "lodash": "var window._",
+    "moment": "var window.moment"
+  },
+  "outputAssetsPath": {
+    "js": "",
+    "css": ""
+  },
+  "polyfill": false,
+  "outputDir": "dist",
+  "vendor": false,
+  "ignoreHtmlTemplate": true,
+  "plugins": [
+    "build-plugin-react-app",
+    ["build-plugin-moment-locales", { "locales": ["zh-cn"] }]
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@knxcloud/lowcode-utils",
+  "main": "./lib/index.js",
+  "module": "./es/index.js",
+  "version": "0.0.0",
+  "files": [
+    "es",
+    "lib"
+  ],
+  "scripts": {
+    "build": "build-scripts build",
+    "lint:type": "tsc -p ./tsconfig.json --noEmit"
+  },
+  "homepage": "https://unpkg.com/@knxcloud/lowcode-utils@1.0.0/build/index.html",
+  "dependencies": {
+    "@alilc/lowcode-types": "^1.0.9",
+    "@alilc/lowcode-utils": "^1.0.9",
+    "lodash-es": "^4.17.21"
+  },
+  "devDependencies": {
+    "@types/lodash-es": "^4.17.6"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "http",
+    "url": "https://github.com/KNXCloud/lowcode-engine-vue/tree/main/packages/utils"
+  }
+}

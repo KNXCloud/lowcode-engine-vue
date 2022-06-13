@@ -1,0 +1,38 @@
+{
+  "name": "@knxcloud/lowcode-vue-simulator-renderer",
+  "main": "./lib/index.js",
+  "module": "./es/index.js",
+  "unpkg": "./dist/vue-simulator-renderer.js",
+  "version": "0.0.0",
+  "files": [
+    "es",
+    "lib",
+    "dist"
+  ],
+  "scripts": {
+    "start": "build-scripts start --disable-open --port 5559 --config=build.umd.json",
+    "build": "build-scripts build",
+    "build:umd": "build-scripts build --config=build.umd.json",
+    "lint:type": "tsc -p ./tsconfig.json --noEmit"
+  },
+  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.0.0/build/index.html",
+  "dependencies": {
+    "@knxcloud/lowcode-utils": "^0.0.0",
+    "@knxcloud/lowcode-vue-renderer": "^0.0.0",
+    "@alilc/lowcode-types": "^1.0.9",
+    "@alilc/lowcode-utils": "^1.0.9",
+    "vue-router": "^4.0.15"
+  },
+  "devDependencies": {
+    "@alilc/lowcode-designer": "^1.0.9",
+    "vue": "^3.2.35"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "http",
+    "url": "https://github.com/KNXCloud/lowcode-engine-vue/tree/main/packages/vue-simulator-renderer"
+  }
+}

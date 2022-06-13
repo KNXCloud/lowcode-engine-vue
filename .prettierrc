@@ -1,0 +1,13 @@
+{
+  "singleQuote": true,
+  "proseWrap": "preserve",
+  "tabWidth": 2,
+  "useTabs": false,
+  "endOfLine": "auto",
+  "bracketSpacing": true,
+  "stylelintIntegration": true,
+  "eslintIntegration": true,
+  "semi": true,
+  "vueIndentScriptAndStyle": false,
+  "printWidth": 90
+}

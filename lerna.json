@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "npmClient": "pnpm",
+  "useWorkspaces": true,
+  "packages": ["packages/*"],
+  "command": {
+    "publish": {
+      "registry": "https://registry.npmjs.org",
+      "npmClient": "npm",
+      "verifyAccess": false,
+      "verifyRegistry": false,
+      "message": "chore(release): publish %v",
+      "conventionalCommits": true
+    }
+  }
+}

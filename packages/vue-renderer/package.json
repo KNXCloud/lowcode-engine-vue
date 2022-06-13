@@ -1,0 +1,36 @@
+{
+  "name": "@knxcloud/lowcode-vue-renderer",
+  "main": "./lib/index.js",
+  "module": "./es/index.js",
+  "unpkg": "./es/vue-renderer.js",
+  "version": "0.0.0",
+  "files": [
+    "es",
+    "lib",
+    "dist"
+  ],
+  "scripts": {
+    "build": "build-scripts build",
+    "build:umd": "build-scripts build --config=build.umd.json",
+    "lint:type": "tsc -p ./tsconfig.json --noEmit"
+  },
+  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-renderer@1.0.0/build/index.html",
+  "dependencies": {
+    "@alilc/lowcode-types": "^1.0.9",
+    "intl-messageformat": "^10.0.1",
+    "lodash-es": "^4.17.21"
+  },
+  "devDependencies": {
+    "@alilc/lowcode-designer": "^1.0.9",
+    "@types/lodash-es": "^4.17.6",
+    "vue": "^3.2.37"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "repository": {
+    "type": "http",
+    "url": "https://github.com/KNXCloud/lowcode-engine-vue/tree/main/packages/vue-renderer"
+  }
+}
