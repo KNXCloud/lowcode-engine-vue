@@ -11,7 +11,7 @@
     "build": "build-scripts build",
     "lint:type": "tsc -p ./tsconfig.json --noEmit"
   },
-  "homepage": "https://unpkg.com/@knxcloud/lowcode-utils@1.0.1/build/index.html",
+  "homepage": "https://unpkg.com/@knxcloud/lowcode-utils@1.0.2/build/index.html",
   "dependencies": {
     "@alilc/lowcode-types": "^1.0.9",
     "@alilc/lowcode-utils": "^1.0.9",

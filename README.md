@@ -29,6 +29,8 @@ import { init } from '@alilc/lowcode-engine';
 init(document.getElementById('lce'), {
   // ...
   simulatorUrl: [
+    'https://unpkg.com/vue@3.2.37/dist/vue.runtime.global.prod.js',
+    'https://unpkg.com/vue-router@4.0.16/dist/vue-router.global.prod.js',
     'https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.0.0/dist/vue-simulator-renderer.js',
     'https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.0.0/dist/vue-simulator-renderer.css',
   ],

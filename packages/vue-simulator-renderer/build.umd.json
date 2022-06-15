@@ -7,6 +7,7 @@
   "libraryTarget": "umd",
   "externals": {
     "vue": "var window.Vue",
+    "vue-router": "var window.VueRouter",
     "lodash": "var window._",
     "moment": "var window.moment"
   },
