@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.0.5](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.0.4...v1.0.5) (2022-06-15)
+
+
+### Bug Fixes
+
+* **vue-renderer:** 修复 Hoc 跨层级更新节点导致的渲染异常 ([aa683a0](https://github.com/KNXCloud/lowcode-engine-vue/commit/aa683a0b767f1d80a89dbfeb5a1d480f4f08c6a3))
+
+
+
+
+
 ## [1.0.4](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.0.3...v1.0.4) (2022-06-15)
 
 
