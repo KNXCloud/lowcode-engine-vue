@@ -14,7 +14,7 @@
     "build:umd": "build-scripts build --config=build.umd.json",
     "lint:type": "tsc -p ./tsconfig.json --noEmit"
   },
-  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-renderer@1.0.0/build/index.html",
+  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-renderer@1.0.1/build/index.html",
   "dependencies": {
     "@alilc/lowcode-types": "^1.0.9",
     "intl-messageformat": "^10.0.1",
