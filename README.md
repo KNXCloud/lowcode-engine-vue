@@ -56,9 +56,9 @@ npm install @knxcloud/lowcode-vue-simulator-renderer @knxcloud/lowcode-vue-rende
 ```
 
 ```ts
-import { vueRendererConfig } '@knx/lowcode-vue-simulator-renderer';
+import { vueRendererConfig } from '@knx/lowcode-vue-simulator-renderer';
 import { NConfigProvider, zhCN, dateZhCN } from 'naive-ui';
-import { FunctionalComponent, h } from 'vue';
+import { defineComponent, h } from 'vue';
 
 const ConfigProvider = defineComponent((_, { slots }) => {
   return () => h(NConfigProvider, { locale: zhCN, dateLocale: dateZhCN }, slots);
