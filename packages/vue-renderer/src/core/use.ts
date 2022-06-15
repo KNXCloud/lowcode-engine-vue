@@ -108,7 +108,7 @@ export function useRenderer(props: RendererProps) {
 
   const removeNode = (node: Node<NodeSchema>) => {
     const { id } = node;
-    children.value = children.value.filter((item) => item?.key !== id);
+    children.value = children.value.filter((item) => id !== item.id);
     triggerRef(children);
   };
 
