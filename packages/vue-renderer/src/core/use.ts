@@ -3,7 +3,6 @@ import {
   h,
   VNode,
   shallowRef,
-  triggerRef,
   createTextVNode,
   computed,
   ref,
@@ -18,13 +17,13 @@ import {
   NodeSchema,
   TransformStage,
 } from '@alilc/lowcode-types';
-import { Node, Prop } from '@alilc/lowcode-designer';
 import { isString, isArray, isNil } from 'lodash-es';
 import { useRendererContext } from '../context';
 import { RendererProps } from './base';
 import { Hoc } from './hoc';
 import { Live } from './live';
 import { mergeScope, parseSchema } from '../utils';
+import { SlotNode } from '@alilc/lowcode-designer';
 
 export function useRenderer(props: RendererProps) {
   const { components, scope, getNode, designMode } = useRendererContext();
@@ -70,46 +69,23 @@ export function useRenderer(props: RendererProps) {
 
   const renderComp = isDesignMode ? renderHoc : renderLive;
 
-  const createSlot = (prop: Prop) => {
-    const schema = prop.slotNode.export(TransformStage.Render);
-    return () => {
-      return h(Hoc, {
-        id: schema.id!,
-        key: schema.id,
-        schema: schema,
-      });
-    };
+  const createSlot = (slotNode: SlotNode) => {
+    const schema = slotNode.export(TransformStage.Render);
+    return () => renderComp(schema);
   };
 
   const createChildren = (nodeSchema: undefined | NodeData | NodeData[]) => {
-    if (nodeSchema) {
-      children.value = Array.isArray(nodeSchema) ? nodeSchema : [nodeSchema];
-    }
+    children.value = !nodeSchema
+      ? []
+      : Array.isArray(nodeSchema)
+      ? nodeSchema
+      : [nodeSchema];
+
     return () => {
       if (children.value.length) return children.value.map((item) => renderComp(item));
-
       if (isDesignMode && node?.isContainer()) return h('div', { class: 'lc-container' });
       return null;
     };
-  };
-
-  const insertNode = (node: Node<NodeSchema>) => {
-    const { componentName, nextSibling } = node;
-    const Comp = components[componentName];
-    if (Comp) {
-      children.value = children.value.filter((item) => item?.key !== node.id);
-      const idx = !nextSibling
-        ? children.value.length
-        : children.value.findIndex((item) => item?.key === nextSibling.id);
-      children.value.splice(idx, 0, node.schema);
-      triggerRef(children);
-    }
-  };
-
-  const removeNode = (node: Node<NodeSchema>) => {
-    const { id } = node;
-    children.value = children.value.filter((item) => id !== item.id);
-    triggerRef(children);
   };
 
   const buildSchema = () => {
@@ -183,8 +159,6 @@ export function useRenderer(props: RendererProps) {
   };
 
   return {
-    insertNode,
-    removeNode,
     createSlot,
     createChildren,
     renderComp,

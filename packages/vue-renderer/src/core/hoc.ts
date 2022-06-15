@@ -1,5 +1,5 @@
 import { set } from 'lodash-es';
-import { isJSSlot } from '@alilc/lowcode-types';
+import { isJSSlot, TransformStage } from '@alilc/lowcode-types';
 import {
   Component,
   ComponentPublicInstance,
@@ -28,15 +28,8 @@ export const Hoc = defineComponent({
   },
   setup(props) {
     const { scope, components, getNode, triggerCompGetCtx } = useRendererContext();
-    const {
-      buildSchema,
-      buildProps,
-      buildLoop,
-      insertNode,
-      removeNode,
-      createSlot,
-      createChildren,
-    } = useRenderer(props);
+    const { buildSchema, buildProps, buildLoop, createSlot, createChildren } =
+      useRenderer(props);
     const id = props.id || props.schema.id;
 
     const disposeFunctions: Array<CallableFunction | undefined> = [];
@@ -93,7 +86,7 @@ export const Hoc = defineComponent({
             compSlots.default = createChildren(newValue);
             return;
           } else if (isJSSlot(newValue)) {
-            compSlots[key] = createSlot(prop);
+            compSlots[key] = createSlot(prop.slotNode);
             return;
           } else if (!newValue && isJSSlot(oldValue)) {
             delete compSlots[key];
@@ -103,14 +96,9 @@ export const Hoc = defineComponent({
         })
       );
       disposeFunctions.push(
-        node.onChildrenChange((param) => {
-          if (!param) return;
-          const { type, node } = param;
-          if (type === 'insert') {
-            insertNode(node);
-          } else if (type === 'delete' || type === 'unlink') {
-            removeNode(node);
-          }
+        node.onChildrenChange(() => {
+          const schema = node.export(TransformStage.Render);
+          compSlots.default = createChildren(schema.children);
         })
       );
       disposeFunctions.push(
