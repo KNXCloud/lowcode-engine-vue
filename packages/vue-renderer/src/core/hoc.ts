@@ -71,28 +71,30 @@ export const Hoc = defineComponent({
         node.onPropChange((info) => {
           const { key = '', prop, newValue, oldValue } = info;
           if (key === '___condition___') {
+            // 条件渲染更新 v-if
             condition.value = newValue;
-            return;
           } else if (key === '___loop___') {
+            // 循环数据更新 v-for
             updateLoop(newValue);
-            return;
           } else if (key === '___loopArgs___') {
+            // 循环参数初始化 (item, index)
             updateLoopArg(newValue);
-            return;
           } else if (prop.path[0] === '___loopArgs___') {
-            updateLoopArg(newValue, key as string);
-            return;
+            // 循环参数初始化 (item, index)
+            updateLoopArg(newValue, key);
           } else if (key === 'children') {
+            // 默认插槽更新
             compSlots.default = createChildren(newValue);
-            return;
           } else if (isJSSlot(newValue)) {
+            // 具名插槽更新
             compSlots[key] = createSlot(prop.slotNode);
-            return;
           } else if (!newValue && isJSSlot(oldValue)) {
+            // 具名插槽移除
             delete compSlots[key];
-            return;
+          } else {
+            // 普通属性更新
+            set(compProps, prop.path, newValue);
           }
-          set(compProps, prop.path, newValue);
         })
       );
       disposeFunctions.push(
@@ -106,21 +108,19 @@ export const Hoc = defineComponent({
       );
     }
 
-    onUnmounted(() => {
-      disposeFunctions.forEach((dispose) => dispose?.());
-    });
+    onUnmounted(() => disposeFunctions.forEach((dispose) => dispose?.()));
 
     const getRef = (inst: ComponentPublicInstance) => {
       triggerCompGetCtx(props.schema, inst);
     };
 
     return {
-      mergedShow,
-      mergedComp,
-      compSlots,
-      compProps,
       loop,
       loopArgs,
+      compSlots,
+      compProps,
+      mergedComp,
+      mergedShow,
       getRef,
       buildProps,
     };
@@ -129,16 +129,14 @@ export const Hoc = defineComponent({
     const {
       loop,
       loopArgs,
-      mergedShow,
-      mergedComp,
       compProps,
       compSlots,
-      buildProps,
+      mergedComp,
+      mergedShow,
       getRef,
+      buildProps,
     } = this;
-    if (!mergedComp || !mergedShow) {
-      return null;
-    }
+    if (!mergedComp || !mergedShow) return null;
     if (!loop) {
       return h(mergedComp, { ...buildProps(compProps), ref: getRef }, { ...compSlots });
     }

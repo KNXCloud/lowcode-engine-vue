@@ -2,7 +2,7 @@
   "name": "@knxcloud/lowcode-vue-renderer",
   "main": "./lib/index.js",
   "module": "./es/index.js",
-  "unpkg": "./es/vue-renderer.js",
+  "unpkg": "./dist/vue-renderer.js",
   "version": "1.0.5",
   "files": [
     "es",

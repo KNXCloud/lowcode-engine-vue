@@ -10,19 +10,21 @@ import {
   ComputedRef,
 } from 'vue';
 import {
-  CompositeValue,
   isJSExpression,
+  CompositeValue,
   isJSSlot,
   NodeData,
   NodeSchema,
   TransformStage,
+  JSFunction,
+  isJSFunction,
 } from '@alilc/lowcode-types';
-import { isString, isArray, isNil } from 'lodash-es';
+import { isString, isNil, camelCase } from 'lodash-es';
 import { useRendererContext } from '../context';
 import { RendererProps } from './base';
 import { Hoc } from './hoc';
 import { Live } from './live';
-import { mergeScope, parseSchema } from '../utils';
+import { ensureArray, mergeScope, parseSchema } from '../utils';
 import { SlotNode } from '@alilc/lowcode-designer';
 
 export function useRenderer(props: RendererProps) {
@@ -75,11 +77,7 @@ export function useRenderer(props: RendererProps) {
   };
 
   const createChildren = (nodeSchema: undefined | NodeData | NodeData[]) => {
-    children.value = !nodeSchema
-      ? []
-      : Array.isArray(nodeSchema)
-      ? nodeSchema
-      : [nodeSchema];
+    children.value = ensureArray(nodeSchema);
 
     return () => {
       if (children.value.length) return children.value.map((item) => renderComp(item));
@@ -99,10 +97,7 @@ export function useRenderer(props: RendererProps) {
     Object.entries(schema.props ?? {}).forEach(([key, val]) => {
       if (isJSSlot(val) && val.value) {
         const children = val.value;
-        slotProps[key] = () =>
-          Array.isArray(children)
-            ? children.map((item) => renderComp(item))
-            : renderComp(children);
+        slotProps[key] = () => ensureArray(children).map((item) => renderComp(item));
       } else if (key === 'className') {
         normalProps.class = val;
       } else if (key === 'children') {
@@ -116,8 +111,47 @@ export function useRenderer(props: RendererProps) {
   };
 
   const buildProps = (props: any, blockScope?: Record<string, any>) => {
-    const mergedScope = mergeScope(scope, blockScope);
-    return parseSchema(props, mergedScope);
+    // 属性预处理
+    const processed = Object.keys(props).reduce((prev, next) => {
+      const val = props[next];
+      if (next.startsWith('v-model')) {
+        // 双向绑定逻辑
+        const matched = next.match(/v-model(?::(\w+))?$/);
+        if (!matched) return prev;
+
+        const valueProp = camelCase(matched[1] ?? 'modelValue');
+        const eventProp = `onUpdate:${valueProp}`;
+        if (isJSExpression(val)) {
+          const updateEventFn: JSFunction = {
+            type: 'JSFunction',
+            value: `function ($event) {${val.value} = $event}`,
+          };
+          prev[eventProp] =
+            eventProp in prev
+              ? ensureArray(prev[eventProp]).concat(updateEventFn)
+              : updateEventFn;
+        }
+        prev[valueProp] = val;
+      } else if (next.startsWith('v-') && isJSExpression(val)) {
+        // TODO: 指令绑定逻辑
+      } else if (next.match(/^on[A-Z]/) && isJSFunction(val)) {
+        // 事件绑定逻辑
+
+        // normalize: onUpdateXxx => onUpdate:xxx
+        const matched = next.match(/onUpdate(?::?(\w+))$/);
+        if (matched) {
+          next = `onUpdate:${camelCase(matched[1])}`;
+        }
+
+        // 若事件名称重复，则自动转化为数组
+        prev[next] = next in prev ? ensureArray(prev[next]).concat(val) : val;
+      } else {
+        prev[next] = val;
+      }
+      return prev;
+    }, {} as Record<string, any>);
+
+    return parseSchema(processed, mergeScope(scope, blockScope));
   };
 
   const buildLoop = (schema: NodeSchema) => {
@@ -141,7 +175,7 @@ export function useRenderer(props: RendererProps) {
         loop.value = value;
       },
       updateLoopArg(value: string, idx?: number): void {
-        if (isArray(value)) {
+        if (Array.isArray(value)) {
           value.forEach((v, i) => {
             loopArgs.value[i] = v;
           });
@@ -154,14 +188,14 @@ export function useRenderer(props: RendererProps) {
       loopArgs: Ref<[string, string]>;
       updateLoop(value: CompositeValue): void;
       updateLoopArg(value: [string, string]): void;
-      updateLoopArg(value: string, idx?: string): void;
+      updateLoopArg(value: string, idx?: number | string): void;
     };
   };
 
   return {
+    renderComp,
     createSlot,
     createChildren,
-    renderComp,
     buildLoop,
     buildProps,
     buildSchema,

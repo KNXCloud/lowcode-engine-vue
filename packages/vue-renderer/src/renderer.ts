@@ -71,7 +71,12 @@ function useRootScope(schema?: RootSchema) {
     lifeCycles: lifeCyclesSchema,
   } = schema ?? {};
 
-  const scope: any = reactive({});
+  // 将全局属性配置应用到 scope 中
+  const instance = getCurrentInstance()!;
+  const globalProperties = instance.appContext.config.globalProperties ?? {};
+  const scope: any = reactive(
+    Object.create({}, Object.getOwnPropertyDescriptors(globalProperties))
+  );
 
   // 处理 state
   const states = parseSchema(stateSchema, undefined);
@@ -165,13 +170,6 @@ const Renderer = defineComponent({
     );
     Object.assign(scope, { dataSourceMap, reloadDataSource });
     reloadDataSource();
-
-    // append router
-    const inst = getCurrentInstance();
-    Object.assign(scope, {
-      $route: computed(() => (inst?.proxy as any).$route),
-      $router: computed(() => (inst?.proxy as any).$router),
-    });
 
     const allComponents = computed(() => ({
       ...config.getRenderers(),

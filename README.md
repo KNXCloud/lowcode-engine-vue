@@ -9,7 +9,7 @@ Lowcode Engine Vue 渲染器及适配器实现，点击查看[在线演示](http
 - `this.props.xxx` -> `this.xxx`
 - `this.state.xxx` -> `this.xxx`
 
-现阶段 vue 代码编辑器还未适配，可以直接使用 react 代码编辑器编辑代码，渲染器已做适配
+现阶段 vue 代码编辑器还未适配，可以直接使用 react 代码编辑器编辑代码，渲染器已做适配：
 
 - state 内容会自动转化为 vue data
 - lifecycle 自动适配为 vue lifecycle
@@ -18,6 +18,17 @@ Lowcode Engine Vue 渲染器及适配器实现，点击查看[在线演示](http
   - `shouldComponentUpdate` -> `onBeforeUpdate`
   - `componentWillUnmount` -> `onBeforeUnmount`
 - 其余方法自动转化为 vue methods
+
+对于 v-model 的适配：
+
+在 assets 中使用 name 为 v-model 的属性会被作为双向绑定特性编译，编译的逻辑为
+
+```
+v-model -> modelValue prop + onUpdate:modelValue event
+v-model:value -> value prop + onUpdate:value event
+```
+
+并且，渲染器支持 `onUpdate:value` 和 `onUpdateValue` 两种事件处理方式，即在使用事件时，可以使用 `onUpdateXxx` 代替 `onUpdate:xxx`
 
 ## 使用示例
 
