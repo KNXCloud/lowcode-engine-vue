@@ -3,7 +3,7 @@
   "main": "./lib/index.js",
   "module": "./es/index.js",
   "unpkg": "./dist/vue-simulator-renderer.js",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "files": [
     "es",
     "lib",
@@ -20,7 +20,7 @@
     "@alilc/lowcode-types": "^1.0.9",
     "@alilc/lowcode-utils": "^1.0.9",
     "@knxcloud/lowcode-utils": "^1.0.3",
-    "@knxcloud/lowcode-vue-renderer": "^1.0.5",
+    "@knxcloud/lowcode-vue-renderer": "^1.1.0",
     "vue-router": "^4.0.15"
   },
   "devDependencies": {
