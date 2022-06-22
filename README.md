@@ -86,6 +86,7 @@ vueRendererConfig.setConfigProvider(ConfigProvider);
 git clone git@github.com:KNXCloud/lowcode-engine-vue.git
 cd lowcode-engine-vue
 pnpm install
+pnpm build
 pnpm start
 ```
 
