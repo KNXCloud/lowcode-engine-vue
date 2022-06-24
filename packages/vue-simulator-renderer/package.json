@@ -15,17 +15,17 @@
     "build:umd": "build-scripts build --config=build.umd.json",
     "lint:type": "tsc -p ./tsconfig.json --noEmit"
   },
-  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.1.0/build/index.html",
+  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.1.1/build/index.html",
   "dependencies": {
-    "@alilc/lowcode-types": "^1.0.9",
-    "@alilc/lowcode-utils": "^1.0.9",
+    "@alilc/lowcode-types": "^1.0.10",
+    "@alilc/lowcode-utils": "^1.0.10",
     "@knxcloud/lowcode-utils": "^1.1.1",
-    "@knxcloud/lowcode-vue-renderer": "^1.1.1",
-    "vue-router": "^4.0.15"
+    "@knxcloud/lowcode-vue-renderer": "^1.1.1"
   },
   "devDependencies": {
-    "@alilc/lowcode-designer": "^1.0.9",
-    "vue": "^3.2.35"
+    "@alilc/lowcode-designer": "^1.0.10",
+    "vue": "^3.2.37",
+    "vue-router": "^4.0.16"
   },
   "publishConfig": {
     "access": "public",
