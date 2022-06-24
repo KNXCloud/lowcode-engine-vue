@@ -4,7 +4,6 @@ import {
   AssetLoader,
   cursor,
   getSubComponent,
-  isElement,
   setNativeSelection,
 } from '@alilc/lowcode-utils';
 import {
@@ -46,6 +45,12 @@ interface ComponentHTMLElement extends HTMLElement {
   [SYMBOL_VInstance]: ComponentInstance;
 }
 
+interface SimulatorComponentInstance {
+  did: string;
+  cid: number;
+  nid: string;
+}
+
 function isComponentHTMLElement(el: Element): el is ComponentHTMLElement {
   return SYMBOL_VDID in el;
 }
@@ -69,12 +74,7 @@ function createDocumentInstance(
   const timestamp = ref(Date.now());
 
   const checkInstanceMounted = (instance: ComponentInstance): boolean => {
-    if (isElement(instance)) {
-      return instance.parentElement != null;
-    } else if ('isMounted' in instance) {
-      return instance.isMounted;
-    }
-    return true;
+    return instance.$.isMounted;
   };
 
   const setHostInstance = (
@@ -85,7 +85,7 @@ function createDocumentInstance(
     host.setInstance(
       docId,
       nodeId,
-      instances?.map((inst) => ({ cid: inst.uid, did: docId, nid: nodeId })) as any[]
+      instances?.map((inst) => ({ cid: inst.$.uid, did: docId, nid: nodeId })) as any[]
     );
   };
 
@@ -110,7 +110,7 @@ function createDocumentInstance(
       return;
     }
 
-    const el: ComponentHTMLElement = instance.$el;
+    const el = instance.$el;
 
     const origId = el[SYMBOL_VNID];
     if (origId && origId !== id) {
@@ -118,7 +118,7 @@ function createDocumentInstance(
       unmountIntance(origId, instance);
     }
 
-    onUnmounted(() => unmountIntance(id, instance), instance);
+    onUnmounted(() => unmountIntance(id, instance), instance.$);
 
     el[SYMBOL_VNID] = id;
     el[SYMBOL_VDID] = docId;
@@ -136,7 +136,7 @@ function createDocumentInstance(
     } else {
       instances = [instance];
     }
-    vueInstanceMap.set(instance.uid, instance);
+    vueInstanceMap.set(instance.$.uid, instance);
     instancesMap.set(id, instances);
     setHostInstance(docId, id, instances);
   };
@@ -147,7 +147,7 @@ function createDocumentInstance(
       const i = instances.indexOf(instance);
       if (i > -1) {
         const [instance] = instances.splice(i, 1);
-        vueInstanceMap.delete(instance.uid);
+        vueInstanceMap.delete(instance.$.uid);
         setHostInstance(document.id, id, instances);
       }
     }
@@ -255,7 +255,7 @@ function createSimulatorRenderer() {
           return {
             docId,
             nodeId,
-            instance: { nid: nodeId, did: docId, cid: instance.uid },
+            instance: { nid: nodeId, did: docId, cid: instance.$.uid },
           };
         }
       }
@@ -264,7 +264,7 @@ function createSimulatorRenderer() {
     return null;
   };
 
-  simulator.findDOMNodes = (instance: any) => {
+  simulator.findDOMNodes = (instance: SimulatorComponentInstance) => {
     if (!instance) return null;
     const { did, cid } = instance;
     const documentInstance = documentInstanceMap.get(did);
