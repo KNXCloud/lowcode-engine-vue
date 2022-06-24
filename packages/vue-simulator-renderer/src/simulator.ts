@@ -110,7 +110,7 @@ function createDocumentInstance(
       return;
     }
 
-    const el: ComponentHTMLElement = (instance as any).vnode.el;
+    const el: ComponentHTMLElement = instance.$el;
 
     const origId = el[SYMBOL_VNID];
     if (origId && origId !== id) {
@@ -270,7 +270,7 @@ function createSimulatorRenderer() {
     const documentInstance = documentInstanceMap.get(did);
     if (!documentInstance) return null;
     const compInst = documentInstance.getComponentInstance(cid);
-    return compInst ? [compInst.vnode.el as Element] : null;
+    return compInst ? [compInst.$el] : null;
   };
 
   simulator.getClientRects = (element) => getClientRects(element);
