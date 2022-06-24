@@ -8,7 +8,6 @@ import {
   reactive,
   computed,
   onUnmounted,
-  toRaw,
   onBeforeMount,
   onBeforeUnmount,
   onBeforeUpdate,
@@ -155,8 +154,7 @@ const Renderer = defineComponent({
 
     const triggerCompGetCtx = (schema: NodeSchema, val: any) => {
       if (val) {
-        const instance = val._ ? toRaw(val._) : val;
-        props.onCompGetCtx?.(schema, instance);
+        props.onCompGetCtx?.(schema, val);
       }
     };
 
