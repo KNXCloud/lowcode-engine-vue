@@ -176,7 +176,7 @@ export function useRenderer(props: RendererProps) {
 
     if (extraProps) {
       Object.keys(extraProps).forEach((propKey) => {
-        buildProp(processed, propKey, propsSchema[propKey]);
+        buildProp(processed, propKey, extraProps[propKey]);
       });
     }
 
