@@ -6,6 +6,10 @@ export const rendererProps = {
     type: String,
     default: '',
   },
+  scope: {
+    type: Object,
+    default: () => ({}),
+  },
   schema: {
     type: Object as PropType<NodeSchema>,
     default: () => ({}),
@@ -14,6 +18,7 @@ export const rendererProps = {
 
 export interface RendererProps {
   id: string;
+  scope: any;
   schema: NodeSchema;
 }
 

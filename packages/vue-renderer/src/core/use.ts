@@ -2,22 +2,24 @@ import {
   Component,
   h,
   VNode,
-  shallowRef,
   createTextVNode,
   computed,
   ref,
   Ref,
   ComputedRef,
+  Slots,
+  Slot,
 } from 'vue';
 import {
-  isJSExpression,
   CompositeValue,
   isJSSlot,
   NodeData,
   NodeSchema,
-  TransformStage,
   JSFunction,
   isJSFunction,
+  isDOMText,
+  isNodeSchema,
+  isJSExpression,
 } from '@alilc/lowcode-types';
 import { isString, isNil, camelCase } from 'lodash-es';
 import { useRendererContext } from '../context';
@@ -25,22 +27,40 @@ import { RendererProps } from './base';
 import { Hoc } from './hoc';
 import { Live } from './live';
 import { ensureArray, mergeScope, parseSchema } from '../utils';
-import { SlotNode } from '@alilc/lowcode-designer';
+
+export type SlotSchemaMap = {
+  [x: string]: NodeData[] | undefined;
+};
+
+export type PropSchemaMap = {
+  [x: string]: unknown;
+};
+
+export function isNodeData(val: unknown): val is NodeData | NodeData[] {
+  if (Array.isArray(val)) {
+    return val.every((item) => isNodeData(item));
+  }
+  return isDOMText(val) || isNodeSchema(val) || isJSExpression(val);
+}
 
 export function useRenderer(props: RendererProps) {
-  const { components, scope, getNode, designMode } = useRendererContext();
+  const { components, getNode, designMode } = useRendererContext();
 
-  const node = getNode(props.schema.id!);
+  const node = getNode(props.id ?? props.schema.id!);
 
   const isDesignMode = designMode === 'design';
 
-  const children = shallowRef<any[]>([]);
-
-  const render = (schema: NodeData, Base: Component, Comp?: Component) => {
+  const render = (
+    schema: NodeData,
+    Base: Component,
+    blockScope?: any,
+    Comp?: Component
+  ) => {
+    const mergedScope = mergeScope(props.scope, blockScope);
     if (isString(schema)) {
       return createTextVNode(schema);
     } else if (isJSExpression(schema)) {
-      const result = parseSchema(schema, scope);
+      const result = parseSchema(schema, mergedScope);
       if (result == null) {
         return null;
       } else if (isString(result)) {
@@ -58,50 +78,44 @@ export function useRenderer(props: RendererProps) {
       id: schema.id!,
       key: schema.id,
       schema: schema,
+      scope: mergedScope,
     } as any);
   };
 
-  const renderHoc = (nodeSchema: NodeData, Comp?: Component): VNode | null => {
-    return render(nodeSchema, Hoc, Comp);
+  const renderHoc = (
+    nodeSchema: NodeData,
+    blockScope?: any,
+    Comp?: Component
+  ): VNode | null => {
+    return render(nodeSchema, Hoc, blockScope, Comp);
   };
 
-  const renderLive = (nodeSchema: NodeData, Comp?: Component): VNode | null => {
-    return render(nodeSchema, Live, Comp);
+  const renderLive = (
+    nodeSchema: NodeData,
+    blockScope?: any,
+    Comp?: Component
+  ): VNode | null => {
+    return render(nodeSchema, Live, blockScope, Comp);
   };
 
   const renderComp = isDesignMode ? renderHoc : renderLive;
 
-  const createSlot = (slotNode: SlotNode) => {
-    const schema = slotNode.export(TransformStage.Render);
-    return () => renderComp(schema);
-  };
-
-  const createChildren = (nodeSchema: undefined | NodeData | NodeData[]) => {
-    children.value = ensureArray(nodeSchema);
-
-    return () => {
-      if (children.value.length) return children.value.map((item) => renderComp(item));
-      if (isDesignMode && node?.isContainer()) return h('div', { class: 'lc-container' });
-      return null;
-    };
-  };
-
   const buildSchema = () => {
     const { schema } = props;
 
-    const slotProps: any = {};
-    const normalProps: any = {};
+    const slotProps: SlotSchemaMap = {};
+    const normalProps: PropSchemaMap = {};
 
-    slotProps.default = createChildren(schema.children);
+    slotProps.default = ensureArray(schema.children);
 
     Object.entries(schema.props ?? {}).forEach(([key, val]) => {
       if (isJSSlot(val) && val.value) {
         const children = val.value;
-        slotProps[key] = () => ensureArray(children).map((item) => renderComp(item));
+        slotProps[key] = ensureArray(children);
       } else if (key === 'className') {
         normalProps.class = val;
-      } else if (key === 'children') {
-        slotProps.default = createChildren(val as NodeData);
+      } else if (key === 'children' && isNodeData(val)) {
+        slotProps.default = ensureArray(val);
       } else {
         normalProps[key] = val;
       }
@@ -110,48 +124,66 @@ export function useRenderer(props: RendererProps) {
     return { props: normalProps, slots: slotProps };
   };
 
-  const buildProps = (props: any, blockScope?: Record<string, any>) => {
-    // 属性预处理
-    const processed = Object.keys(props).reduce((prev, next) => {
-      const val = props[next];
-      if (next.startsWith('v-model')) {
-        // 双向绑定逻辑
-        const matched = next.match(/v-model(?::(\w+))?$/);
-        if (!matched) return prev;
+  const buildProp = (target: any, key: string, val: unknown) => {
+    if (key.startsWith('v-model')) {
+      // 双向绑定逻辑
+      const matched = key.match(/v-model(?::(\w+))?$/);
+      if (!matched) return target;
 
-        const valueProp = camelCase(matched[1] ?? 'modelValue');
-        const eventProp = `onUpdate:${valueProp}`;
-        if (isJSExpression(val)) {
-          const updateEventFn: JSFunction = {
-            type: 'JSFunction',
-            value: `function ($event) {${val.value} = $event}`,
-          };
-          prev[eventProp] =
-            eventProp in prev
-              ? ensureArray(prev[eventProp]).concat(updateEventFn)
-              : updateEventFn;
-        }
-        prev[valueProp] = val;
-      } else if (next.startsWith('v-') && isJSExpression(val)) {
-        // TODO: 指令绑定逻辑
-      } else if (next.match(/^on[A-Z]/) && isJSFunction(val)) {
-        // 事件绑定逻辑
-
-        // normalize: onUpdateXxx => onUpdate:xxx
-        const matched = next.match(/onUpdate(?::?(\w+))$/);
-        if (matched) {
-          next = `onUpdate:${camelCase(matched[1])}`;
-        }
-
-        // 若事件名称重复，则自动转化为数组
-        prev[next] = next in prev ? ensureArray(prev[next]).concat(val) : val;
-      } else {
-        prev[next] = val;
+      const valueProp = camelCase(matched[1] ?? 'modelValue');
+      const eventProp = `onUpdate:${valueProp}`;
+      if (isJSExpression(val)) {
+        const updateEventFn: JSFunction = {
+          type: 'JSFunction',
+          value: `function ($event) {${val.value} = $event}`,
+        };
+        target[eventProp] =
+          eventProp in target
+            ? ensureArray(target[eventProp]).concat(updateEventFn)
+            : updateEventFn;
       }
-      return prev;
-    }, {} as Record<string, any>);
+      target[valueProp] = val;
+    } else if (key.startsWith('v-') && isJSExpression(val)) {
+      // TODO: 指令绑定逻辑
+    } else if (key.match(/^on[A-Z]/) && isJSFunction(val)) {
+      // 事件绑定逻辑
 
-    return parseSchema(processed, mergeScope(scope, blockScope));
+      // normalize: onUpdateXxx => onUpdate:xxx
+      const matched = key.match(/onUpdate(?::?(\w+))$/);
+      if (matched) {
+        key = `onUpdate:${camelCase(matched[1])}`;
+      }
+
+      // 若事件名称重复，则自动转化为数组
+      target[key] = key in target ? ensureArray(target[key]).concat(val) : val;
+    } else {
+      target[key] = val;
+    }
+    return target;
+  };
+
+  const buildProps = (
+    propsSchema: Record<string, unknown>,
+    blockScope?: any,
+    extraProps?: Record<string, unknown>
+  ) => {
+    // 属性预处理
+    const processed: Record<string, any> = {};
+
+    Object.keys(propsSchema).forEach((propKey) => {
+      buildProp(processed, propKey, propsSchema[propKey]);
+    });
+
+    if (extraProps) {
+      Object.keys(extraProps).forEach((propKey) => {
+        buildProp(processed, propKey, propsSchema[propKey]);
+      });
+    }
+
+    return parseSchema(
+      processed,
+      blockScope ? mergeScope(props.scope, blockScope) : props.scope
+    );
   };
 
   const buildLoop = (schema: NodeSchema) => {
@@ -168,7 +200,7 @@ export function useRenderer(props: RendererProps) {
     return {
       loop: computed<unknown[] | null>(() => {
         if (!loop.value) return null;
-        return parseSchema(loop.value, scope);
+        return parseSchema(loop.value, props.scope);
       }),
       loopArgs,
       updateLoop(value: CompositeValue) {
@@ -192,12 +224,40 @@ export function useRenderer(props: RendererProps) {
     };
   };
 
+  const wrapDefaultSlot = (slot: Slot) => {
+    return () => {
+      const vnodes = slot();
+      if (isDesignMode && !vnodes.length && node?.isContainer()) {
+        vnodes.push(h('div', { class: 'lc-container' }));
+      }
+      return vnodes;
+    };
+  };
+
+  const buildSlost = (slots: SlotSchemaMap, blockScope?: any): Slots => {
+    return Object.keys(slots).reduce((prev, next) => {
+      const slotSchema = slots[next];
+      if (slotSchema) {
+        const renderSlot = () => {
+          const vnodes: VNode[] = [];
+          slotSchema.forEach((schema) => {
+            const vnode = renderComp(schema, blockScope);
+            vnode && vnodes.push(vnode);
+          });
+          return vnodes;
+        };
+        prev[next] = next === 'default' ? wrapDefaultSlot(renderSlot) : renderSlot;
+      }
+      return prev;
+    }, {} as Record<string, Slot>);
+  };
+
   return {
+    node,
     renderComp,
-    createSlot,
-    createChildren,
     buildLoop,
     buildProps,
+    buildSlost,
     buildSchema,
   };
 }

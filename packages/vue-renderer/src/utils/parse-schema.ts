@@ -4,7 +4,7 @@ import {
   isJSFunction,
   JSFunction,
 } from '@alilc/lowcode-types';
-import { computed } from 'vue';
+import { isFunction } from 'lodash-es';
 
 const EXPRESSION_TYPE = {
   JSEXPRESSION: 'JSExpression',
@@ -37,10 +37,6 @@ export function inSameDomain() {
   }
 }
 
-export function isVueComputed(schema: any): schema is VueComputed {
-  return schema && schema.type === 'VueComputed';
-}
-
 export function parseI18n(i18nInfo: any, scope: any) {
   return parseExpression(
     {
@@ -49,11 +45,6 @@ export function parseI18n(i18nInfo: any, scope: any) {
     },
     scope
   );
-}
-
-export function parseComputed(schema: VueComputed, scope: any): any {
-  const res = parseExpression(schema.value, scope);
-  return computed(res);
 }
 
 export function parseExpression(str: any, scope: any): any {
@@ -85,11 +76,9 @@ export function parseSchema(schema: unknown, scope: any): any {
     return parseI18n(schema, scope);
   } else if (typeof schema === 'string') {
     return schema.trim();
-  } else if (isVueComputed(schema)) {
-    return parseComputed(schema, scope);
   } else if (Array.isArray(schema)) {
     return schema.map((item) => parseSchema(item, scope));
-  } else if (typeof schema === 'function') {
+  } else if (isFunction(schema)) {
     return schema.bind(scope);
   } else if (typeof schema === 'object') {
     if (!schema) return schema;

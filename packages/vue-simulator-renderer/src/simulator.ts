@@ -154,7 +154,7 @@ function createDocumentInstance(
   };
 
   const getNode: DocumentInstance['getNode'] = (id) => {
-    return document.getNode(id);
+    return id ? document.getNode(id) : null;
   };
 
   return reactive({

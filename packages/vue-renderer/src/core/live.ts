@@ -13,8 +13,8 @@ export const Live = defineComponent({
     },
   },
   setup(props) {
-    const { scope, components } = useRendererContext();
-    const { buildSchema, buildProps, buildLoop } = useRenderer(props);
+    const { components } = useRendererContext();
+    const { buildSchema, buildProps, buildLoop, buildSlost } = useRenderer(props);
 
     const hidden = ref(!!props.schema.hidden);
 
@@ -39,7 +39,7 @@ export const Live = defineComponent({
       if (hidden.value) return false;
       const { value: showCondition } = condition;
       if (typeof showCondition === 'boolean') return showCondition;
-      return parseSchema(showCondition, scope);
+      return parseSchema(showCondition, props.scope);
     });
 
     return {
@@ -49,21 +49,36 @@ export const Live = defineComponent({
       compSlots,
       mergedShow,
       mergedComp,
+      buildSlost,
       buildProps,
     };
   },
   render() {
-    const { loop, loopArgs, mergedShow, mergedComp, compProps, compSlots, buildProps } =
-      this;
+    const {
+      loop,
+      loopArgs,
+      mergedShow,
+      mergedComp,
+      compProps,
+      compSlots,
+      buildProps,
+      buildSlost,
+    } = this;
+
     if (!mergedComp || !mergedShow) return null;
-    if (!loop) return h(mergedComp, buildProps(compProps), { ...compSlots });
+    if (!loop) return h(mergedComp, buildProps(compProps), buildSlost(compSlots));
+
     return h(
       Fragment,
       loop.map((item, index) => {
+        const blockScope = {
+          [loopArgs[0]]: item,
+          [loopArgs[1]]: index,
+        };
         return h(
           mergedComp,
-          buildProps(compProps, { [loopArgs[0]]: item, [loopArgs[1]]: index }),
-          { ...compSlots }
+          buildProps(compProps, blockScope),
+          buildSlost(compSlots, blockScope)
         );
       })
     );
