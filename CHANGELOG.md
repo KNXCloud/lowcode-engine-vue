@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.4](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.1.3...v1.1.4) (2022-06-27)
+
+
+### Bug Fixes
+
+* **vue-renderer:** extra props obtain failed ([a73ddea](https://github.com/KNXCloud/lowcode-engine-vue/commit/a73ddea49688aa56aebebd8bf07db862053bf441))
+
+
+
+
+
 ## [1.1.3](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.1.2...v1.1.3) (2022-06-27)
 
 **Note:** Version bump only for package lowcode-engine-vue
