@@ -8,7 +8,8 @@
     "lint": "pnpm run lint:code && pnpm run lint:type",
     "lint:code": "eslint ./packages/**/*.ts && stylelint ./packages/**/*.less",
     "lint:type": "lerna run lint:type --stream",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@knxcloud/lowcode-utils": "workspace:*",
