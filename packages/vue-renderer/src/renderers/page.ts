@@ -1,4 +1,4 @@
-import { computed, defineComponent, h } from 'vue';
+import { defineComponent, h } from 'vue';
 import { useRendererContext } from '../context';
 import { useRenderer, rendererProps } from '../core';
 
@@ -11,11 +11,10 @@ export const PageRenderer = defineComponent({
   __renderer__: true,
   setup(props) {
     const { components } = useRendererContext();
-    const comp = computed(() => components.Page || Page);
-    return { comp, ...useRenderer(props) };
-  },
-  render() {
-    const { comp, renderComp, schema } = this;
-    return renderComp(schema, comp);
+    const { renderComp } = useRenderer(props);
+    return () => {
+      const { schema } = props;
+      return renderComp(schema, null, components.Page || Page);
+    };
   },
 });

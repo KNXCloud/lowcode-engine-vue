@@ -3,7 +3,6 @@ import {
   PropType,
   defineComponent,
   h,
-  ref,
   provide,
   reactive,
   computed,
@@ -15,6 +14,8 @@ import {
   onUpdated,
   onErrorCaptured,
   getCurrentInstance,
+  ComponentPublicInstance,
+  isRef,
 } from 'vue';
 import { NodeSchema, RootSchema } from '@alilc/lowcode-types';
 import { Node } from '@alilc/lowcode-designer';
@@ -32,7 +33,7 @@ interface RendererProps {
   locale?: string;
   messages?: Record<string, any>;
   getNode?: (id: string) => Node<NodeSchema> | null;
-  onCompGetCtx?: (schema: NodeSchema, ref: any) => void;
+  onCompGetCtx?: (schema: NodeSchema, ref: ComponentPublicInstance) => void;
 }
 
 const LIFT_CYCLES_MAP = {
@@ -62,8 +63,6 @@ function useI18n(props: RendererProps) {
 }
 
 function useRootScope(schema?: RootSchema) {
-  if (!schema) return reactive({});
-
   const {
     state: stateSchema,
     methods: methodsSchema,
@@ -72,30 +71,26 @@ function useRootScope(schema?: RootSchema) {
 
   // 将全局属性配置应用到 scope 中
   const instance = getCurrentInstance()!;
-  const globalProperties = instance.appContext.config.globalProperties ?? {};
-  const scope: any = reactive(
-    Object.create({}, Object.getOwnPropertyDescriptors(globalProperties))
-  );
+  const scope = instance.proxy!;
+  const data = (instance.data = reactive({} as Record<string, unknown>));
 
   // 处理 state
-  const states = parseSchema(stateSchema, undefined);
-  Object.entries(states ?? {}).forEach(([key, val]) => {
-    scope[key] = ref(val);
-  });
+  const states = parseSchema(stateSchema, undefined) ?? {};
+  Object.assign(data, states);
 
   // 处理 methods
-  const methods = parseSchema(methodsSchema, scope);
+  const methods = parseSchema(methodsSchema, scope) ?? {};
   Object.assign(scope, methods);
 
   // 处理 lifecycle
   const lifeCycles = parseSchema(lifeCyclesSchema, scope);
   Object.entries(lifeCycles ?? {}).forEach(([lifeCycle, callback]: [any, any]) => {
     const hook = LIFT_CYCLES_MAP[lifeCycle as keyof typeof LIFT_CYCLES_MAP];
-    hook?.(callback);
+    hook?.(callback, instance);
   });
 
   // 处理 css
-  if (schema.css) {
+  if (schema?.css) {
     let style: HTMLStyleElement | null = document.querySelector(`[data-id=${schema.id}]`);
     if (!style) {
       style = document.createElement('style');
@@ -107,7 +102,19 @@ function useRootScope(schema?: RootSchema) {
       style.innerHTML = schema.css;
     }
   }
-  return scope;
+
+  const addToScope = (source: Record<string, unknown>) => {
+    Object.keys(source).forEach((key) => {
+      const val = source[key];
+      const target = isRef(val) ? data : scope;
+      Reflect.set(target, key, val);
+    });
+  };
+
+  return {
+    scope,
+    addToScope,
+  };
 }
 
 const Renderer = defineComponent({
@@ -120,6 +127,7 @@ const Renderer = defineComponent({
       type: Object as PropType<Record<string, Component>>,
       required: true,
     },
+    /** 设计模式，可选值：live、design */
     designMode: {
       type: String as PropType<'live' | 'design'>,
       default: 'live',
@@ -138,35 +146,36 @@ const Renderer = defineComponent({
       type: Object as PropType<Record<string, any>>,
       default: () => ({}),
     },
-    /** 设计模式，可选值：live、design */
     getNode: {
       type: Function as PropType<(id: string) => Node<NodeSchema> | null>,
       default: undefined,
     },
     /** 组件获取 ref 时触发的钩子 */
     onCompGetCtx: {
-      type: Function as PropType<(schema: NodeSchema, ref: any) => void>,
+      type: Function as PropType<
+        (schema: NodeSchema, ref: ComponentPublicInstance) => void
+      >,
       default: undefined,
     },
   },
   setup(props: RendererProps) {
     const contextKey = contextFactory();
 
-    const triggerCompGetCtx = (schema: NodeSchema, val: any) => {
-      if (val) {
-        props.onCompGetCtx?.(schema, val);
-      }
+    const triggerCompGetCtx = (schema: NodeSchema, val: ComponentPublicInstance) => {
+      val && props.onCompGetCtx?.(schema, val);
     };
 
-    const scope = useRootScope(props.schema);
-    Object.assign(scope, useI18n(props)); // append i18n methods
+    const { scope, addToScope } = useRootScope(props.schema);
+
+    // append i18n methods
+    addToScope(useI18n(props));
 
     // append dataSource
     const { dataSourceMap, reloadDataSource } = createDataSourceManager(
       props.schema.dataSource ?? { list: [], dataHandler: undefined },
       scope
     );
-    Object.assign(scope, { dataSourceMap, reloadDataSource });
+    addToScope({ dataSourceMap, reloadDataSource });
     reloadDataSource();
 
     const allComponents = computed(() => ({
@@ -179,13 +188,13 @@ const Renderer = defineComponent({
       reactive({
         scope: scope,
         components: allComponents,
-        getNode: (id: string) => props.getNode?.(id),
+        getNode: (id: string) => props.getNode?.(id) ?? null,
         designMode: computed(() => props.designMode),
         triggerCompGetCtx,
       })
     );
 
-    const renderPage = () => {
+    const renderContent = () => {
       const { schema } = props;
       if (!schema) {
         return null;
@@ -198,21 +207,22 @@ const Renderer = defineComponent({
       }
       return Comp
         ? h(Comp, {
+            id: schema.id,
             key: schema.__ctx && `${schema.__ctx.lceKey}_${schema.__ctx.idx || '0'}`,
             schema,
-            id: schema.id,
+            scope,
           } as any)
         : null;
     };
 
-    return { renderPage };
+    return { renderContent };
   },
   render() {
-    const { device, locale, renderPage } = this;
+    const { device, locale, renderContent } = this;
     const configProvider = config.getConfigProvider();
     return configProvider
-      ? h(configProvider, { device, locale }, { default: renderPage })
-      : renderPage();
+      ? h(configProvider, { device, locale }, { default: renderContent })
+      : renderContent();
   },
 }) as new (...args: any[]) => { $props: RendererProps };
 
