@@ -1,7 +1,9 @@
 import {
+  I18nData,
   isI18nData,
   isJSExpression,
   isJSFunction,
+  JSExpression,
   JSFunction,
 } from '@alilc/lowcode-types';
 import { isFunction } from 'lodash-es';
@@ -12,20 +14,7 @@ const EXPRESSION_TYPE = {
   JSSLOT: 'JSSlot',
   JSBLOCK: 'JSBlock',
   I18N: 'i18n',
-};
-
-export interface VueComputed {
-  type: 'VueComputed';
-  /**
-   * 表达式字符串
-   */
-  value:
-    | JSFunction
-    | {
-        get: JSFunction;
-        set: JSFunction;
-      };
-}
+} as const;
 
 export function inSameDomain() {
   try {
@@ -37,7 +26,7 @@ export function inSameDomain() {
   }
 }
 
-export function parseI18n(i18nInfo: any, scope: any) {
+export function parseI18n(i18nInfo: I18nData, scope: any) {
   return parseExpression(
     {
       type: EXPRESSION_TYPE.JSEXPRESSION,
@@ -47,7 +36,7 @@ export function parseI18n(i18nInfo: any, scope: any) {
   );
 }
 
-export function parseExpression(str: any, scope: any): any {
+export function parseExpression(str: JSExpression | JSFunction, scope: any): any {
   try {
     const contextArr = ['"use strict";', 'var __self = arguments[0];'];
     contextArr.push('return ');

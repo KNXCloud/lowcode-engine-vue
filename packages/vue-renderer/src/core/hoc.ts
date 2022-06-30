@@ -1,17 +1,17 @@
-import { set } from 'lodash-es';
+import { isNil, set } from 'lodash-es';
 import { isJSSlot, TransformStage } from '@alilc/lowcode-types';
 import { SlotNode } from '@alilc/lowcode-designer';
 import {
+  PropType,
   Component,
   ComponentPublicInstance,
-  computed,
-  defineComponent,
-  Fragment,
   h,
-  onUnmounted,
-  PropType,
-  reactive,
   ref,
+  Fragment,
+  computed,
+  reactive,
+  onUnmounted,
+  defineComponent,
 } from 'vue';
 import { rendererProps } from './base';
 import { useRendererContext } from '../context';
@@ -24,11 +24,11 @@ export const Hoc = defineComponent({
     ...rendererProps,
     comp: {
       type: Object as PropType<Component>,
-      default: undefined,
+      required: true,
     },
   },
   setup(props) {
-    const { components, triggerCompGetCtx } = useRendererContext();
+    const { triggerCompGetCtx } = useRendererContext();
     const { node, buildSchema, buildProps, buildSlost, buildLoop } = useRenderer(props);
 
     const hidden = ref(!!props.schema.hidden);
@@ -41,19 +41,7 @@ export const Hoc = defineComponent({
     Object.assign(compProps, result.props);
     Object.assign(compSlots, result.slots);
 
-    const mergedComp = computed(() => {
-      const { comp, schema } = props;
-      if (comp) return comp;
-      if (schema) {
-        const { componentName } = schema;
-        if (components[componentName]) {
-          return components[componentName];
-        }
-      }
-      return null;
-    });
-
-    const mergedShow = computed(() => {
+    const show = computed(() => {
       if (hidden.value) return false;
       const { value: showCondition } = condition;
       if (typeof showCondition === 'boolean') return showCondition;
@@ -74,7 +62,7 @@ export const Hoc = defineComponent({
       );
       disposeFunctions.push(
         node.onPropChange((info) => {
-          const { key = '', prop, newValue, oldValue } = info;
+          const { key, prop, newValue, oldValue } = info;
           if (key === '___condition___') {
             // 条件渲染更新 v-if
             condition.value = newValue;
@@ -89,16 +77,24 @@ export const Hoc = defineComponent({
             updateLoopArg(newValue, key);
           } else if (key === 'children') {
             // 默认插槽更新
-            compSlots.default = ensureArray(newValue);
-          } else if (isJSSlot(newValue)) {
+            if (isJSSlot(newValue)) {
+              const slotNode: SlotNode = prop.slotNode;
+              const schema = slotNode.export(TransformStage.Render);
+              compSlots.default = schema;
+            } else if (!isNil(newValue)) {
+              compSlots.default = ensureArray(newValue);
+            } else {
+              delete compSlots.default;
+            }
+          } else if (key && isJSSlot(newValue)) {
             // 具名插槽更新
             const slotNode: SlotNode = prop.slotNode;
             const schema = slotNode.export(TransformStage.Render);
-            compSlots[key] = ensureArray(schema);
-          } else if (!newValue && isJSSlot(oldValue)) {
+            compSlots[key] = schema;
+          } else if (key && isNil(newValue) && isJSSlot(oldValue)) {
             // 具名插槽移除
             delete compSlots[key];
-          } else {
+          } else if (prop.path) {
             // 普通属性更新
             set(compProps, prop.path, newValue);
           }
@@ -111,12 +107,11 @@ export const Hoc = defineComponent({
     };
 
     return {
+      show,
       loop,
       loopArgs,
       compSlots,
       compProps,
-      mergedComp,
-      mergedShow,
       getRef,
       buildSlost,
       buildProps,
@@ -124,23 +119,24 @@ export const Hoc = defineComponent({
   },
   render() {
     const {
+      comp,
+      show,
       loop,
       loopArgs,
       compProps,
       compSlots,
-      mergedComp,
-      mergedShow,
       getRef,
       buildSlost,
       buildProps,
     } = this;
-    if (!mergedComp || !mergedShow) return null;
+
+    if (!show) return null;
+    if (!comp) return h('div', 'component not found');
+
     if (!loop) {
-      return h(
-        mergedComp,
-        buildProps(compProps, null, { ref: getRef }),
-        buildSlost(compSlots)
-      );
+      const props = buildProps(compProps, null, { ref: getRef });
+      const slots = buildSlost(compSlots);
+      return h(comp, props, slots);
     }
 
     return h(
@@ -150,11 +146,9 @@ export const Hoc = defineComponent({
           [loopArgs[0]]: item,
           [loopArgs[1]]: index,
         };
-        return h(
-          mergedComp,
-          buildProps(compProps, blockScope, { ref: getRef }),
-          buildSlost(compSlots, blockScope)
-        );
+        const props = buildProps(compProps, blockScope, { ref: getRef });
+        const slots = buildSlost(compSlots, blockScope);
+        return h(comp, props, slots);
       })
     );
   },
