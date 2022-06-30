@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.1.5](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.1.4...v1.1.5) (2022-06-30)
+
+
+### Features
+
+* **vue-renderer:** adapter naive private props ([2a36671](https://github.com/KNXCloud/lowcode-engine-vue/commit/2a36671f0ec8b3295e5664e18549a345be64b2a1))
+
+
+
+
+
 ## [1.1.4](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.1.3...v1.1.4) (2022-06-27)
 
 
