@@ -26,14 +26,14 @@ import config from './config';
 import { createDataSourceManager } from './data-source';
 
 interface RendererProps {
-  schema: RootSchema;
-  components: Record<string, Component>;
-  designMode?: 'live' | 'design';
-  device?: string;
-  locale?: string;
-  messages?: Record<string, any>;
-  getNode?: (id: string) => Node<NodeSchema> | null;
-  onCompGetCtx?: (schema: NodeSchema, ref: ComponentPublicInstance) => void;
+  __schema: RootSchema;
+  __components: Record<string, Component>;
+  __designMode?: 'live' | 'design';
+  __device?: string;
+  __locale?: string;
+  __messages?: Record<string, any>;
+  __getNode?: (id: string) => Node<NodeSchema> | null;
+  __onCompGetCtx?: (schema: NodeSchema, ref: ComponentPublicInstance) => void;
 }
 
 const LIFT_CYCLES_MAP = {
@@ -53,17 +53,18 @@ const LIFT_CYCLES_MAP = {
 
 function useI18n(props: RendererProps) {
   const i18n = (key: string, values?: any) => {
-    const { locale, messages } = props;
+    const { __locale: locale, __messages: messages } = props;
     return getI18n(key, values, locale, messages);
   };
 
-  const currentLocale = computed(() => props.locale);
+  const currentLocale = computed(() => props.__locale);
 
   return { i18n, currentLocale };
 }
 
 function useRootScope(schema?: RootSchema) {
   const {
+    props: propsSchema,
     state: stateSchema,
     methods: methodsSchema,
     lifeCycles: lifeCyclesSchema,
@@ -73,6 +74,10 @@ function useRootScope(schema?: RootSchema) {
   const instance = getCurrentInstance()!;
   const scope = instance.proxy!;
   const data = (instance.data = reactive({} as Record<string, unknown>));
+
+  // 处理 props
+  const props = parseSchema(propsSchema, undefined) ?? {};
+  Object.assign(scope.$.props, props);
 
   // 处理 state
   const states = parseSchema(stateSchema, undefined) ?? {};
@@ -119,39 +124,39 @@ function useRootScope(schema?: RootSchema) {
 
 const Renderer = defineComponent({
   props: {
-    schema: {
+    __schema: {
       type: Object as PropType<RootSchema>,
       required: true,
     },
-    components: {
+    __components: {
       type: Object as PropType<Record<string, Component>>,
       required: true,
     },
     /** 设计模式，可选值：live、design */
-    designMode: {
+    __designMode: {
       type: String as PropType<'live' | 'design'>,
       default: 'live',
     },
     /** 设备信息 */
-    device: {
+    __device: {
       type: String,
       default: undefined,
     },
     /** 语言 */
-    locale: {
+    __locale: {
       type: String,
       default: undefined,
     },
-    messages: {
+    __messages: {
       type: Object as PropType<Record<string, any>>,
       default: () => ({}),
     },
-    getNode: {
+    __getNode: {
       type: Function as PropType<(id: string) => Node<NodeSchema> | null>,
       default: undefined,
     },
     /** 组件获取 ref 时触发的钩子 */
-    onCompGetCtx: {
+    __onCompGetCtx: {
       type: Function as PropType<
         (schema: NodeSchema, ref: ComponentPublicInstance) => void
       >,
@@ -162,17 +167,17 @@ const Renderer = defineComponent({
     const contextKey = contextFactory();
 
     const triggerCompGetCtx = (schema: NodeSchema, val: ComponentPublicInstance) => {
-      val && props.onCompGetCtx?.(schema, val);
+      val && props.__onCompGetCtx?.(schema, val);
     };
 
-    const { scope, addToScope } = useRootScope(props.schema);
+    const { scope, addToScope } = useRootScope(props.__schema);
 
     // append i18n methods
     addToScope(useI18n(props));
 
     // append dataSource
     const { dataSourceMap, reloadDataSource } = createDataSourceManager(
-      props.schema.dataSource ?? { list: [], dataHandler: undefined },
+      props.__schema.dataSource ?? { list: [], dataHandler: undefined },
       scope
     );
     addToScope({ dataSourceMap, reloadDataSource });
@@ -180,7 +185,7 @@ const Renderer = defineComponent({
 
     const allComponents = computed(() => ({
       ...config.getRenderers(),
-      ...props.components,
+      ...props.__components,
     }));
 
     provide(
@@ -188,14 +193,14 @@ const Renderer = defineComponent({
       reactive({
         scope: scope,
         components: allComponents,
-        getNode: (id: string) => props.getNode?.(id) ?? null,
-        designMode: computed(() => props.designMode),
+        getNode: (id: string) => props.__getNode?.(id) ?? null,
+        designMode: computed(() => props.__designMode),
         triggerCompGetCtx,
       })
     );
 
     const renderContent = () => {
-      const { schema } = props;
+      const { __schema: schema } = props;
       if (!schema) {
         return null;
       }
@@ -215,14 +220,13 @@ const Renderer = defineComponent({
         : null;
     };
 
-    return { renderContent };
-  },
-  render() {
-    const { device, locale, renderContent } = this;
-    const configProvider = config.getConfigProvider();
-    return configProvider
-      ? h(configProvider, { device, locale }, { default: renderContent })
-      : renderContent();
+    return () => {
+      const { __device: device, __locale: locale } = props;
+      const configProvider = config.getConfigProvider();
+      return configProvider
+        ? h(configProvider, { device, locale }, { default: renderContent })
+        : renderContent();
+    };
   },
 }) as new (...args: any[]) => { $props: RendererProps };
 

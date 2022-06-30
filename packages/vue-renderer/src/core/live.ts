@@ -1,14 +1,4 @@
-import { useRendererContext } from '../context';
-import {
-  Component,
-  computed,
-  defineComponent,
-  Fragment,
-  h,
-  PropType,
-  ref,
-  toRaw,
-} from 'vue';
+import { Component, computed, defineComponent, Fragment, h, PropType, ref } from 'vue';
 import { rendererProps } from './base';
 import { useRenderer } from './use';
 import { parseSchema } from '../utils';
@@ -18,11 +8,10 @@ export const Live = defineComponent({
     ...rendererProps,
     comp: {
       type: Object as PropType<Component>,
-      default: undefined,
+      required: true,
     },
   },
   setup(props) {
-    const { components } = useRendererContext();
     const { buildSchema, buildProps, buildLoop, buildSlost } = useRenderer(props);
 
     const hidden = ref(!!props.schema.hidden);
@@ -32,19 +21,7 @@ export const Live = defineComponent({
     const { loop, loopArgs } = buildLoop(props.schema);
     const { props: compProps, slots: compSlots } = buildSchema();
 
-    const mergedComp = computed(() => {
-      const { comp, schema } = props;
-      if (comp) return comp;
-      if (schema) {
-        const { componentName } = schema;
-        if (components[componentName]) {
-          return components[componentName];
-        }
-      }
-      return null;
-    });
-
-    const mergedShow = computed(() => {
+    const show = computed(() => {
       if (hidden.value) return false;
       const { value: showCondition } = condition;
       if (typeof showCondition === 'boolean') return showCondition;
@@ -52,32 +29,24 @@ export const Live = defineComponent({
     });
 
     return {
+      show,
       loop,
       loopArgs,
       compProps,
       compSlots,
-      mergedShow,
-      mergedComp,
       buildSlost,
       buildProps,
     };
   },
   render() {
-    const {
-      loop,
-      loopArgs,
-      mergedShow,
-      mergedComp,
-      compProps,
-      compSlots,
-      buildProps,
-      buildSlost,
-    } = this;
+    const { show, comp, loop, loopArgs, compProps, compSlots, buildProps, buildSlost } =
+      this;
 
-    const rawComp = toRaw(mergedComp);
-
-    if (!rawComp || !mergedShow) return null;
-    if (!loop) return h(rawComp, buildProps(compProps), buildSlost(compSlots));
+    if (!show) return null;
+    if (!comp) return h('div', 'component not found');
+    if (!loop) {
+      return h(comp, buildProps(compProps), buildSlost(compSlots));
+    }
 
     return h(
       Fragment,
@@ -87,7 +56,7 @@ export const Live = defineComponent({
           [loopArgs[1]]: index,
         };
         return h(
-          rawComp,
+          comp,
           buildProps(compProps, blockScope),
           buildSlost(compSlots, blockScope)
         );

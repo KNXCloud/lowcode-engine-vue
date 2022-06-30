@@ -2,10 +2,6 @@ import { NodeSchema } from '@alilc/lowcode-types';
 import type { DefineComponent, PropType } from 'vue';
 
 export const rendererProps = {
-  id: {
-    type: String,
-    default: '',
-  },
   scope: {
     type: Object,
     default: () => ({}),
@@ -17,7 +13,6 @@ export const rendererProps = {
 };
 
 export interface RendererProps {
-  id: string;
   scope: any;
   schema: NodeSchema;
 }
