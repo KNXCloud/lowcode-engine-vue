@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.2.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.1.5...v1.2.0) (2022-06-30)
+
+
+### Features
+
+* **vue-renderer:** enhance slot and optimize scope ([f1454ea](https://github.com/KNXCloud/lowcode-engine-vue/commit/f1454eaae738cf8c0a12e0e34bd5a576f43cc85c))
+
+
+
+
+
 ## [1.1.5](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.1.4...v1.1.5) (2022-06-30)
 
 **Note:** Version bump only for package @knxcloud/lowcode-vue-simulator-renderer
