@@ -1,5 +1,14 @@
 import { useRendererContext } from '../context';
-import { Component, computed, defineComponent, Fragment, h, PropType, ref } from 'vue';
+import {
+  Component,
+  computed,
+  defineComponent,
+  Fragment,
+  h,
+  PropType,
+  ref,
+  toRaw,
+} from 'vue';
 import { rendererProps } from './base';
 import { useRenderer } from './use';
 import { parseSchema } from '../utils';
@@ -65,8 +74,10 @@ export const Live = defineComponent({
       buildSlost,
     } = this;
 
-    if (!mergedComp || !mergedShow) return null;
-    if (!loop) return h(mergedComp, buildProps(compProps), buildSlost(compSlots));
+    const rawComp = toRaw(mergedComp);
+
+    if (!rawComp || !mergedShow) return null;
+    if (!loop) return h(rawComp, buildProps(compProps), buildSlost(compSlots));
 
     return h(
       Fragment,
@@ -76,7 +87,7 @@ export const Live = defineComponent({
           [loopArgs[1]]: index,
         };
         return h(
-          mergedComp,
+          rawComp,
           buildProps(compProps, blockScope),
           buildSlost(compSlots, blockScope)
         );

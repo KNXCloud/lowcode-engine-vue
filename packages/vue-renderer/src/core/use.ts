@@ -21,7 +21,7 @@ import {
   isNodeSchema,
   isJSExpression,
 } from '@alilc/lowcode-types';
-import { isString, isNil, camelCase } from 'lodash-es';
+import { isString, isNil, camelCase, pickBy } from 'lodash-es';
 import { useRendererContext } from '../context';
 import { RendererProps } from './base';
 import { Hoc } from './hoc';
@@ -73,13 +73,23 @@ export function useRenderer(props: RendererProps) {
       const { componentName } = schema;
       Comp = components[componentName];
     }
-    return h(Base, {
-      comp: Comp,
-      id: schema.id!,
-      key: schema.id,
-      schema: schema,
-      scope: mergedScope,
-    } as any);
+
+    if (Comp) {
+      const privateProperties = pickBy(Comp, (_, k) => {
+        return !!k.match(/^__[\s\S]+__/);
+      });
+      if (Object.keys(privateProperties).length > 0) {
+        Base = Object.create(Base, Object.getOwnPropertyDescriptors(privateProperties));
+      }
+      return h(Base, {
+        comp: Comp,
+        id: schema.id!,
+        key: schema.id,
+        schema: schema,
+        scope: mergedScope,
+      } as any);
+    }
+    return h('div', 'component not found');
   };
 
   const renderHoc = (
