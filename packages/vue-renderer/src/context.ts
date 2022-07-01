@@ -1,10 +1,19 @@
-import { NodeSchema } from '@alilc/lowcode-types';
+import { noop } from 'lodash-es';
 import { Node } from '@alilc/lowcode-designer';
-import { Component, ComponentPublicInstance, inject, InjectionKey } from 'vue';
+import { NodeSchema } from '@alilc/lowcode-types';
+import {
+  inject,
+  Component,
+  ComponentPublicInstance,
+  InjectionKey,
+  getCurrentInstance,
+} from 'vue';
+
+export type DesignMode = 'live' | 'design';
 
 export interface RendererContext {
   readonly components: Record<string, Component>;
-  readonly designMode: 'live' | 'design' | undefined;
+  readonly designMode: DesignMode;
   getNode(id: string): Node<NodeSchema> | null;
   triggerCompGetCtx(schema: NodeSchema, val: ComponentPublicInstance): void;
 }
@@ -20,5 +29,25 @@ export function contextFactory(): InjectionKey<RendererContext> {
 
 export function useRendererContext() {
   const key = contextFactory();
-  return inject(key)!;
+  return inject(
+    key,
+    () => {
+      const props = getCurrentInstance()?.props ?? {};
+      return {
+        components: getPropValue(props, 'components', {}),
+        designMode: getPropValue<DesignMode>(props, 'designMode', 'live'),
+        getNode: getPropValue(props, 'getNode', () => null),
+        triggerCompGetCtx: getPropValue(props, 'triggerCompGetCtx', noop),
+      };
+    },
+    true
+  );
+}
+
+function getPropValue<T>(
+  props: Record<string, unknown>,
+  key: string,
+  defaultValue: T
+): T {
+  return (props[key] || props[`__${key}`] || defaultValue) as T;
 }

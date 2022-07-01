@@ -1,43 +1,54 @@
+import { Prop } from '@alilc/lowcode-designer';
 import {
   Component,
-  h,
   VNode,
+  Ref,
+  ComputedRef,
+  Slot,
+  Slots,
+  h,
   createTextVNode,
   computed,
   ref,
-  Ref,
-  ComputedRef,
-  Slots,
-  Slot,
+  reactive,
+  getCurrentInstance,
+  isRef,
+  onBeforeMount,
+  onBeforeUnmount,
+  onBeforeUpdate,
+  onErrorCaptured,
+  onMounted,
+  onUnmounted,
+  onUpdated,
+  provide,
 } from 'vue';
 import {
-  CompositeValue,
-  isJSSlot,
   NodeData,
+  SlotSchema,
   NodeSchema,
   JSFunction,
+  CompositeValue,
+  isJSSlot,
   isJSFunction,
   isDOMText,
   isNodeSchema,
   isJSExpression,
   TransformStage,
-  SlotSchema,
 } from '@alilc/lowcode-types';
-import { Prop } from '@alilc/lowcode-designer';
-import {
-  isNil,
-  isString,
-  camelCase,
-  pickBy,
-  pick,
-  isObject,
-  isFunction,
-} from 'lodash-es';
-import { useRendererContext } from '../context';
-import { RendererProps } from './base';
+import { isNil, isString, camelCase, pickBy, isObject, isFunction } from 'lodash-es';
+import { contextFactory, useRendererContext } from '../context';
+import { LeafProps, RendererProps } from './base';
 import { Hoc } from './hoc';
 import { Live } from './live';
-import { ensureArray, mergeScope, parseSchema, parseExpression } from '../utils';
+import {
+  ensureArray,
+  getI18n,
+  mergeScope,
+  parseSchema,
+  parseExpression,
+  parseSlotParams,
+} from '../utils';
+import { createDataSourceManager } from '../data-source';
 
 export type SlotSchemaMap = {
   [x: string]: SlotSchema | NodeData[] | undefined;
@@ -62,7 +73,7 @@ export function isVueComponent(val: unknown): val is Component {
   return false;
 }
 
-export function useRenderer(props: RendererProps) {
+export function useLeaf(props: LeafProps) {
   const { components, getNode, designMode } = useRendererContext();
 
   const node = props.schema.id ? getNode(props.schema.id) : null;
@@ -103,10 +114,10 @@ export function useRenderer(props: RendererProps) {
     }
 
     return h(base, {
-      comp,
       key: schema.id,
-      schema: schema,
+      comp,
       scope: mergedScope,
+      schema: schema,
     } as any);
   };
 
@@ -179,10 +190,10 @@ export function useRenderer(props: RendererProps) {
         slotSchema = ensureArray(schema.value);
         slotParams = schema.params ?? [];
       }
-      return (slotData: Record<string, unknown> = {}) => {
+      return (...args: unknown[]) => {
         const vnodes: VNode[] = [];
         ensureArray(slotSchema).forEach((item) => {
-          const vnode = renderComp(item, [blockScope, pick(slotData, slotParams)]);
+          const vnode = renderComp(item, [blockScope, parseSlotParams(args, slotParams)]);
           vnode && vnodes.push(vnode);
         });
         return vnodes;
@@ -315,8 +326,8 @@ export function useRenderer(props: RendererProps) {
   };
 
   const decorateDefaultSlot = (slot: Slot): Slot => {
-    return (slotData: Record<string, unknown>) => {
-      const vnodes = slot(slotData);
+    return (...args: unknown[]) => {
+      const vnodes = slot(...args);
       if (!vnodes.length) {
         vnodes.push(h('div', { class: 'lc-container' }));
       }
@@ -328,7 +339,7 @@ export function useRenderer(props: RendererProps) {
     return Object.keys(slots).reduce((prev, next) => {
       const slotSchema = slots[next];
       if (!slotSchema) return prev;
-      const renderSlot = (slotData: Record<string, unknown> = {}) => {
+      const renderSlot = (...args: unknown[]) => {
         const vnodes: VNode[] = [];
         if (Array.isArray(slotSchema)) {
           slotSchema.forEach((item) => {
@@ -337,12 +348,18 @@ export function useRenderer(props: RendererProps) {
           });
         } else if (slotSchema.id) {
           const slotParams = slotSchema.params ?? [];
-          const vnode = renderComp(slotSchema, [blockScope, pick(slotData, slotParams)]);
+          const vnode = renderComp(slotSchema, [
+            blockScope,
+            parseSlotParams(args, slotParams),
+          ]);
           vnode && vnodes.push(vnode);
         } else {
           const slotParams = slotSchema.params ?? [];
           ensureArray(slotSchema.children).forEach((item) => {
-            const vnode = renderComp(item, [blockScope, pick(slotData, slotParams)]);
+            const vnode = renderComp(item, [
+              blockScope,
+              parseSlotParams(args, slotParams),
+            ]);
             vnode && vnodes.push(vnode);
           });
         }
@@ -363,5 +380,131 @@ export function useRenderer(props: RendererProps) {
     buildProps,
     buildSlost,
     buildSchema,
+  };
+}
+
+export function useRenderer(props: RendererProps) {
+  const { scope } = useRootScope(props);
+
+  const leafProps: LeafProps = reactive({
+    comp: null,
+    scope: scope,
+    schema: computed(() => props.__schema),
+  });
+
+  const contextKey = contextFactory();
+
+  const designModeRef = computed(() => props.__designMode);
+  const componentsRef = computed(() => props.__components);
+
+  provide(
+    contextKey,
+    reactive({
+      designMode: designModeRef,
+      components: componentsRef,
+      getNode: (id: string) => props.__getNode?.(id) ?? null,
+      triggerCompGetCtx: computed(() => props.__triggerCompGetCtx),
+    })
+  );
+
+  return { scope, designModeRef, componentsRef, ...useLeaf(leafProps) };
+}
+
+const LIFT_CYCLES_MAP = {
+  beforeMount: onBeforeMount,
+  mounted: onMounted,
+  beforeUpdate: onBeforeUpdate,
+  updated: onUpdated,
+  beforeUnmount: onBeforeUnmount,
+  unmounted: onUnmounted,
+
+  // 适配 react lifecycle
+  componentDidMount: onMounted,
+  componentDidCatch: onErrorCaptured,
+  shouldComponentUpdate: onBeforeUpdate,
+  componentWillUnmount: onBeforeUnmount,
+};
+
+export function useRootScope(rendererProps: RendererProps) {
+  const { __schema: schema, __scope: extraScope } = rendererProps;
+
+  const {
+    props: propsSchema,
+    state: stateSchema,
+    methods: methodsSchema,
+    lifeCycles: lifeCyclesSchema,
+  } = schema ?? {};
+
+  // 将全局属性配置应用到 scope 中
+  const instance = getCurrentInstance()!;
+  const scope = instance.proxy!;
+  const data = (instance.data = reactive({} as Record<string, unknown>));
+
+  // 处理 props
+  const props = parseSchema(propsSchema, undefined) ?? {};
+  Object.assign(instance.props, props);
+
+  // 处理 state
+  const states = parseSchema(stateSchema, undefined) ?? {};
+  Object.assign(data, states);
+
+  // 处理 methods
+  const methods = parseSchema(methodsSchema, scope) ?? {};
+  Object.assign(scope, methods);
+
+  // 处理 lifecycle
+  const lifeCycles = parseSchema(lifeCyclesSchema, scope);
+  Object.entries(lifeCycles ?? {}).forEach(([lifeCycle, callback]: [any, any]) => {
+    const hook = LIFT_CYCLES_MAP[lifeCycle as keyof typeof LIFT_CYCLES_MAP];
+    hook?.(callback, instance);
+  });
+
+  // 处理 css
+  let style: HTMLStyleElement | null = document.querySelector(`[data-id=${schema.id}]`);
+  if (schema.css) {
+    if (!style) {
+      style = document.createElement('style');
+      style.setAttribute('data-id', schema.id!);
+      const head = document.head || document.getElementsByTagName('head')[0];
+      head.appendChild(style);
+    }
+    if (style.innerHTML !== schema.css) {
+      style.innerHTML = schema.css;
+    }
+  } else if (style) {
+    style.parentElement?.removeChild(style);
+  }
+
+  const addToScope = (source: Record<string, unknown>) => {
+    Object.keys(source).forEach((key) => {
+      const val = source[key];
+      const target = isRef(val) ? data : scope;
+      Reflect.set(target, key, val);
+    });
+  };
+
+  // 处理 renderer 额外传入的 scope
+  extraScope && addToScope(extraScope);
+
+  // 处理 i18n
+  const i18n = (key: string, values?: any) => {
+    const { __locale: locale, __messages: messages } = rendererProps;
+    return getI18n(key, values, locale, messages);
+  };
+
+  const currentLocale = computed(() => rendererProps.__locale);
+  addToScope({ i18n, currentLocale });
+
+  // 处理 dataSource
+  const { dataSourceMap, reloadDataSource } = createDataSourceManager(
+    schema.dataSource ?? { list: [], dataHandler: undefined },
+    scope
+  );
+  addToScope({ dataSourceMap, reloadDataSource });
+  reloadDataSource();
+
+  return {
+    scope,
+    addToScope,
   };
 }

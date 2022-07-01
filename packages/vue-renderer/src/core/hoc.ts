@@ -2,8 +2,6 @@ import { isNil, set } from 'lodash-es';
 import { isJSSlot, TransformStage } from '@alilc/lowcode-types';
 import { SlotNode } from '@alilc/lowcode-designer';
 import {
-  PropType,
-  Component,
   ComponentPublicInstance,
   h,
   ref,
@@ -13,23 +11,17 @@ import {
   onUnmounted,
   defineComponent,
 } from 'vue';
-import { rendererProps } from './base';
+import { leafProps } from './base';
 import { useRendererContext } from '../context';
 import { ensureArray, parseSchema } from '../utils';
-import { PropSchemaMap, SlotSchemaMap, useRenderer } from './use';
+import { PropSchemaMap, SlotSchemaMap, useLeaf } from './use';
 
 export const Hoc = defineComponent({
   name: 'Hoc',
-  props: {
-    ...rendererProps,
-    comp: {
-      type: Object as PropType<Component>,
-      required: true,
-    },
-  },
+  props: leafProps,
   setup(props) {
     const { triggerCompGetCtx } = useRendererContext();
-    const { node, buildSchema, buildProps, buildSlost, buildLoop } = useRenderer(props);
+    const { node, buildSchema, buildProps, buildSlost, buildLoop } = useLeaf(props);
 
     const hidden = ref(!!props.schema.hidden);
     const condition = ref<unknown>(props.schema.condition ?? true);
