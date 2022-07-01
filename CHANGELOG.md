@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.3.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.2.0...v1.3.0) (2022-07-01)
+
+
+### Features
+
+* **vue-renderer:** change slot params handle ([0139b3c](https://github.com/KNXCloud/lowcode-engine-vue/commit/0139b3cb62e08a4fc2c29734485b65bef92710c7))
+
+
+
+
+
 # [1.2.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.1.5...v1.2.0) (2022-06-30)
 
 
