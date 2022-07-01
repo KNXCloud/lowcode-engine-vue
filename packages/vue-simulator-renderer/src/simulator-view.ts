@@ -59,15 +59,14 @@ export const Renderer = defineComponent({
     if (!simulator.autoRender) return null;
 
     return h(LowCodeRenderer, {
-      __schema: schema,
-      __components: components,
-      __locale: locale,
-      __messages: {},
-      __designMode: designMode,
-      __device: device,
-      __simulator: simulator,
-      __getNode: (id) => documentInstance.getNode(id),
-      __onCompGetCtx: (schema, ref) => documentInstance.mountInstance(schema.id!, ref),
+      schema: schema,
+      components: components,
+      locale: locale,
+      messages: {},
+      designMode: designMode,
+      device: device,
+      getNode: (id) => documentInstance.getNode(id),
+      onCompGetCtx: (schema, ref) => documentInstance.mountInstance(schema.id!, ref),
     });
   },
 });

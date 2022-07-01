@@ -1,10 +1,10 @@
 import {
   I18nData,
+  JSFunction,
+  JSExpression,
   isI18nData,
   isJSExpression,
   isJSFunction,
-  JSExpression,
-  JSFunction,
 } from '@alilc/lowcode-types';
 import { isFunction } from 'lodash-es';
 

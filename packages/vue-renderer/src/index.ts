@@ -1,3 +1,4 @@
+export * from './core';
 export { default as config } from './config';
 export { useRendererContext } from './context';
 export { Renderer as default } from './renderer';

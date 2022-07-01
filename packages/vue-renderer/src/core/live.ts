@@ -1,18 +1,12 @@
-import { Component, computed, defineComponent, Fragment, h, PropType, ref } from 'vue';
-import { rendererProps } from './base';
-import { useRenderer } from './use';
+import { computed, defineComponent, Fragment, h, ref } from 'vue';
+import { useLeaf } from './use';
+import { leafProps } from './base';
 import { parseSchema } from '../utils';
 
 export const Live = defineComponent({
-  props: {
-    ...rendererProps,
-    comp: {
-      type: Object as PropType<Component>,
-      required: true,
-    },
-  },
+  props: leafProps,
   setup(props) {
-    const { buildSchema, buildProps, buildLoop, buildSlost } = useRenderer(props);
+    const { buildSchema, buildProps, buildLoop, buildSlost } = useLeaf(props);
 
     const hidden = ref(!!props.schema.hidden);
 

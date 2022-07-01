@@ -1,5 +1,4 @@
 import { defineComponent, h } from 'vue';
-import { useRendererContext } from '../context';
 import { useRenderer, rendererProps } from '../core';
 
 const Page = defineComponent((props, { slots }) => {
@@ -10,10 +9,10 @@ export const PageRenderer = defineComponent({
   props: rendererProps,
   __renderer__: true,
   setup(props) {
-    const { components } = useRendererContext();
-    const { renderComp } = useRenderer(props);
+    const { renderComp, componentsRef } = useRenderer(props);
     return () => {
-      const { schema } = props;
+      const { __schema: schema } = props;
+      const { value: components } = componentsRef;
       return renderComp(schema, null, components.Page || Page);
     };
   },
