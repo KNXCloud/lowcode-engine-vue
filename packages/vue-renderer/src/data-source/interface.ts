@@ -1,10 +1,10 @@
 export interface RequestOptions {
   uri: string;
-  params: any;
+  params: Record<string, unknown>;
   method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
   isCors: boolean;
   timeout: number;
-  headers: Record<string, any>;
+  headers: Record<string, string>;
 }
 
 export enum DataSourceStatus {

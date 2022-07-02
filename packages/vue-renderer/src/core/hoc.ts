@@ -26,7 +26,7 @@ export const Hoc = defineComponent({
     const hidden = ref(!!props.schema.hidden);
     const condition = ref<unknown>(props.schema.condition ?? true);
 
-    const { loop, loopArgs, updateLoop, updateLoopArg } = buildLoop(props.schema);
+    const { loop, updateLoop, updateLoopArg, buildLoopScope } = buildLoop(props.schema);
     const compProps: PropSchemaMap = reactive({});
     const compSlots: SlotSchemaMap = reactive({});
     const result = buildSchema();
@@ -37,7 +37,7 @@ export const Hoc = defineComponent({
       if (hidden.value) return false;
       const { value: showCondition } = condition;
       if (typeof showCondition === 'boolean') return showCondition;
-      return parseSchema(showCondition, props.scope);
+      return !!parseSchema(showCondition, props.scope);
     });
 
     // hoc
@@ -102,12 +102,12 @@ export const Hoc = defineComponent({
     return {
       show,
       loop,
-      loopArgs,
       compSlots,
       compProps,
       getRef,
       buildSlost,
       buildProps,
+      buildLoopScope,
     };
   },
   render() {
@@ -115,12 +115,12 @@ export const Hoc = defineComponent({
       comp,
       show,
       loop,
-      loopArgs,
       compProps,
       compSlots,
       getRef,
       buildSlost,
       buildProps,
+      buildLoopScope,
     } = this;
 
     if (!show) return null;
@@ -132,13 +132,15 @@ export const Hoc = defineComponent({
       return h(comp, props, slots);
     }
 
+    if (!Array.isArray(loop)) {
+      console.warn('[vue-renderer]: loop must be array', loop);
+      return null;
+    }
+
     return h(
       Fragment,
-      loop.map((item, index) => {
-        const blockScope = {
-          [loopArgs[0]]: item,
-          [loopArgs[1]]: index,
-        };
+      loop.map((item, index, arr) => {
+        const blockScope = buildLoopScope(item, index, arr.length);
         const props = buildProps(compProps, blockScope, { ref: getRef });
         const slots = buildSlost(compSlots, blockScope);
         return h(comp, props, slots);

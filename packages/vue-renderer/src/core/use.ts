@@ -21,6 +21,8 @@ import {
   onUnmounted,
   onUpdated,
   provide,
+  toRaw,
+  toDisplayString,
 } from 'vue';
 import {
   NodeData,
@@ -35,20 +37,22 @@ import {
   isJSExpression,
   TransformStage,
 } from '@alilc/lowcode-types';
-import { isNil, isString, camelCase, pickBy, isObject, isFunction } from 'lodash-es';
+import { isNil, isString, camelCase, pickBy, isFunction } from 'lodash-es';
 import { contextFactory, useRendererContext } from '../context';
 import { LeafProps, RendererProps } from './base';
 import { Hoc } from './hoc';
 import { Live } from './live';
 import {
+  isObject,
   ensureArray,
   getI18n,
   mergeScope,
   parseSchema,
+  parseSlotScope,
   parseExpression,
-  parseSlotParams,
 } from '../utils';
 import { createDataSourceManager } from '../data-source';
+import { MaybeArray, BlockScope, RuntimeScope } from '../utils';
 
 const VUE_LIFTCYCLES_MAP = {
   beforeMount: onBeforeMount,
@@ -72,6 +76,10 @@ const LIFTCYCLES_MAP = {
   ...VUE_LIFTCYCLES_MAP,
   ...REACT_ADATPOR_LIFTCYCLES_MAP,
 };
+
+export function isLifecycleKey(key: string): key is keyof typeof LIFTCYCLES_MAP {
+  return key in LIFTCYCLES_MAP;
+}
 
 export type SlotSchemaMap = {
   [x: string]: SlotSchema | NodeData[] | undefined;
@@ -113,7 +121,7 @@ export function useLeaf(props: LeafProps) {
   const render = (
     schema: NodeData,
     base: Component,
-    blockScope?: unknown,
+    blockScope?: MaybeArray<BlockScope | undefined | null>,
     comp?: Component
   ) => {
     const mergedScope = mergeScope(props.scope, blockScope);
@@ -123,13 +131,7 @@ export function useLeaf(props: LeafProps) {
       return createTextVNode(schema);
     } else if (isJSExpression(schema)) {
       const result = parseExpression(schema, mergedScope);
-      if (result == null) {
-        return null;
-      } else if (isVueComponent(result)) {
-        return h(result);
-      } else {
-        return createTextVNode(result);
-      }
+      return createTextVNode(toDisplayString(result));
     }
 
     // 若不传入 comp，则根据节点的 componentName 推断
@@ -165,7 +167,7 @@ export function useLeaf(props: LeafProps) {
    */
   const renderHoc = (
     nodeSchema: NodeData,
-    blockScope?: unknown,
+    blockScope?: MaybeArray<BlockScope | undefined | null>,
     comp?: Component
   ): VNode | null => {
     return render(nodeSchema, Hoc, blockScope, comp);
@@ -179,7 +181,7 @@ export function useLeaf(props: LeafProps) {
    */
   const renderLive = (
     nodeSchema: NodeData,
-    blockScope?: unknown,
+    blockScope?: MaybeArray<BlockScope | undefined | null>,
     comp?: Component
   ): VNode | null => {
     return render(nodeSchema, Live, blockScope, comp);
@@ -242,14 +244,14 @@ export function useLeaf(props: LeafProps) {
    * 将单个属性 schema 转化成真实值
    *
    * @param schema - 属性 schema
-   * @param scope - 父级作用域
+   * @param scope - 当前作用域
    * @param blockScope - 当前块级作用域
    * @param prop - 属性对象，仅在 design 模式下有值
    */
   const buildProp = (
     schema: unknown,
-    scope: unknown,
-    blockScope: unknown,
+    scope: RuntimeScope,
+    blockScope?: BlockScope | null,
     prop?: Prop | null
   ): any => {
     if (isJSExpression(schema) || isJSFunction(schema)) {
@@ -271,7 +273,7 @@ export function useLeaf(props: LeafProps) {
 
       // 返回 slot 函数
       return (...args: unknown[]) => {
-        const slotScope = parseSlotParams(args, slotParams);
+        const slotScope = parseSlotScope(args, slotParams);
         const vnodes: VNode[] = [];
         ensureArray(slotSchema).forEach((item) => {
           const vnode = renderComp(item, [blockScope, slotScope]);
@@ -294,12 +296,71 @@ export function useLeaf(props: LeafProps) {
       });
       return res;
     }
-
     return schema;
   };
 
   /**
+   * 构建 ref prop，将 string ref 其转化为 function
+   *
+   * @param schema - prop schema
+   * @param scope - 当前作用域
+   * @param blockScope - 当前块级作用域
+   * @param prop - 属性对象，仅在 design 模式下有值
+   */
+  const buildRefProp = (
+    schema: unknown,
+    scope: RuntimeScope,
+    blockScope?: BlockScope | null,
+    prop?: Prop | null
+  ): any => {
+    if (isString(schema)) {
+      const field = schema;
+      let lastInst: unknown = null;
+      return (inst: unknown): void => {
+        let refs = scope.$.refs;
+        if (Object.keys(refs).length === 0) {
+          refs = scope.$.refs = {};
+        }
+        if (isNil(scope.__loopRefIndex)) {
+          refs[field] = inst;
+          if (field in scope) {
+            scope[field] = inst;
+          }
+        } else {
+          let target = refs[field] as unknown[];
+          if (!Array.isArray(target)) {
+            target = refs[field] = [];
+            if (field in scope) {
+              target = scope[field] = target;
+            }
+          } else if (field in scope) {
+            const scopeTarget = scope[field];
+            if (!Array.isArray(scopeTarget) || toRaw(scopeTarget) !== target) {
+              target = scope[field] = target;
+            } else {
+              target = scopeTarget;
+            }
+          }
+          if (isNil(inst)) {
+            const idx = target.indexOf(lastInst);
+            idx >= 0 && target.splice(idx, 1);
+          } else {
+            target[scope.__loopRefIndex] = inst;
+          }
+        }
+        lastInst = inst;
+      };
+    } else {
+      const propValue = buildProp(schema, scope, blockScope, prop);
+      return isString(propValue)
+        ? buildRefProp(propValue, scope, blockScope, prop)
+        : propValue;
+    }
+  };
+
+  /**
    * 处理属性 schema，主要处理的目标：
+   * - ref 逻辑 (合并 ref function)
    * - 事件绑定逻辑 (重复注册的事件转化为数组)
    * - 双向绑定逻辑 (v-model)
    * - 指令绑定逻辑 TODO
@@ -307,7 +368,7 @@ export function useLeaf(props: LeafProps) {
    * @param key - 属性名
    * @param val - 属性值
    */
-  const processProp = (target: any, key: string, val: unknown) => {
+  const processProp = (target: Record<string, unknown>, key: string, val: unknown) => {
     if (key.startsWith('v-model')) {
       // 双向绑定逻辑
       const matched = key.match(/v-model(?::(\w+))?$/);
@@ -341,6 +402,18 @@ export function useLeaf(props: LeafProps) {
 
       // 若事件名称重复，则自动转化为数组
       target[key] = key in target ? ensureArray(target[key]).concat(val) : val;
+    } else if (key === 'ref' && 'ref' in target) {
+      // ref 合并逻辑
+      const sourceRef = val;
+      const targetRef = target.ref;
+      if (isFunction(targetRef) && isFunction(sourceRef)) {
+        target.ref = (...args: unknown[]) => {
+          sourceRef(...args);
+          targetRef(...args);
+        };
+      } else {
+        target.ref = [targetRef, sourceRef].filter(isFunction).pop();
+      }
     } else {
       target[key] = val;
     }
@@ -354,7 +427,7 @@ export function useLeaf(props: LeafProps) {
    */
   const buildProps = (
     propsSchema: Record<string, unknown>,
-    blockScope?: unknown | unknown[],
+    blockScope?: BlockScope | null,
     extraProps?: Record<string, unknown>
   ): any => {
     // 属性预处理
@@ -367,12 +440,11 @@ export function useLeaf(props: LeafProps) {
     const parsedProps: Record<string, unknown> = {};
     const mergedScope = blockScope ? mergeScope(props.scope, blockScope) : props.scope;
     Object.keys(propsSchema).forEach((propName) => {
-      parsedProps[propName] = buildProp(
-        processed[propName],
-        mergedScope,
-        blockScope,
-        node?.getProp(propName)
-      );
+      const schema = processed[propName];
+      parsedProps[propName] =
+        propName === 'ref'
+          ? buildRefProp(schema, mergedScope, blockScope, node?.getProp(propName))
+          : buildProp(schema, mergedScope, blockScope, node?.getProp(propName));
     });
 
     // 应用运行时附加的属性值
@@ -397,12 +469,12 @@ export function useLeaf(props: LeafProps) {
     }
 
     return {
-      loop: computed<unknown[] | null>(() => {
+      loop: computed(() => {
         if (!loop.value) return null;
         return parseSchema(loop.value, props.scope);
       }),
       loopArgs,
-      updateLoop(value: CompositeValue) {
+      updateLoop(value: CompositeValue): void {
         loop.value = value;
       },
       updateLoopArg(value: string | [string, string], idx?: number): void {
@@ -414,8 +486,20 @@ export function useLeaf(props: LeafProps) {
           loopArgs.value[idx] = value;
         }
       },
+      buildLoopScope(item, index, len): BlockScope {
+        const scope = props.scope;
+        const offset = scope.__loopRefOffset ?? 0;
+        const [itemKey, indexKey] = loopArgs.value;
+        return {
+          [itemKey]: item,
+          [indexKey]: index,
+          __loopScope: true,
+          __loopRefIndex: offset + index,
+          __loopRefOffset: len * index,
+        };
+      },
     } as {
-      loop: ComputedRef<unknown[] | null>;
+      loop: ComputedRef<unknown>;
       loopArgs: Ref<[string, string]>;
       updateLoop(value: CompositeValue): void;
       /**
@@ -439,6 +523,14 @@ export function useLeaf(props: LeafProps) {
        * @param idx - 参数的位置
        */
       updateLoopArg(value: string, idx?: number | string): void;
+      /**
+       * 构建循环局部作用域
+       *
+       * @param item - 循环项
+       * @param index - 循环索引
+       * @param len - 循环目标数组长度
+       */
+      buildLoopScope(item: unknown, index: number, len: number): BlockScope;
     };
   };
 
@@ -462,7 +554,7 @@ export function useLeaf(props: LeafProps) {
    * @param slots - 插槽 schema
    * @param blockScope - 插槽块级作用域
    */
-  const buildSlost = (slots: SlotSchemaMap, blockScope?: unknown | unknown[]): Slots => {
+  const buildSlost = (slots: SlotSchemaMap, blockScope?: BlockScope | null): Slots => {
     return Object.keys(slots).reduce((prev, next) => {
       const slotSchema = slots[next];
       if (!slotSchema) return prev;
@@ -480,7 +572,7 @@ export function useLeaf(props: LeafProps) {
           const slotParams = slotSchema.params ?? [];
           const vnode = renderComp(slotSchema, [
             blockScope,
-            parseSlotParams(args, slotParams),
+            parseSlotScope(args, slotParams),
           ]);
           vnode && vnodes.push(vnode);
         } else {
@@ -489,7 +581,7 @@ export function useLeaf(props: LeafProps) {
           ensureArray(slotSchema.children).forEach((item) => {
             const vnode = renderComp(item, [
               blockScope,
-              parseSlotParams(args, slotParams),
+              parseSlotScope(args, slotParams),
             ]);
             vnode && vnodes.push(vnode);
           });
@@ -553,15 +645,15 @@ export function useRootScope(rendererProps: RendererProps) {
 
   // 将全局属性配置应用到 scope 中
   const instance = getCurrentInstance()!;
-  const scope = instance.proxy!;
+  const scope = instance.proxy! as RuntimeScope;
   const data = (instance.data = reactive({} as Record<string, unknown>));
 
   // 处理 props
-  const props = parseSchema(propsSchema, undefined) ?? {};
+  const props = parseSchema(propsSchema) ?? {};
   Object.assign(instance.props, props);
 
   // 处理 state
-  const states = parseSchema(stateSchema, undefined) ?? {};
+  const states = parseSchema(stateSchema) ?? {};
   Object.assign(data, states);
 
   // 处理 methods
@@ -570,10 +662,15 @@ export function useRootScope(rendererProps: RendererProps) {
 
   // 处理 lifecycle
   const lifeCycles = parseSchema(lifeCyclesSchema, scope);
-  Object.entries(lifeCycles ?? {}).forEach(([lifeCycle, callback]: [any, any]) => {
-    const hook = LIFTCYCLES_MAP[lifeCycle as keyof typeof LIFTCYCLES_MAP];
-    hook?.(callback, instance);
-  });
+  if (isObject(lifeCycles)) {
+    Object.keys(lifeCycles).forEach((lifeCycle) => {
+      if (isLifecycleKey(lifeCycle)) {
+        const callback = lifeCycles[lifeCycle];
+        const hook = LIFTCYCLES_MAP[lifeCycle];
+        isFunction(callback) && hook(callback, instance);
+      }
+    });
+  }
 
   // 处理 css
   let style: HTMLStyleElement | null = document.querySelector(`[data-id=${schema.id}]`);
@@ -596,7 +693,7 @@ export function useRootScope(rendererProps: RendererProps) {
    *
    * @param source - 作用域属性来源
    */
-  const addToScope = (source: Record<string, unknown>) => {
+  const addToScope = (source: BlockScope) => {
     Object.keys(source).forEach((key) => {
       const val = source[key];
       const target = isRef(val) ? data : scope;

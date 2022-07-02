@@ -1,10 +1,11 @@
 import { NodeSchema, RootSchema } from '@alilc/lowcode-types';
 import { Node } from '@alilc/lowcode-designer';
 import { Component, ComponentPublicInstance, PropType, VNodeProps } from 'vue';
+import { BlockScope, I18nMessages, RuntimeScope } from '../utils';
 
 export const rendererProps = {
   __scope: {
-    type: Object,
+    type: Object as PropType<BlockScope>,
     default: undefined,
   },
   __schema: {
@@ -24,7 +25,7 @@ export const rendererProps = {
     default: undefined,
   },
   __messages: {
-    type: Object as PropType<Record<string, any>>,
+    type: Object as PropType<I18nMessages>,
     default: () => ({}),
   },
   __getNode: {
@@ -40,9 +41,9 @@ export const rendererProps = {
 } as const;
 
 export interface RendererProps {
-  __scope?: any;
+  __scope?: BlockScope;
   __locale?: string;
-  __messages?: Record<string, any>;
+  __messages?: I18nMessages;
   __designMode?: 'live' | 'design';
   __schema: RootSchema;
   __components: Record<string, Component>;
@@ -64,7 +65,7 @@ export const leafProps = {
     default: undefined,
   },
   scope: {
-    type: Object as PropType<any>,
+    type: Object as PropType<RuntimeScope>,
     default: () => ({}),
   },
   schema: {
@@ -75,7 +76,7 @@ export const leafProps = {
 
 export interface LeafProps {
   comp?: Component | null;
-  scope: any;
+  scope: RuntimeScope;
   schema: NodeSchema;
 }
 

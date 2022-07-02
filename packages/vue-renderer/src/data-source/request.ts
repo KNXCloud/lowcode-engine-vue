@@ -1,8 +1,8 @@
 import { isString } from 'lodash-es';
 import { RequestOptions } from './interface';
 
-function serializeParams(obj: any) {
-  const result: any = [];
+function serializeParams(obj: Record<string, unknown>) {
+  const result: string[] = [];
   Object.keys(obj).forEach((key) => {
     const val = obj[key];
     if (val === null || val === undefined || val === '') {
@@ -11,13 +11,13 @@ function serializeParams(obj: any) {
     if (typeof val === 'object') {
       result.push(`${key}=${encodeURIComponent(JSON.stringify(val))}`);
     } else {
-      result.push(`${key}=${encodeURIComponent(val)}`);
+      result.push(`${key}=${encodeURIComponent(String(val))}`);
     }
   });
   return result.join('&');
 }
 
-function buildUrl(dataAPI: any, params: any) {
+function buildUrl(dataAPI: string, params: Record<string, unknown>) {
   const paramStr = serializeParams(params);
   if (paramStr) {
     return dataAPI.indexOf('?') > 0 ? `${dataAPI}&${paramStr}` : `${dataAPI}?${paramStr}`;
@@ -41,13 +41,17 @@ function getContentType(headers: Record<string, unknown>): string {
   return contentType;
 }
 
-export class RequestError extends Error {
-  constructor(message: string, public code: number, public data?: any) {
+export class RequestError<T = unknown> extends Error {
+  constructor(message: string, public code: number, public data?: T) {
     super(message);
   }
 }
 
-export async function request(options: RequestOptions) {
+export class Response<T = unknown> {
+  constructor(public code: number, public data: T) {}
+}
+
+export async function request(options: RequestOptions): Promise<Response> {
   const { method, uri, timeout, headers, params } = options;
 
   let url: string;
@@ -80,12 +84,12 @@ export async function request(options: RequestOptions) {
   if (code >= 200 && code < 300) {
     if (code === 204) {
       if (method === 'DELETE') {
-        return { code, data: null };
+        return new Response(code, null);
       } else {
         throw new RequestError(res.statusText, code);
       }
     } else {
-      return { code, data: await res.json() };
+      return new Response(code, await res.json());
     }
   } else if (code >= 400) {
     try {
@@ -95,4 +99,5 @@ export async function request(options: RequestOptions) {
       throw new RequestError(res.statusText, code);
     }
   }
+  throw new RequestError(res.statusText, code);
 }

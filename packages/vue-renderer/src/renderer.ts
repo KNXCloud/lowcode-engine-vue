@@ -10,15 +10,16 @@ import {
 } from 'vue';
 import config from './config';
 import { RENDERER_COMPS } from './renderers';
+import { I18nMessages, BlockScope } from './utils';
 
 interface RendererProps {
-  scope?: any;
+  scope?: BlockScope;
   schema: RootSchema;
   components: Record<string, Component>;
   designMode?: 'live' | 'design';
   device?: string;
   locale?: string;
-  messages?: Record<string, any>;
+  messages?: I18nMessages;
   getNode?: (id: string) => Node<NodeSchema> | null;
   onCompGetCtx?: (schema: NodeSchema, ref: ComponentPublicInstance) => void;
 }
@@ -26,7 +27,7 @@ interface RendererProps {
 const Renderer = defineComponent({
   props: {
     scope: {
-      type: Object,
+      type: Object as PropType<BlockScope>,
       default: undefined,
     },
     schema: {
@@ -53,7 +54,7 @@ const Renderer = defineComponent({
       default: undefined,
     },
     messages: {
-      type: Object as PropType<Record<string, any>>,
+      type: Object as PropType<I18nMessages>,
       default: () => ({}),
     },
     getNode: {

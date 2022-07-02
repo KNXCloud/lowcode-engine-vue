@@ -1,5 +1,9 @@
 import IntlMessageFormat from 'intl-messageformat';
 
+export type I18nMessages = {
+  [locale: string]: Record<string, string>;
+};
+
 /**
  * 用于处理国际化字符串
  * @param key - 语料标识
@@ -11,7 +15,7 @@ export function getI18n(
   key: string,
   values = {},
   locale = 'zh-CN',
-  messages: Record<string, any> = {}
+  messages: I18nMessages = {}
 ) {
   if (!messages || !messages[locale] || !messages[locale][key]) {
     return '';

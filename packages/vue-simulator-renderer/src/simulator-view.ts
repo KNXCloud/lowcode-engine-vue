@@ -14,9 +14,9 @@ export const Layout = defineComponent({
     const { simulator, $slots } = this;
     const { layout, getComponent } = simulator;
     if (layout) {
-      const { Component, props, componentName } = layout;
+      const { Component, props = {}, componentName } = layout;
       if (Component) {
-        return h(Component, { ...props, key: 'layout', simulator }, $slots);
+        return h(Component, { ...props, key: 'layout', simulator } as any, $slots);
       }
       const ComputedComponent = componentName && getComponent(componentName);
       if (ComputedComponent) {

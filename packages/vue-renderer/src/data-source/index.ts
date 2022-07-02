@@ -1,43 +1,45 @@
 import { InterpretDataSource, InterpretDataSourceConfig } from '@alilc/lowcode-types';
 import { computed, reactive, ref, shallowRef } from 'vue';
-import { request } from './request';
-import { parseSchema } from '../utils';
+import { request, Response } from './request';
 import { DataSourceStatus } from './interface';
+import { isObject, parseSchema, RuntimeScope } from '../utils';
 
-const same = (v: any) => v;
+const same = <T>(v: T) => v;
 const noop = () => void 0;
 const alwaysTrue = () => true;
 
-export interface DataSource<T = any> {
+export interface DataSource<T = unknown> {
   data: T;
   error: unknown;
   loading: boolean;
   status: DataSourceStatus;
   isInit: boolean;
-  load(params?: any): Promise<T>;
+  load(params?: Record<string, unknown>): Promise<T>;
 }
 
 export function createDataSource(
   config: InterpretDataSourceConfig,
   request: CallableFunction | null,
-  scope: any
+  scope: RuntimeScope
 ): DataSource {
   const data = shallowRef<unknown>();
   const error = shallowRef<unknown>();
   const status = ref<DataSourceStatus>(DataSourceStatus.Initial);
   const loading = computed(() => status.value === DataSourceStatus.Loading);
-  const isInit = computed<boolean>(() => parseSchema(config.isInit, scope));
+  const isInit = computed<boolean>(() => !!parseSchema(config.isInit, scope));
 
   const { willFetch, shouldFetch, dataHandler, errorHandler } = config;
 
   const hooks = {
     willFetch: willFetch ? parseSchema(willFetch, scope) : same,
     shouldFetch: shouldFetch ? parseSchema(shouldFetch, scope) : alwaysTrue,
-    dataHandler: dataHandler ? parseSchema(dataHandler, scope) : (res: any) => res.data,
+    dataHandler: dataHandler
+      ? parseSchema(dataHandler, scope)
+      : (res: Response) => res.data,
     errorHandler: errorHandler ? parseSchema(errorHandler, scope) : noop,
   };
 
-  const load = async (inputParams?: any) => {
+  const load = async (inputParams?: Record<string, unknown>) => {
     try {
       const { type, options, id } = config;
       if (!request) {
@@ -56,9 +58,13 @@ export function createDataSource(
         throw new Error(`the ${id} request should not fetch, please check the condition`);
       }
 
-      const fetchOptions = parseSchema(options, scope) ?? {};
+      const fetchOptions = parseSchema(options ?? {}, scope);
       if (inputParams) {
-        Object.assign(fetchOptions.params, inputParams);
+        if (isObject(fetchOptions.params)) {
+          Object.assign(fetchOptions.params, inputParams);
+        } else {
+          fetchOptions.params = inputParams;
+        }
       }
       status.value = DataSourceStatus.Loading;
       const res = await request(hooks.willFetch(fetchOptions));
@@ -85,7 +91,7 @@ export function createDataSource(
 
 export function createDataSourceManager(
   { list, dataHandler }: InterpretDataSource,
-  scope: any
+  scope: RuntimeScope
 ) {
   const dataSourceMap = list.reduce((prev, next) => {
     prev[next.id] = createDataSource({ dataHandler, ...next }, request, scope);

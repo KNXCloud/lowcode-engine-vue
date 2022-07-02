@@ -6,7 +6,7 @@ if (typeof win !== 'undefined') {
   win.SimulatorRenderer = simulator;
 }
 
-window.addEventListener('beforeunload', () => {
+win.addEventListener('beforeunload', () => {
   win.LCSimulatorHost = null;
   win.SimulatorRenderer = null;
   simulator.dispose();

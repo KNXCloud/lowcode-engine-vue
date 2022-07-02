@@ -23,6 +23,7 @@ import {
   ComponentInstance,
   DocumentInstance,
   MinxedComponent,
+  SimulatorViewLayout,
   VueSimulatorRenderer,
 } from './interface';
 import { Renderer, SimulatorRendererView } from './simulator-view';
@@ -67,7 +68,7 @@ function createDocumentInstance(
   const instancesMap = new Map<string, ComponentInstance[]>();
   /** 记录 vue 组件实例和组件 uid 的映射关系 */
   const vueInstanceMap = new Map<number, ComponentInstance>();
-  const requestHandlersMap: Ref<any> = ref(null);
+  const requestHandlersMap: Ref<Record<string, CallableFunction>> = ref({});
 
   const disposeFunctions: Array<() => void> = [];
 
@@ -82,11 +83,14 @@ function createDocumentInstance(
     nodeId: string,
     instances: ComponentInstance[] | null
   ) => {
-    host.setInstance(
-      docId,
-      nodeId,
-      instances?.map((inst) => ({ cid: inst.$.uid, did: docId, nid: nodeId })) as any[]
-    );
+    const instanceRecords = !instances
+      ? null
+      : instances.map((inst) => ({
+          cid: inst.$.uid,
+          did: docId,
+          nid: nodeId,
+        }));
+    host.setInstance(docId, nodeId, instanceRecords);
   };
 
   const getComponentInstance = (id: number) => {
@@ -182,7 +186,7 @@ function createDocumentInstance(
 }
 
 function createSimulatorRenderer() {
-  const layout: Ref<any> = shallowRef();
+  const layout: Ref<SimulatorViewLayout> = shallowRef({});
   const device: Ref<string> = shallowRef('default');
   const locale: Ref<string | undefined> = shallowRef();
   const autoRender = shallowRef(host.autoRender);
@@ -190,7 +194,7 @@ function createSimulatorRenderer() {
   const libraryMap: Ref<Record<string, string>> = shallowRef({});
   const components: Ref<Record<string, Component>> = shallowRef({});
   const componentsMap: Ref<Record<string, MinxedComponent>> = shallowRef({});
-  const requestHandlersMap: Ref<any> = shallowRef(null);
+  const requestHandlersMap: Ref<Record<string, CallableFunction>> = shallowRef({});
   const documentInstances: Ref<DocumentInstance[]> = shallowRef([]);
 
   const disposeFunctions: Array<() => void> = [];
@@ -317,7 +321,7 @@ function createSimulatorRenderer() {
         componentsMap.value !== host.designer.componentsMap
       ) {
         libraryMap.value = host.libraryMap || {};
-        componentsMap.value = host.designer.componentsMap as any;
+        componentsMap.value = host.designer.componentsMap;
         _buildComponents();
       }
 

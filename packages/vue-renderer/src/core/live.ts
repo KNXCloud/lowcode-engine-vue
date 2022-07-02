@@ -19,7 +19,7 @@ export const Live = defineComponent({
       if (hidden.value) return false;
       const { value: showCondition } = condition;
       if (typeof showCondition === 'boolean') return showCondition;
-      return parseSchema(showCondition, props.scope);
+      return !!parseSchema(showCondition, props.scope);
     });
 
     return {
@@ -40,6 +40,11 @@ export const Live = defineComponent({
     if (!comp) return h('div', 'component not found');
     if (!loop) {
       return h(comp, buildProps(compProps), buildSlost(compSlots));
+    }
+
+    if (!Array.isArray(loop)) {
+      console.warn('[vue-renderer]: loop must be array', loop);
+      return null;
     }
 
     return h(

@@ -1,5 +1,5 @@
-export { getI18n } from './i18n';
-export { mergeScope } from './merge-scope';
-export { ensureArray } from './array';
-export { parseSlotParams } from './parse-slot-params';
-export { parseSchema, parseExpression, parseI18n } from './parse-schema';
+export { getI18n, type I18nMessages } from './i18n';
+export { mergeScope, type RuntimeScope, type BlockScope } from './scope';
+export { ensureArray, type MaybeArray } from './array';
+export { isObject } from './object';
+export { parseSchema, parseExpression, parseI18n, parseSlotScope } from './parse';

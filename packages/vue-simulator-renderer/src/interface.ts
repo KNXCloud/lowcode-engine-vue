@@ -7,10 +7,16 @@ export type MinxedComponent = NpmInfo | Component | ComponentSchema;
 
 export type ComponentInstance = ComponentPublicInstance;
 
+export interface SimulatorViewLayout {
+  Component?: Component;
+  componentName?: string;
+  props?: Record<string, unknown>;
+}
+
 export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
   app: App;
   router: Router;
-  layout: any;
+  layout: SimulatorViewLayout;
   device: string;
   locale: string;
   designMode: 'design';
@@ -19,7 +25,7 @@ export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
   autoRender: boolean;
   componentsMap: Record<string, MinxedComponent>;
   documentInstances: DocumentInstance[];
-  requestHandlersMap: Record<string, any>;
+  requestHandlersMap: Record<string, CallableFunction>;
   dispose(): void;
   rerender(): void;
   getCurrentDocument(): DocumentInstance | undefined;
@@ -31,12 +37,12 @@ export interface DocumentInstance {
   readonly path: string;
   readonly device: string;
   readonly document: DocumentModel;
-  readonly instancesMap: Map<string, any[]>;
+  readonly instancesMap: Map<string, ComponentInstance[]>;
   readonly schema: RootSchema;
   readonly components: Record<string, Component>;
   readonly componentsMap: Record<string, MinxedComponent>;
   readonly designMode: string;
-  readonly requestHandlersMap: Record<string, any>;
+  readonly requestHandlersMap: Record<string, CallableFunction>;
   getComponentInstance(id: number): ComponentInstance | null;
   mountInstance(id: string, instance: ComponentInstance): (() => void) | void;
   unmountIntance(id: string, instance: ComponentInstance): void;
