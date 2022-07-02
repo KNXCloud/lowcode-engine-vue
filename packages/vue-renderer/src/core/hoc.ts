@@ -40,6 +40,7 @@ export const Hoc = defineComponent({
       return parseSchema(showCondition, props.scope);
     });
 
+    // hoc
     if (node) {
       const disposeFunctions: Array<CallableFunction | undefined> = [];
       onUnmounted(() => disposeFunctions.forEach((dispose) => dispose?.()));

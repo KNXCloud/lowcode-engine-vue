@@ -1,3 +1,4 @@
+import { isString } from 'lodash-es';
 import { RequestOptions } from './interface';
 
 function serializeParams(obj: any) {
@@ -24,6 +25,22 @@ function buildUrl(dataAPI: any, params: any) {
   return dataAPI;
 }
 
+function getContentType(headers: Record<string, unknown>): string {
+  let contentType = 'application/json';
+  if (headers) {
+    Object.keys(headers).forEach((key) => {
+      if (key.toLowerCase() === 'content-type') {
+        const value = headers[key];
+        if (isString(value)) {
+          contentType = value;
+        }
+      }
+    });
+  }
+
+  return contentType;
+}
+
 export class RequestError extends Error {
   constructor(message: string, public code: number, public data?: any) {
     super(message);
@@ -46,11 +63,9 @@ export async function request(options: RequestOptions) {
     url = buildUrl(uri, params);
   } else {
     url = uri;
-    const contentType = headers['Content-Type'] || headers['content-type'];
-    fetchOptions.body =
-      contentType && contentType.includes('application/json')
-        ? JSON.stringify(params)
-        : serializeParams(params);
+    fetchOptions.body = getContentType(headers).includes('application/json')
+      ? JSON.stringify(params)
+      : serializeParams(params);
   }
 
   if (timeout) {

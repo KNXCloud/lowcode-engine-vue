@@ -26,7 +26,7 @@ import {
   VueSimulatorRenderer,
 } from './interface';
 import { Renderer, SimulatorRendererView } from './simulator-view';
-import { Slot, Leaf } from './buildin-components';
+import { Slot, Leaf, Page } from './buildin-components';
 import { host } from './host';
 import './simulator.less';
 import { createMemoryHistory, createRouter } from 'vue-router';
@@ -37,7 +37,7 @@ const SYMBOL_VDID = Symbol('_LCDocId');
 const SYMBOL_VNID = Symbol('_LCNodeId');
 const SYMBOL_VInstance = Symbol('_LCVueInstance');
 
-const builtinComponents = { Slot, Leaf };
+const builtinComponents = { Slot, Leaf, Page };
 
 interface ComponentHTMLElement extends HTMLElement {
   [SYMBOL_VDID]: string;
@@ -228,7 +228,6 @@ function createSimulatorRenderer() {
       routes: [],
     })
   );
-
   simulator.getComponent = (componentName) => {
     const paths = componentName.split('.');
     const subs: string[] = [];

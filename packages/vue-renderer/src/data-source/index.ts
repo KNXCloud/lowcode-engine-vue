@@ -1,8 +1,8 @@
 import { InterpretDataSource, InterpretDataSourceConfig } from '@alilc/lowcode-types';
 import { computed, reactive, ref, shallowRef } from 'vue';
+import { request } from './request';
 import { parseSchema } from '../utils';
 import { DataSourceStatus } from './interface';
-import { request } from './request';
 
 const same = (v: any) => v;
 const noop = () => void 0;
@@ -19,13 +19,13 @@ export interface DataSource<T = any> {
 
 export function createDataSource(
   config: InterpretDataSourceConfig,
-  request: CallableFunction,
+  request: CallableFunction | null,
   scope: any
 ): DataSource {
   const data = shallowRef<unknown>();
   const error = shallowRef<unknown>();
-  const loading = ref<boolean>(false);
   const status = ref<DataSourceStatus>(DataSourceStatus.Initial);
+  const loading = computed(() => status.value === DataSourceStatus.Loading);
   const isInit = computed<boolean>(() => parseSchema(config.isInit, scope));
 
   const { willFetch, shouldFetch, dataHandler, errorHandler } = config;
@@ -38,48 +38,36 @@ export function createDataSource(
   };
 
   const load = async (inputParams?: any) => {
-    const { type, options, id } = config;
-    if (type !== 'fetch') {
-      throw new Error('unsupport fetch type: ' + type);
-    }
-
-    const shouldFetch =
-      typeof hooks.shouldFetch === 'function'
-        ? hooks.shouldFetch()
-        : typeof hooks.shouldFetch === 'boolean'
-        ? hooks.shouldFetch
-        : true;
-
-    if (!shouldFetch) {
-      status.value = DataSourceStatus.Error;
-      error.value = new Error(
-        `the ${id} request should not fetch, please check the condition`
-      );
-      throw error.value;
-    }
-
-    let fetchOptions = { ...options };
-    fetchOptions.params = parseSchema(fetchOptions.params, scope) ?? {};
-    fetchOptions.headers = parseSchema(fetchOptions.headers, scope) ?? {};
-    inputParams && Object.assign(fetchOptions.params!, inputParams);
-
-    fetchOptions = hooks.willFetch(fetchOptions);
-
-    status.value = DataSourceStatus.Loading;
     try {
-      const res = await request(fetchOptions);
+      const { type, options, id } = config;
+      if (!request) {
+        throw new Error('unsupport fetch type: ' + type);
+      }
+
+      const shouldFetch =
+        typeof hooks.shouldFetch === 'function'
+          ? hooks.shouldFetch()
+          : typeof hooks.shouldFetch === 'boolean'
+          ? hooks.shouldFetch
+          : true;
+
+      if (!shouldFetch) {
+        status.value = DataSourceStatus.Error;
+        throw new Error(`the ${id} request should not fetch, please check the condition`);
+      }
+
+      const fetchOptions = parseSchema(options, scope) ?? {};
+      if (inputParams) {
+        Object.assign(fetchOptions.params, inputParams);
+      }
+      status.value = DataSourceStatus.Loading;
+      const res = await request(hooks.willFetch(fetchOptions));
       status.value = DataSourceStatus.Loaded;
       const _data = (data.value = hooks.dataHandler(res));
-      if (_data) {
-        if (id in scope) {
-          Object.assign(scope[id], _data);
-        } else {
-          scope[id] = _data;
-        }
-      }
-      return _data;
+      return _data && (scope[id] = _data);
     } catch (err) {
       status.value = DataSourceStatus.Error;
+      error.value = err;
       hooks.errorHandler(err);
       throw err;
     }
@@ -104,6 +92,9 @@ export function createDataSourceManager(
     return prev;
   }, {} as Record<string, DataSource>);
 
+  /**
+   * 重新加载数据源，仅加载 isInit 为 true 的数据源
+   */
   const reloadDataSource = () => {
     const promises = Object.keys(dataSourceMap)
       .map((id) => dataSourceMap[id])

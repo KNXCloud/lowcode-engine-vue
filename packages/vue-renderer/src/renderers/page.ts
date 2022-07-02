@@ -2,7 +2,7 @@ import { defineComponent, h } from 'vue';
 import { useRenderer, rendererProps } from '../core';
 
 const Page = defineComponent((props, { slots }) => {
-  return () => h('div', { class: 'lce-page', ...props }, slots);
+  return () => h('div', { class: 'lc-page', ...props }, slots);
 });
 
 export const PageRenderer = defineComponent({
