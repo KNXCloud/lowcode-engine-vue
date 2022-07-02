@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.3.1](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.3.0...v1.3.1) (2022-07-02)
+
+
+### Features
+
+* **vue-renderer:** supports ref prop ([9883532](https://github.com/KNXCloud/lowcode-engine-vue/commit/9883532b717c53a7025dc3cf8f6282de96f7ebf5))
+* **vue-simulator-renderer:** add page builtin-component ([79178ff](https://github.com/KNXCloud/lowcode-engine-vue/commit/79178ffb83b02f23ce1505577fe683aab73a2de3))
+
+
+
+
+
 # [1.3.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.2.0...v1.3.0) (2022-07-01)
 
 
