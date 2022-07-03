@@ -13,11 +13,12 @@
   },
   "homepage": "https://unpkg.com/@knxcloud/lowcode-utils@1.1.1/build/index.html",
   "dependencies": {
-    "@alilc/lowcode-types": "^1.0.10",
-    "@alilc/lowcode-utils": "^1.0.10",
+    "@alilc/lowcode-types": "^1.0.11",
+    "@alilc/lowcode-utils": "^1.0.11",
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
+    "@alilc/lowcode-shell": "^1.0.11",
     "@types/lodash-es": "^4.17.6"
   },
   "publishConfig": {
