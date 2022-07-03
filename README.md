@@ -19,6 +19,16 @@ Lowcode Engine Vue 渲染器及适配器实现，点击查看[在线演示](http
   - `componentWillUnmount` -> `onBeforeUnmount`
 - 其余方法自动转化为 vue methods
 
+支持的 vue 生命周期函数：
+
+- `beforeMount`
+- `mounted`
+- `beforeUpdate`
+- `updated`
+- `beforeUnmount`
+- `unmounted`
+- `errorCaptured`
+
 对于 v-model 的适配：
 
 在 assets 中使用 name 为 v-model 的属性会被作为双向绑定特性编译，编译的逻辑为
@@ -35,17 +45,21 @@ v-model:value -> value prop + onUpdate:value event
 ### 直接使用 cdn 渲染器及适配器
 
 ```ts
-import { init } from '@alilc/lowcode-engine';
+import { init, project } from '@alilc/lowcode-engine';
+import { setupHostEnvironment } from '@knxcloud/lowcode-utils';
+
+setupHostEnvironment(project);
 
 init(document.getElementById('lce'), {
   // ...
   simulatorUrl: [
-    'https://unpkg.com/vue-router@4.0.16/dist/vue-router.global.prod.js',
-    'https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.0.0/dist/vue-simulator-renderer.js',
-    'https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.0.0/dist/vue-simulator-renderer.css',
+    'https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer/dist/vue-simulator-renderer.js',
+    'https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer/dist/vue-simulator-renderer.css',
   ],
 });
 ```
+
+> 当不指定版本号时，默认使用最新版，推荐在 cdn 链接上添加适配器具体版本号
 
 ### 定制渲染器
 
@@ -86,7 +100,6 @@ vueRendererConfig.setConfigProvider(ConfigProvider);
 git clone git@github.com:KNXCloud/lowcode-engine-vue.git
 cd lowcode-engine-vue
 pnpm install
-pnpm build
 pnpm start
 ```
 
@@ -96,7 +109,7 @@ pnpm start
 {
   "proxy": [
     [
-      "https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.0.0/dist/(.*)",
+      "(?:.*)unpkg.com/@knxcloud/lowcode-vue-simulator-renderer(?:.*)/dist/(.*)",
       "http://localhost:5559/$1"
     ],
   ]
