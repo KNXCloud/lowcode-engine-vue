@@ -2,6 +2,9 @@
   "entry": {
     "vue-simulator-renderer": "./src/index.ts"
   },
+  "define": {
+    "__VUE_PROD_DEVTOOLS__": "false"
+  },
   "sourceMap": false,
   "library": "LCVueSimulatorRenderer",
   "libraryTarget": "umd",
