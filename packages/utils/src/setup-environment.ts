@@ -1,5 +1,6 @@
 import type { Project } from '@alilc/lowcode-shell';
-import { assetItem, AssetType } from '@alilc/lowcode-utils';
+import { AssetType } from '@alilc/lowcode-types';
+import { assetItem } from './asset';
 
 export function setupHostEnvironment(project: Project): void {
   project.onSimulatorHostReady((host) => {

@@ -1,7 +1,6 @@
-import { Component } from 'vue';
-import { isFunction, isObject, get } from 'lodash-es';
-import { accessLibrary, getSubComponent, isESModule } from '@alilc/lowcode-utils';
-import { ComponentSchema, NpmInfo } from '@alilc/lowcode-types';
+import { Component, defineComponent, h } from 'vue';
+import { isESModule, isFunction, isObject } from './check';
+import type { ComponentSchema, NpmInfo } from '@alilc/lowcode-types';
 
 export function isVueComponent(val: unknown): val is Component {
   if (isFunction(val)) return true;
@@ -12,7 +11,53 @@ export function isVueComponent(val: unknown): val is Component {
 }
 
 export function isComponentSchema(val: unknown): val is ComponentSchema {
-  return isObject(val) && get(val, 'componentName') === 'Component';
+  return isObject(val) && val.componentName === 'Component';
+}
+
+export function accessLibrary(library: string | Record<string, unknown>) {
+  if (typeof library !== 'string') {
+    return library;
+  }
+
+  return (window as any)[library] || generateHtmlComp(library);
+}
+
+export function generateHtmlComp(library: string) {
+  if (['a', 'img', 'div', 'span', 'svg'].includes(library)) {
+    return defineComponent((_, { attrs, slots }) => {
+      return () => h(library, attrs, slots);
+    });
+  }
+}
+
+export function getSubComponent(library: any, paths: string[]) {
+  const l = paths.length;
+  if (l < 1 || !library) {
+    return library;
+  }
+  let i = 0;
+  let component: any;
+  while (i < l) {
+    const key = paths[i]!;
+    let ex: any;
+    try {
+      component = library[key];
+    } catch (e) {
+      ex = e;
+      component = null;
+    }
+    if (i === 0 && component == null && key === 'default') {
+      if (ex) {
+        return l === 1 ? library : null;
+      }
+      component = library;
+    } else if (component == null) {
+      return null;
+    }
+    library = component;
+    i++;
+  }
+  return component;
 }
 
 export function findComponent(
@@ -23,12 +68,6 @@ export function findComponent(
   if (!npm) {
     return accessLibrary(componentName);
   }
-  // libraryName the key access to global
-  // export { exportName } from xxx exportName === global.libraryName.exportName
-  // export exportName from xxx   exportName === global.libraryName.default || global.libraryName
-  // export { exportName as componentName } from package
-  // if exportName == null exportName === componentName;
-  // const componentName = exportName.subName, if exportName empty subName donot use
   const exportName = npm.exportName || npm.componentName || componentName;
   const libraryName = libraryMap[npm.package] || exportName;
   const library = accessLibrary(libraryName);
