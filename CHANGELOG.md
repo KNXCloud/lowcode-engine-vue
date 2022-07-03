@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.3.4](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.3.3...v1.3.4) (2022-07-03)
+
+
+### Bug Fixes
+
+* **vue-simulator-renderer:** disable vue prod devtools ([531ee0e](https://github.com/KNXCloud/lowcode-engine-vue/commit/531ee0ec1b4aac96dace063f87f8c59cbc21d996))
+
+
+
+
+
 ## [1.3.3](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.3.2...v1.3.3) (2022-07-03)
 
 
