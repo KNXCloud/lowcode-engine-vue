@@ -17,7 +17,8 @@ function serializeParams(obj: Record<string, unknown>) {
   return result.join('&');
 }
 
-function buildUrl(dataAPI: string, params: Record<string, unknown>) {
+function buildUrl(dataAPI: string, params?: Record<string, unknown>) {
+  if (!params) return dataAPI;
   const paramStr = serializeParams(params);
   if (paramStr) {
     return dataAPI.indexOf('?') > 0 ? `${dataAPI}&${paramStr}` : `${dataAPI}?${paramStr}`;
