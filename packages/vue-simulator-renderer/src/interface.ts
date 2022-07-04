@@ -1,7 +1,8 @@
+import { Router } from 'vue-router';
+import { Config } from '@knxcloud/lowcode-vue-renderer';
 import { Component, ComponentPublicInstance, App } from 'vue';
 import { ComponentSchema, NpmInfo, RootSchema } from '@alilc/lowcode-types';
 import { BuiltinSimulatorRenderer, DocumentModel, Node } from '@alilc/lowcode-designer';
-import { Router } from 'vue-router';
 
 export type MinxedComponent = NpmInfo | Component | ComponentSchema;
 
@@ -15,6 +16,7 @@ export interface SimulatorViewLayout {
 
 export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
   app: App;
+  config: Config;
   router: Router;
   layout: SimulatorViewLayout;
   device: string;
