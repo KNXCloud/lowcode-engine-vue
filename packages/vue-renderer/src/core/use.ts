@@ -23,6 +23,8 @@ import {
   provide,
   toRaw,
   toDisplayString,
+  inject,
+  InjectionKey,
 } from 'vue';
 import {
   NodeData,
@@ -104,10 +106,28 @@ export function isVueComponent(val: unknown): val is Component {
   return false;
 }
 
+const IS_LOCKED: InjectionKey<Ref<boolean>> = Symbol('IS_LOCKED');
+
+export function useLocked(defaultValue: boolean) {
+  const selfLocked = ref(defaultValue);
+  const parentLocked = inject(IS_LOCKED, null);
+
+  const locked = computed({
+    get: () => parentLocked?.value || selfLocked.value,
+    set: (val) => (selfLocked.value = val),
+  });
+
+  provide(IS_LOCKED, locked);
+
+  return locked;
+}
+
 export function useLeaf(props: LeafProps) {
   const { components, getNode, designMode } = useRendererContext();
 
   const node = props.schema.id ? getNode(props.schema.id) : null;
+  // 仅在设计模式下生效
+  const locked = node ? useLocked(node.isLocked) : ref(false);
 
   const isDesignMode = designMode === 'design';
 
@@ -544,7 +564,15 @@ export function useLeaf(props: LeafProps) {
     return (...args: unknown[]) => {
       const vnodes = slot(...args);
       if (!vnodes.length) {
-        vnodes.push(h('div', { class: 'lc-container' }));
+        const isLocked = locked.value;
+        const className = {
+          'lc-container-locked': isLocked,
+          'lc-container-placeholder': true,
+        };
+        const placeholder = isLocked
+          ? '锁定元素及子元素无法编辑'
+          : '拖拽组件或模板到这里';
+        vnodes.push(h('div', { class: className }, placeholder));
       }
       return vnodes;
     };
@@ -599,6 +627,7 @@ export function useLeaf(props: LeafProps) {
 
   return {
     node,
+    locked,
     renderComp,
     buildLoop,
     buildProps,
