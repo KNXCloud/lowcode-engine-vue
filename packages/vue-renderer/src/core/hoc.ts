@@ -20,11 +20,12 @@ export const Hoc = defineComponent({
   name: 'Hoc',
   props: leafProps,
   setup(props) {
-    const { triggerCompGetCtx } = useRendererContext();
-    const { node, buildSchema, buildProps, buildSlost, buildLoop } = useLeaf(props);
-
     const hidden = ref(!!props.schema.hidden);
     const condition = ref<unknown>(props.schema.condition ?? true);
+
+    const { triggerCompGetCtx } = useRendererContext();
+    const { node, locked, buildSchema, buildProps, buildSlost, buildLoop } =
+      useLeaf(props);
 
     const { loop, updateLoop, updateLoopArg, buildLoopScope } = buildLoop(props.schema);
     const compProps: PropSchemaMap = reactive({});
@@ -56,7 +57,9 @@ export const Hoc = defineComponent({
       disposeFunctions.push(
         node.onPropChange((info) => {
           const { key, prop, newValue, oldValue } = info;
-          if (key === '___condition___') {
+          if (key === '___isLocked___') {
+            locked.value = newValue;
+          } else if (key === '___condition___') {
             // 条件渲染更新 v-if
             condition.value = newValue;
           } else if (key === '___loop___') {
