@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.3.5](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.3.4...v1.3.5) (2022-07-04)
+
+
+### Features
+
+* **vue-renderer:** supports locked default slot ([af706b9](https://github.com/KNXCloud/lowcode-engine-vue/commit/af706b94f6557962e36da5d705f921e0bd07a85e))
+* **vue-simulator-renderer:** exports renderer content ([f8f2e62](https://github.com/KNXCloud/lowcode-engine-vue/commit/f8f2e629bcda43fe23e30ddae0e1ec633d86c60e))
+
+
+
+
+
 ## [1.3.4](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.3.3...v1.3.4) (2022-07-03)
 
 
