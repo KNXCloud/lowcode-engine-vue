@@ -17,7 +17,7 @@ import {
   markRaw,
   onUnmounted,
 } from 'vue';
-import { getClientRects } from './utils/get-client-rects';
+import { config } from '@knxcloud/lowcode-vue-renderer';
 import { buildComponents } from '@knxcloud/lowcode-utils';
 import {
   ComponentInstance,
@@ -29,8 +29,9 @@ import {
 import { Renderer, SimulatorRendererView } from './simulator-view';
 import { Slot, Leaf, Page } from './buildin-components';
 import { host } from './host';
-import './simulator.less';
+import { getClientRects } from './utils';
 import { createMemoryHistory, createRouter } from 'vue-router';
+import './simulator.less';
 
 const loader = new AssetLoader();
 
@@ -213,6 +214,7 @@ function createSimulatorRenderer() {
   }
 
   const simulator = reactive({
+    config: markRaw(config),
     layout,
     device,
     designMode,
