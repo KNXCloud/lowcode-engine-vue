@@ -286,13 +286,14 @@ export function useLeaf(props: LeafProps) {
       return schema.map((item, idx) =>
         buildProp(item, scope, blockScope, prop?.get(idx))
       );
-    } else if (schema && typeof schema === 'object') {
+    } else if (schema && isObject(schema)) {
       // 属性值为 object，递归处理属性的每一项
-      const res: any = {};
+      const res: Record<string, unknown> = {};
       Object.keys(schema).forEach((key) => {
         if (key.startsWith('__')) return;
-        const val = Reflect.get(schema, key);
-        res[key] = buildProp(val, scope, blockScope, prop?.get(key));
+        const val = schema[key];
+        const childProp = prop?.get(key);
+        res[key] = buildProp(val, scope, blockScope, childProp);
       });
       return res;
     }

@@ -6,11 +6,10 @@ import { parseSchema } from '../utils';
 export const Live = defineComponent({
   props: leafProps,
   setup(props) {
-    const { buildSchema, buildProps, buildLoop, buildSlost } = useLeaf(props);
-
     const hidden = ref(!!props.schema.hidden);
-
     const condition = ref<unknown>(props.schema.condition ?? true);
+
+    const { buildSchema, buildProps, buildLoop, buildSlost } = useLeaf(props);
 
     const { loop, loopArgs } = buildLoop(props.schema);
     const { props: compProps, slots: compSlots } = buildSchema();
