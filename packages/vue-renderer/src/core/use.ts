@@ -555,6 +555,28 @@ export function useLeaf(props: LeafProps) {
     };
   };
 
+  const buildShow = (schema: NodeSchema) => {
+    const hidden = isDesignMode ? ref(schema.hidden ?? false) : ref(false);
+    const condition = ref<unknown>(schema.condition ?? true);
+
+    const show = computed(() => {
+      if (hidden.value) return false;
+      const { value: showCondition } = condition;
+      if (typeof showCondition === 'boolean') return showCondition;
+      return !!parseSchema(showCondition, props.scope);
+    });
+
+    return {
+      show,
+      hidden: (val: boolean) => {
+        hidden.value = val;
+      },
+      condition: (val: unknown) => {
+        condition.value = val;
+      },
+    };
+  };
+
   /**
    * 装饰默认插槽，当插槽为空时，渲染插槽占位符，便于拖拽
    *
@@ -628,6 +650,7 @@ export function useLeaf(props: LeafProps) {
   return {
     node,
     locked,
+    buildShow,
     renderComp,
     buildLoop,
     buildProps,

@@ -1,25 +1,15 @@
-import { computed, defineComponent, Fragment, h, ref } from 'vue';
+import { defineComponent, Fragment, h } from 'vue';
 import { useLeaf } from './use';
 import { leafProps } from './base';
-import { parseSchema } from '../utils';
 
 export const Live = defineComponent({
   props: leafProps,
   setup(props) {
-    const hidden = ref(!!props.schema.hidden);
-    const condition = ref<unknown>(props.schema.condition ?? true);
+    const { buildSchema, buildProps, buildLoop, buildSlost, buildShow } = useLeaf(props);
 
-    const { buildSchema, buildProps, buildLoop, buildSlost } = useLeaf(props);
-
+    const { show } = buildShow(props.schema);
     const { loop, loopArgs } = buildLoop(props.schema);
     const { props: compProps, slots: compSlots } = buildSchema();
-
-    const show = computed(() => {
-      if (hidden.value) return false;
-      const { value: showCondition } = condition;
-      if (typeof showCondition === 'boolean') return showCondition;
-      return !!parseSchema(showCondition, props.scope);
-    });
 
     return {
       show,

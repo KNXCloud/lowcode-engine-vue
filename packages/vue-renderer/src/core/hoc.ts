@@ -4,50 +4,37 @@ import { SlotNode } from '@alilc/lowcode-designer';
 import {
   ComponentPublicInstance,
   h,
-  ref,
   Fragment,
-  computed,
   reactive,
   onUnmounted,
   defineComponent,
 } from 'vue';
 import { leafProps } from './base';
 import { useRendererContext } from '../context';
-import { ensureArray, parseSchema } from '../utils';
+import { ensureArray } from '../utils';
 import { PropSchemaMap, SlotSchemaMap, useLeaf } from './use';
 
 export const Hoc = defineComponent({
   name: 'Hoc',
   props: leafProps,
   setup(props) {
-    const hidden = ref(!!props.schema.hidden);
-    const condition = ref<unknown>(props.schema.condition ?? true);
-
     const { triggerCompGetCtx } = useRendererContext();
-    const { node, locked, buildSchema, buildProps, buildSlost, buildLoop } =
+    const { node, locked, buildSchema, buildProps, buildSlost, buildLoop, buildShow } =
       useLeaf(props);
 
+    const { show, hidden, condition } = buildShow(props.schema);
     const { loop, updateLoop, updateLoopArg, buildLoopScope } = buildLoop(props.schema);
+
     const compProps: PropSchemaMap = reactive({});
     const compSlots: SlotSchemaMap = reactive({});
     const result = buildSchema();
     Object.assign(compProps, result.props);
     Object.assign(compSlots, result.slots);
 
-    const show = computed(() => {
-      if (hidden.value) return false;
-      const { value: showCondition } = condition;
-      if (typeof showCondition === 'boolean') return showCondition;
-      return !!parseSchema(showCondition, props.scope);
-    });
-
     // hoc
     if (node) {
       const disposeFunctions: Array<CallableFunction | undefined> = [];
       onUnmounted(() => disposeFunctions.forEach((dispose) => dispose?.()));
-      disposeFunctions.push(
-        node.onVisibleChange((visible) => void (hidden.value = !visible))
-      );
       disposeFunctions.push(
         node.onChildrenChange(() => {
           const schema = node.export(TransformStage.Render);
@@ -59,9 +46,12 @@ export const Hoc = defineComponent({
           const { key, prop, newValue, oldValue } = info;
           if (key === '___isLocked___') {
             locked.value = newValue;
+          } else if (key === '___hidden___') {
+            // 设计器控制组件渲染
+            hidden(newValue);
           } else if (key === '___condition___') {
             // 条件渲染更新 v-if
-            condition.value = newValue;
+            condition(newValue);
           } else if (key === '___loop___') {
             // 循环数据更新 v-for
             updateLoop(newValue);
