@@ -460,7 +460,7 @@ export function useLeaf(props: LeafProps) {
     // 将属性 schema 转化成真实的属性值
     const parsedProps: Record<string, unknown> = {};
     const mergedScope = blockScope ? mergeScope(props.scope, blockScope) : props.scope;
-    Object.keys(propsSchema).forEach((propName) => {
+    Object.keys(processed).forEach((propName) => {
       const schema = processed[propName];
       parsedProps[propName] =
         propName === 'ref'
