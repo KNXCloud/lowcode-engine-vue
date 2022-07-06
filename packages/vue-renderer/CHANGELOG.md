@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.4.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.3.5...v1.4.0) (2022-07-06)
+
+
+### Bug Fixes
+
+* **vue-renderer:** fix v-model binding failure ([844f4c2](https://github.com/KNXCloud/lowcode-engine-vue/commit/844f4c253c6a4b9e235759cb558852cb4fba390a))
+* **vue-renderer:** ignore hidden in live mode ([9977c0a](https://github.com/KNXCloud/lowcode-engine-vue/commit/9977c0ac76f4b6f207a85e4f0cf106c01ce724c5))
+
+
+
+
+
 ## [1.3.5](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.3.4...v1.3.5) (2022-07-04)
 
 
