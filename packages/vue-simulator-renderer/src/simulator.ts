@@ -7,10 +7,10 @@ import {
   setNativeSelection,
 } from '@alilc/lowcode-utils';
 import {
-  createApp,
-  ref,
   Ref,
   Component,
+  createApp,
+  ref,
   shallowRef,
   reactive,
   computed,
@@ -29,33 +29,22 @@ import {
 import { Renderer, SimulatorRendererView } from './simulator-view';
 import { Slot, Leaf, Page } from './buildin-components';
 import { host } from './host';
-import { getClientRects } from './utils';
+import {
+  findDOMNodes,
+  getClientRects,
+  getCompRootData,
+  setCompRootData,
+  getClosestNodeInstance,
+  ComponentRecord,
+  isComponentRecord,
+  getClosestNodeInstanceByComponent,
+} from './utils';
 import { createMemoryHistory, createRouter } from 'vue-router';
 import './simulator.less';
 
 const loader = new AssetLoader();
 
-const SYMBOL_VDID = Symbol('_LCDocId');
-const SYMBOL_VNID = Symbol('_LCNodeId');
-const SYMBOL_VInstance = Symbol('_LCVueInstance');
-
 const builtinComponents = { Slot, Leaf, Page };
-
-interface ComponentHTMLElement extends HTMLElement {
-  [SYMBOL_VDID]: string;
-  [SYMBOL_VNID]: string;
-  [SYMBOL_VInstance]: ComponentInstance;
-}
-
-interface SimulatorComponentInstance {
-  did: string;
-  cid: number;
-  nid: string;
-}
-
-function isComponentHTMLElement(el: Element): el is ComponentHTMLElement {
-  return SYMBOL_VDID in el;
-}
 
 function createDocumentInstance(
   document: DocumentModel,
@@ -86,11 +75,7 @@ function createDocumentInstance(
   ) => {
     const instanceRecords = !instances
       ? null
-      : instances.map((inst) => ({
-          cid: inst.$.uid,
-          did: docId,
-          nid: nodeId,
-        }));
+      : instances.map((inst) => new ComponentRecord(docId, nodeId, inst.$.uid));
     host.setInstance(docId, nodeId, instanceRecords);
   };
 
@@ -117,7 +102,7 @@ function createDocumentInstance(
 
     const el = instance.$el;
 
-    const origId = el[SYMBOL_VNID];
+    const origId = getCompRootData(el).nodeId;
     if (origId && origId !== id) {
       // 另外一个节点的 instance 在此被复用了，需要从原来地方卸载
       unmountIntance(origId, instance);
@@ -125,9 +110,11 @@ function createDocumentInstance(
 
     onUnmounted(() => unmountIntance(id, instance), instance.$);
 
-    el[SYMBOL_VNID] = id;
-    el[SYMBOL_VDID] = docId;
-    el[SYMBOL_VInstance] = instance;
+    setCompRootData(el, {
+      nodeId: id,
+      docId: docId,
+      instance: instance,
+    });
     let instances = instancesMap.get(id);
     if (instances) {
       const l = instances.length;
@@ -234,6 +221,7 @@ function createSimulatorRenderer() {
       routes: [],
     })
   );
+
   simulator.getComponent = (componentName) => {
     const paths = componentName.split('.');
     const subs: string[] = [];
@@ -250,32 +238,24 @@ function createSimulatorRenderer() {
     return null!;
   };
 
-  simulator.getClosestNodeInstance = (el: Element, specId) => {
-    while (el) {
-      if (isComponentHTMLElement(el)) {
-        const nodeId = el[SYMBOL_VNID];
-        const docId = el[SYMBOL_VDID];
-        const instance = el[SYMBOL_VInstance];
-        if (!specId || specId === nodeId) {
-          return {
-            docId,
-            nodeId,
-            instance: { nid: nodeId, did: docId, cid: instance.$.uid },
-          };
-        }
-      }
-      el = el.parentElement as Element;
+  simulator.getClosestNodeInstance = (el, specId) => {
+    if (isComponentRecord(el)) {
+      const { cid, did } = el;
+      const documentInstance = documentInstanceMap.get(did);
+      const instance = documentInstance?.getComponentInstance(cid) ?? null;
+      return instance && getClosestNodeInstanceByComponent(instance.$, specId);
     }
-    return null;
+    return getClosestNodeInstance(el, specId);
   };
 
-  simulator.findDOMNodes = (instance: SimulatorComponentInstance) => {
-    if (!instance) return null;
-    const { did, cid } = instance;
-    const documentInstance = documentInstanceMap.get(did);
-    if (!documentInstance) return null;
-    const compInst = documentInstance.getComponentInstance(cid);
-    return compInst ? [compInst.$el] : null;
+  simulator.findDOMNodes = (instance: ComponentRecord) => {
+    if (instance) {
+      const { did, cid } = instance;
+      const documentInstance = documentInstanceMap.get(did);
+      const compInst = documentInstance?.getComponentInstance(cid);
+      return compInst ? findDOMNodes(compInst) : null;
+    }
+    return null;
   };
 
   simulator.getClientRects = (element) => getClientRects(element);
@@ -383,9 +363,8 @@ function createSimulatorRenderer() {
     }
   });
 
-  host.injectionConsumer.consume((data) => {
+  host.injectionConsumer.consume(() => {
     // TODO: handle designer injection
-    console.log(data);
   });
 
   return simulator;
