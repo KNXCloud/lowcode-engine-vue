@@ -1,4 +1,4 @@
-import { DocumentModel, BuiltinSimulatorHost } from '@alilc/lowcode-designer';
+import { DocumentModel } from '@alilc/lowcode-designer';
 import { TransformStage } from '@alilc/lowcode-types';
 import {
   AssetLoader,
@@ -46,21 +46,11 @@ const loader = new AssetLoader();
 
 const builtinComponents = { Slot, Leaf, Page };
 
-function createDocumentInstance(
-  document: DocumentModel,
-  host: BuiltinSimulatorHost
-): DocumentInstance {
-  const device: Ref<string> = ref('default');
-  const designMode: Ref<'design'> = ref('design');
-  const components: Ref<Record<string, Component>> = ref({});
-  const componentsMap: Ref<Record<string, MinxedComponent>> = ref({});
+function createDocumentInstance(document: DocumentModel): DocumentInstance {
   /** 记录单个节点的组件实例列表 */
   const instancesMap = new Map<string, ComponentInstance[]>();
   /** 记录 vue 组件实例和组件 uid 的映射关系 */
   const vueInstanceMap = new Map<number, ComponentInstance>();
-  const requestHandlersMap: Ref<Record<string, CallableFunction>> = ref({});
-
-  const disposeFunctions: Array<() => void> = [];
 
   const timestamp = ref(Date.now());
 
@@ -157,19 +147,13 @@ function createDocumentInstance(
     }),
     key: computed(() => `${document.id}:${timestamp.value}`),
     schema: computed(() => document.export(TransformStage.Render)),
-    device: computed(() => device.value),
     document: computed(() => document),
-    components: computed(() => components.value),
-    componentsMap: computed(() => componentsMap.value),
     instancesMap: computed(() => instancesMap),
-    designMode: computed(() => designMode.value),
-    requestHandlersMap: computed(() => requestHandlersMap.value),
-    getComponentInstance,
+    getNode,
     mountInstance,
     unmountIntance,
-    getNode,
+    getComponentInstance,
     rerender: () => void (timestamp.value = Date.now()),
-    dispose: () => disposeFunctions.forEach((dispose) => dispose()),
   }) as DocumentInstance;
 }
 
@@ -326,7 +310,7 @@ function createSimulatorRenderer() {
       documentInstances.value = host.project.documents.map((doc) => {
         let documentInstance = documentInstanceMap.get(doc.id);
         if (!documentInstance) {
-          documentInstance = createDocumentInstance(doc, host);
+          documentInstance = createDocumentInstance(doc);
           documentInstanceMap.set(doc.id, documentInstance);
           router.addRoute({
             name: documentInstance.id,
