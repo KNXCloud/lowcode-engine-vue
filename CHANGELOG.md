@@ -3,6 +3,19 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.1](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.0...v1.4.1) (2022-07-12)
+
+
+### Bug Fixes
+
+* **utils:** 修复 __VUE_HMR_RUNTIME__ 值为空报错 ([298091e](https://github.com/KNXCloud/lowcode-engine-vue/commit/298091e0112faea3aa7f55593d9299cc2ec55a5f))
+* **vue-renderer:** 修复默认插槽错误渲染导致部分组件渲染异常 ([8c116de](https://github.com/KNXCloud/lowcode-engine-vue/commit/8c116debd7a2db4526b4d8a51aab4569cd419c1e))
+* **vue-renderer:** 修复组件非根属性更新导致的组件渲染异常 ([95f950e](https://github.com/KNXCloud/lowcode-engine-vue/commit/95f950eeda727e48f3a5c9426b8c654f12268d9d))
+
+
+
+
+
 # [1.4.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.3.5...v1.4.0) (2022-07-06)
 
 
