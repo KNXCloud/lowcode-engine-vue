@@ -13,7 +13,7 @@ export function setupHostEnvironment(project: Project): void {
       ),
       assetItem(
         AssetType.JSText,
-        'window.__VUE_DEVTOOLS_GLOBAL_HOOK__=window.parent.__VUE_DEVTOOLS_GLOBAL_HOOK__'
+        'window.__VUE_DEVTOOLS_GLOBAL_HOOK__=window.parent.__VUE_DEVTOOLS_GLOBAL_HOOK__;window.__VUE_HMR_RUNTIME__=window.parent.__VUE_HMR_RUNTIME__;'
       ),
     ]);
   });
