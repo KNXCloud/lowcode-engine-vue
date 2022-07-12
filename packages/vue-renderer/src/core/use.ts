@@ -605,44 +605,56 @@ export function useLeaf(props: LeafProps) {
    * @param slots - 插槽 schema
    * @param blockScope - 插槽块级作用域
    */
-  const buildSlost = (slots: SlotSchemaMap, blockScope?: BlockScope | null): Slots => {
+  const buildSlots = (slots: SlotSchemaMap, blockScope?: BlockScope | null): Slots => {
     return Object.keys(slots).reduce((prev, next) => {
       const slotSchema = slots[next];
-      if (!slotSchema) return prev;
+      const isDefaultSlot = next === 'default';
 
-      const renderSlot = (...args: unknown[]) => {
-        const vnodes: VNode[] = [];
-        if (Array.isArray(slotSchema)) {
-          // 插槽为数组，证明当前插槽不可拖拽编辑，直接渲染插槽内容
-          slotSchema.forEach((item) => {
-            const vnode = renderComp(item, blockScope);
-            vnode && vnodes.push(vnode);
-          });
-        } else if (slotSchema.id) {
-          // 存在 slot id，证明当前插槽可拖拽编辑，渲染 Hoc
-          const slotParams = slotSchema.params ?? [];
+      // 插槽数据为 null 或 undefined 时不渲染插槽
+      if (isNil(slotSchema)) return prev;
+
+      // 默认插槽内容为空，且当前节点不是容器节点时，不渲染默认插槽
+      if (
+        isDefaultSlot &&
+        !node?.isContainer() &&
+        Array.isArray(slotSchema) &&
+        slotSchema.length === 0
+      )
+        return prev;
+
+      let renderSlot: Slot;
+
+      if (Array.isArray(slotSchema)) {
+        // 插槽为数组，则当前插槽不可拖拽编辑，直接渲染插槽内容
+        renderSlot = () => {
+          return slotSchema
+            .map((item) => renderComp(item, blockScope))
+            .filter((vnode): vnode is VNode => !isNil(vnode));
+        };
+      } else if (slotSchema.id) {
+        // 存在 slot id，则当前插槽可拖拽编辑，渲染 Hoc
+        renderSlot = (...args: unknown[]) => {
           const vnode = renderComp(slotSchema, [
             blockScope,
-            parseSlotScope(args, slotParams),
+            parseSlotScope(args, slotSchema.params ?? []),
           ]);
-          vnode && vnodes.push(vnode);
-        } else {
-          // 不存在 slot id，插槽不可拖拽编辑，直接渲染插槽内容
-          const slotParams = slotSchema.params ?? [];
-          ensureArray(slotSchema.children).forEach((item) => {
-            const vnode = renderComp(item, [
-              blockScope,
-              parseSlotScope(args, slotParams),
-            ]);
-            vnode && vnodes.push(vnode);
-          });
-        }
-        return vnodes;
-      };
+          return isNil(vnode) ? [] : [vnode];
+        };
+      } else {
+        // 不存在 slot id，插槽不可拖拽编辑，直接渲染插槽内容
+        renderSlot = (...args: unknown[]) => {
+          const slotScope = parseSlotScope(args, slotSchema.params ?? []);
+          return ensureArray(slotSchema.children)
+            .map((item) => renderComp(item, [blockScope, slotScope]))
+            .filter((vnode): vnode is VNode => !isNil(vnode));
+        };
+      }
+
       prev[next] =
-        next === 'default' && isDesignMode && node?.isContainer()
+        isDefaultSlot && isDesignMode && node?.isContainer()
           ? decorateDefaultSlot(renderSlot) // 当节点为容器节点，且为设计模式下，则装饰默认插槽
           : renderSlot;
+
       return prev;
     }, {} as Record<string, Slot>);
   };
@@ -654,7 +666,7 @@ export function useLeaf(props: LeafProps) {
     renderComp,
     buildLoop,
     buildProps,
-    buildSlost,
+    buildSlots,
     buildSchema,
   };
 }
