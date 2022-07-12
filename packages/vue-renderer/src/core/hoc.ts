@@ -19,7 +19,7 @@ export const Hoc = defineComponent({
   props: leafProps,
   setup(props) {
     const { triggerCompGetCtx } = useRendererContext();
-    const { node, locked, buildSchema, buildProps, buildSlost, buildLoop, buildShow } =
+    const { node, locked, buildSchema, buildProps, buildSlots, buildLoop, buildShow } =
       useLeaf(props);
 
     const { show, hidden, condition } = buildShow(props.schema);
@@ -98,7 +98,7 @@ export const Hoc = defineComponent({
       compSlots,
       compProps,
       getRef,
-      buildSlost,
+      buildSlots,
       buildProps,
       buildLoopScope,
     };
@@ -111,7 +111,7 @@ export const Hoc = defineComponent({
       compProps,
       compSlots,
       getRef,
-      buildSlost,
+      buildSlots,
       buildProps,
       buildLoopScope,
     } = this;
@@ -121,7 +121,7 @@ export const Hoc = defineComponent({
 
     if (!loop) {
       const props = buildProps(compProps, null, { ref: getRef });
-      const slots = buildSlost(compSlots);
+      const slots = buildSlots(compSlots);
       return h(comp, props, slots);
     }
 
@@ -135,7 +135,7 @@ export const Hoc = defineComponent({
       loop.map((item, index, arr) => {
         const blockScope = buildLoopScope(item, index, arr.length);
         const props = buildProps(compProps, blockScope, { ref: getRef });
-        const slots = buildSlost(compSlots, blockScope);
+        const slots = buildSlots(compSlots, blockScope);
         return h(comp, props, slots);
       })
     );
