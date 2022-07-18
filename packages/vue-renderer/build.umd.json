@@ -18,6 +18,7 @@
   "ignoreHtmlTemplate": true,
   "plugins": [
     "build-plugin-react-app",
-    ["build-plugin-moment-locales", { "locales": ["zh-cn"] }]
+    ["build-plugin-moment-locales", { "locales": ["zh-cn"] }],
+    "./build.plugin.cjs"
   ]
 }
