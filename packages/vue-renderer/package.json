@@ -10,12 +10,13 @@
     "dist"
   ],
   "scripts": {
+    "start": "build-scripts start --disable-open --port 5566 --config=build.umd.json",
     "build": "build-scripts build",
     "build:umd": "build-scripts build --config=build.umd.json",
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
     "prepublishOnly": "pnpm build && pnpm build:umd"
   },
-  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-renderer@1.1.1/build/index.html",
+  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-renderer@1.4.1/build/index.html",
   "dependencies": {
     "@alilc/lowcode-types": "^1.0.11",
     "intl-messageformat": "^10.1.0",

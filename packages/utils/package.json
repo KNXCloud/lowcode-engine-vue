@@ -12,7 +12,7 @@
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
     "prepublishOnly": "pnpm build"
   },
-  "homepage": "https://unpkg.com/@knxcloud/lowcode-utils@1.3.2/build/index.html",
+  "homepage": "https://unpkg.com/@knxcloud/lowcode-utils@1.4.1/build/index.html",
   "dependencies": {
     "@alilc/lowcode-shell": "^1.0.11",
     "@alilc/lowcode-types": "^1.0.11"

@@ -4,6 +4,7 @@
   ],
   "scripts": {
     "start": "pnpm -C packages/vue-simulator-renderer start",
+    "start:renderer": "pnpm -C packages/vue-renderer start",
     "build": "lerna run build --stream && lerna run build:umd --stream",
     "lint": "pnpm run lint:code && pnpm run lint:type",
     "lint:code": "eslint ./packages/**/*.ts && stylelint ./packages/**/*.less",

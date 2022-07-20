@@ -16,7 +16,7 @@
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
     "prepublishOnly": "pnpm build && pnpm build:umd"
   },
-  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.1.1/build/index.html",
+  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-simulator-renderer@1.4.1/build/index.html",
   "dependencies": {
     "@alilc/lowcode-types": "^1.0.11",
     "@alilc/lowcode-utils": "^1.0.11",

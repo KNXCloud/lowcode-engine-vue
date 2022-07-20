@@ -60,7 +60,10 @@ export function createDataSource(
 
       const fetchOptions = parseSchema(options ?? {}, scope);
       if (inputParams) {
-        if (isObject(fetchOptions.params)) {
+        if (inputParams instanceof FormData) {
+          // 处理文件上传
+          fetchOptions.params = inputParams;
+        } else if (isObject(fetchOptions.params)) {
           Object.assign(fetchOptions.params, inputParams);
         } else {
           fetchOptions.params = inputParams;
