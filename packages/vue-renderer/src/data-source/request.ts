@@ -68,9 +68,14 @@ export async function request(options: RequestOptions): Promise<Response> {
     url = buildUrl(uri, params);
   } else {
     url = uri;
-    fetchOptions.body = getContentType(headers).includes('application/json')
-      ? JSON.stringify(params)
-      : serializeParams(params);
+    if (params instanceof FormData) {
+      // 处理form表单类型（文件上传）
+      fetchOptions.body = params;
+    } else {
+      fetchOptions.body = getContentType(headers).includes('application/json')
+        ? JSON.stringify(params)
+        : serializeParams(params);
+    }
   }
 
   if (timeout) {
