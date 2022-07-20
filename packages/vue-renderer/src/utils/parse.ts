@@ -7,7 +7,7 @@ import {
   isJSFunction,
 } from '@alilc/lowcode-types';
 import { isFunction, isString } from 'lodash-es';
-import { isObject } from './object';
+import { isPlainObject } from './object';
 import { ensureArray } from './array';
 import { BlockScope, RuntimeScope } from './scope';
 
@@ -89,7 +89,7 @@ export function parseSchema(schema: unknown, scope?: RuntimeScope): unknown {
     return schema.map((item) => parseSchema(item, scope));
   } else if (isFunction(schema)) {
     return schema.bind(scope);
-  } else if (isObject(schema)) {
+  } else if (isPlainObject(schema)) {
     if (!schema) return schema;
     const res: Record<string, unknown> = {};
     Object.keys(schema).forEach((key) => {

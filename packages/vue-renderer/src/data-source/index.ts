@@ -2,7 +2,7 @@ import { InterpretDataSource, InterpretDataSourceConfig } from '@alilc/lowcode-t
 import { computed, reactive, ref, shallowRef } from 'vue';
 import { request, Response } from './request';
 import { DataSourceStatus } from './interface';
-import { isObject, parseSchema, RuntimeScope } from '../utils';
+import { isObject, isPlainObject, parseSchema, RuntimeScope } from '../utils';
 
 const same = <T>(v: T) => v;
 const noop = () => void 0;
@@ -60,10 +60,7 @@ export function createDataSource(
 
       const fetchOptions = parseSchema(options ?? {}, scope);
       if (inputParams) {
-        if (inputParams instanceof FormData) {
-          // 处理form表单类型（文件上传）
-          fetchOptions.params = inputParams;
-        } else if (isObject(fetchOptions.params)) {
+        if (isObject(fetchOptions.params) && isPlainObject(inputParams)) {
           Object.assign(fetchOptions.params, inputParams);
         } else {
           fetchOptions.params = inputParams;

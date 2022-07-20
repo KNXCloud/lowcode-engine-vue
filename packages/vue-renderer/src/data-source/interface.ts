@@ -1,11 +1,15 @@
+export type ResponseType = 'blob' | 'arrayBuffer' | 'formData' | 'text' | 'json';
+
+export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
+
 export interface RequestOptions {
   uri: string;
   params: Record<string, unknown>;
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
+  method: RequestMethod;
   isCors: boolean;
   timeout: number;
   headers: Record<string, string>;
-  responseType?: string;
+  responseType?: ResponseType;
 }
 
 export enum DataSourceStatus {

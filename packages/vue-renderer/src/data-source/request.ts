@@ -1,5 +1,5 @@
 import { isString } from 'lodash-es';
-import { RequestOptions } from './interface';
+import { RequestOptions, ResponseType } from './interface';
 
 function serializeParams(obj: Record<string, unknown>) {
   const result: string[] = [];
@@ -39,7 +39,29 @@ function getContentType(headers: Record<string, unknown>): string {
     });
   }
 
-  return contentType;
+  return contentType.trim();
+}
+
+function isValidResponseType(type: string): type is ResponseType {
+  return ['arrayBuffer', 'blob', 'formData', 'json', 'text'].includes(type);
+}
+
+function parseRequestBody(contentType: string, data: Record<string, unknown>): BodyInit {
+  switch (contentType) {
+    case 'application/json':
+      return JSON.stringify(data);
+    case 'multipart/form-data': {
+      const formData = new FormData();
+      for (const key in data) {
+        formData.append(key, data[key] as any);
+      }
+      return formData;
+    }
+    case 'application/x-www-form-urlencoded':
+      return serializeParams(data);
+    default:
+      return data as unknown as BodyInit;
+  }
 }
 
 export class RequestError<T = unknown> extends Error {
@@ -53,7 +75,7 @@ export class Response<T = unknown> {
 }
 
 export async function request(options: RequestOptions): Promise<Response> {
-  const { method, uri, timeout, headers, params } = options;
+  const { method, uri, timeout, headers, params, responseType = 'json' } = options;
 
   let url: string;
   const fetchOptions: RequestInit = {
@@ -68,14 +90,8 @@ export async function request(options: RequestOptions): Promise<Response> {
     url = buildUrl(uri, params);
   } else {
     url = uri;
-    if (params instanceof FormData) {
-      // 处理form表单类型（文件上传）
-      fetchOptions.body = params;
-    } else {
-      fetchOptions.body = getContentType(headers).includes('application/json')
-        ? JSON.stringify(params)
-        : serializeParams(params);
-    }
+    const contentType = getContentType(headers);
+    fetchOptions.body = parseRequestBody(contentType, params);
   }
 
   if (timeout) {
@@ -95,19 +111,10 @@ export async function request(options: RequestOptions): Promise<Response> {
         throw new RequestError(res.statusText, code);
       }
     } else {
-      if (options.responseType === 'blob') {
-        return new Response(code, await res.blob());
+      if (!isValidResponseType(responseType)) {
+        throw new RequestError(`invalid response type: ${responseType}`, -1);
       }
-      if (options.responseType === 'arrayBuffer') {
-        return new Response(code, await res.arrayBuffer());
-      }
-      if (options.responseType === 'formData') {
-        return new Response(code, await res.formData());
-      }
-      if (options.responseType === 'text') {
-        return new Response(code, await res.text());
-      }
-      return new Response(code, await res.json());
+      return new Response(code, await res[responseType]());
     }
   } else if (code >= 400) {
     try {
