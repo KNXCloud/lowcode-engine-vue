@@ -90,6 +90,18 @@ export async function request(options: RequestOptions): Promise<Response> {
         throw new RequestError(res.statusText, code);
       }
     } else {
+      if (options.responseType === 'blob') {
+        return new Response(code, await res.blob());
+      }
+      if (options.responseType === 'arrayBuffer') {
+        return new Response(code, await res.arrayBuffer());
+      }
+      if (options.responseType === 'formData') {
+        return new Response(code, await res.formData());
+      }
+      if (options.responseType === 'text') {
+        return new Response(code, await res.text());
+      }
       return new Response(code, await res.json());
     }
   } else if (code >= 400) {
