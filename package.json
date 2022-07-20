@@ -11,6 +11,7 @@
     "prepare": "husky install && pnpm build"
   },
   "dependencies": {
+    "@knxcloud/lowcode-hooks": "workspace:*",
     "@knxcloud/lowcode-utils": "workspace:*",
     "@knxcloud/lowcode-vue-renderer": "workspace:*",
     "@knxcloud/lowcode-vue-simulator-renderer": "workspace:*"

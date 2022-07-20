@@ -10,7 +10,7 @@ import {
   defineComponent,
 } from 'vue';
 import { leafProps } from './base';
-import { useRendererContext } from '../context';
+import { useRendererContext } from '@knxcloud/lowcode-hooks';
 import { ensureArray } from '../utils';
 import { PropSchemaMap, SlotSchemaMap, useLeaf } from './use';
 
