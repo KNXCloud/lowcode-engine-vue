@@ -40,7 +40,6 @@ import {
   getClosestNodeInstanceByComponent,
 } from './utils';
 import { createMemoryHistory, createRouter } from 'vue-router';
-import './simulator.less';
 
 const loader = new AssetLoader();
 

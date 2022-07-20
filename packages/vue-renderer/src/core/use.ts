@@ -738,11 +738,16 @@ export function useRootScope(rendererProps: RendererProps) {
   }
 
   // 处理 css
-  let style: HTMLStyleElement | null = document.querySelector(`[data-id=${schema.id}]`);
+  let style: HTMLStyleElement | null = null;
+  if (schema.id) {
+    style = document.querySelector(`style[data-id="${schema.id}"]`);
+  }
   if (schema.css) {
     if (!style) {
       style = document.createElement('style');
-      style.setAttribute('data-id', schema.id!);
+      if (schema.id) {
+        style.setAttribute('data-id', schema.id);
+      }
       const head = document.head || document.getElementsByTagName('head')[0];
       head.appendChild(style);
     }

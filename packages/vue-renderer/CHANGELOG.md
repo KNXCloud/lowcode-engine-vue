@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.2](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.1...v1.4.2) (2022-07-14)
+
+
+### Bug Fixes
+
+* **vue-renderer:** 修复 schema id 为纯数字开头时导致的渲染报错 ([f98faa7](https://github.com/KNXCloud/lowcode-engine-vue/commit/f98faa78758d76a3af65ba87736424442ec6aada))
+
+
+
+
+
 ## [1.4.1](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.0...v1.4.1) (2022-07-12)
 
 
