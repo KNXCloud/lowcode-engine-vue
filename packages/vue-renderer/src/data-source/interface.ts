@@ -5,6 +5,7 @@ export interface RequestOptions {
   isCors: boolean;
   timeout: number;
   headers: Record<string, string>;
+  responseType?: string;
 }
 
 export enum DataSourceStatus {

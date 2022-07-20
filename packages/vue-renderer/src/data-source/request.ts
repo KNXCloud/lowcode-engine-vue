@@ -68,9 +68,14 @@ export async function request(options: RequestOptions): Promise<Response> {
     url = buildUrl(uri, params);
   } else {
     url = uri;
-    fetchOptions.body = getContentType(headers).includes('application/json')
-      ? JSON.stringify(params)
-      : serializeParams(params);
+    if (params instanceof FormData) {
+      // 处理form表单类型（文件上传）
+      fetchOptions.body = params;
+    } else {
+      fetchOptions.body = getContentType(headers).includes('application/json')
+        ? JSON.stringify(params)
+        : serializeParams(params);
+    }
   }
 
   if (timeout) {
@@ -90,6 +95,18 @@ export async function request(options: RequestOptions): Promise<Response> {
         throw new RequestError(res.statusText, code);
       }
     } else {
+      if (options.responseType === 'blob') {
+        return new Response(code, await res.blob());
+      }
+      if (options.responseType === 'arrayBuffer') {
+        return new Response(code, await res.arrayBuffer());
+      }
+      if (options.responseType === 'formData') {
+        return new Response(code, await res.formData());
+      }
+      if (options.responseType === 'text') {
+        return new Response(code, await res.text());
+      }
       return new Response(code, await res.json());
     }
   } else if (code >= 400) {
