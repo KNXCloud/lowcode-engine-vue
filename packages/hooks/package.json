@@ -11,7 +11,7 @@
   "scripts": {
     "build": "build-scripts build",
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
-    "prepublishOnly": "pnpm build && pnpm build:umd"
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@alilc/lowcode-designer": "^1.0.11",
