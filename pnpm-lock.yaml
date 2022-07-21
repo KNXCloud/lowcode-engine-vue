@@ -6,27 +6,28 @@ importers:
     specifiers:
       '@alib/build-scripts': ^0.1.32
       '@babel/core': ^7.18.6
-      '@knxcloud/lowcode-utils': workspace:1.4.1
-      '@knxcloud/lowcode-vue-renderer': workspace:1.4.2
-      '@knxcloud/lowcode-vue-simulator-renderer': workspace:1.4.2
+      '@knxcloud/lowcode-hooks': workspace:*
+      '@knxcloud/lowcode-utils': workspace:*
+      '@knxcloud/lowcode-vue-renderer': workspace:*
+      '@knxcloud/lowcode-vue-simulator-renderer': workspace:*
       '@rushstack/eslint-patch': ^1.1.4
       '@types/node': ^17.0.45
-      '@typescript-eslint/eslint-plugin': ^5.30.6
-      '@typescript-eslint/parser': ^5.30.6
+      '@typescript-eslint/eslint-plugin': ^5.30.3
+      '@typescript-eslint/parser': ^5.30.3
       '@vue/eslint-config-prettier': ^7.0.0
       '@vue/eslint-config-typescript': ^10.0.0
-      build-plugin-component: ^1.11.0
+      build-plugin-component: ^1.10.0
       build-plugin-moment-locales: ^0.1.3
       build-plugin-react-app: ^1.8.5
-      eslint: ^8.20.0
+      eslint: ^8.19.0
       eslint-config-prettier: ^8.5.0
       eslint-plugin-prettier: ^4.2.1
-      eslint-plugin-vue: ^9.2.0
+      eslint-plugin-vue: ^9.1.1
       husky: ^8.0.1
-      lerna: ^5.1.8
+      lerna: ^5.1.6
       lint-staged: ^13.0.3
       postcss: 8.4.14
-      postcss-html: ^1.5.0
+      postcss-html: ^1.4.1
       postcss-less: ^6.0.0
       prettier: ^2.7.1
       stylelint: ^14.9.1
@@ -40,6 +41,7 @@ importers:
       vue: ^3.2.37
       webpack: ^4.46.0
     dependencies:
+      '@knxcloud/lowcode-hooks': link:packages/hooks
       '@knxcloud/lowcode-utils': link:packages/utils
       '@knxcloud/lowcode-vue-renderer': link:packages/vue-renderer
       '@knxcloud/lowcode-vue-simulator-renderer': link:packages/vue-simulator-renderer
@@ -79,16 +81,16 @@ importers:
 
   packages/hooks:
     specifiers:
-      '@alilc/lowcode-designer': ^1.0.12
-      '@alilc/lowcode-types': ^1.0.12
+      '@alilc/lowcode-designer': ^1.0.11
+      '@alilc/lowcode-types': ^1.0.11
     dependencies:
       '@alilc/lowcode-designer': 1.0.12
       '@alilc/lowcode-types': 1.0.12
 
   packages/utils:
     specifiers:
-      '@alilc/lowcode-shell': ^1.0.12
-      '@alilc/lowcode-types': ^1.0.12
+      '@alilc/lowcode-shell': ^1.0.11
+      '@alilc/lowcode-types': ^1.0.11
       vue: ^3.2.37
     dependencies:
       '@alilc/lowcode-shell': 1.0.12
@@ -98,10 +100,10 @@ importers:
 
   packages/vue-renderer:
     specifiers:
-      '@alilc/lowcode-designer': ^1.0.12
-      '@alilc/lowcode-types': ^1.0.12
+      '@alilc/lowcode-designer': ^1.0.11
+      '@alilc/lowcode-types': ^1.0.11
       '@types/lodash-es': ^4.17.6
-      intl-messageformat: ^10.1.1
+      intl-messageformat: ^10.1.0
       lodash-es: ^4.17.21
       vue: ^3.2.37
     dependencies:
@@ -115,13 +117,13 @@ importers:
 
   packages/vue-simulator-renderer:
     specifiers:
-      '@alilc/lowcode-designer': ^1.0.12
-      '@alilc/lowcode-types': ^1.0.12
-      '@alilc/lowcode-utils': ^1.0.12
-      '@knxcloud/lowcode-utils': workspace:^1.4.1
-      '@knxcloud/lowcode-vue-renderer': workspace:^1.4.2
+      '@alilc/lowcode-designer': ^1.0.11
+      '@alilc/lowcode-types': ^1.0.11
+      '@alilc/lowcode-utils': ^1.0.11
+      '@knxcloud/lowcode-utils': ^1.4.1
+      '@knxcloud/lowcode-vue-renderer': ^1.4.2
       vue: ^3.2.37
-      vue-router: ^4.1.2
+      vue-router: ^4.0.16
     dependencies:
       '@alilc/lowcode-types': 1.0.12
       '@alilc/lowcode-utils': 1.0.12

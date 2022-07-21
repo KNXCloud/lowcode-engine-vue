@@ -1,13 +1,12 @@
-import { noop } from 'lodash-es';
-import { Node } from '@alilc/lowcode-designer';
-import { NodeSchema } from '@alilc/lowcode-types';
 import {
-  inject,
   Component,
   ComponentPublicInstance,
   InjectionKey,
+  inject,
   getCurrentInstance,
 } from 'vue';
+import { Node } from '@alilc/lowcode-designer';
+import { NodeSchema } from '@alilc/lowcode-types';
 
 export type DesignMode = 'live' | 'design';
 
@@ -18,17 +17,17 @@ export interface RendererContext {
   triggerCompGetCtx(schema: NodeSchema, val: ComponentPublicInstance): void;
 }
 
-export function contextFactory(): InjectionKey<RendererContext> {
-  let context = (window as any).__appContext;
-  if (!context) {
-    context = Symbol('__appContext');
-    (window as any).__appContext = context;
+export function getRendererContextKey(): InjectionKey<RendererContext> {
+  let key = (window as any).__rendererContext;
+  if (!key) {
+    key = Symbol('__rendererContext');
+    (window as any).__rendererContext = key;
   }
-  return context;
+  return key;
 }
 
 export function useRendererContext() {
-  const key = contextFactory();
+  const key = getRendererContextKey();
   return inject(
     key,
     () => {
@@ -37,7 +36,7 @@ export function useRendererContext() {
         components: getPropValue(props, 'components', {}),
         designMode: getPropValue<DesignMode>(props, 'designMode', 'live'),
         getNode: getPropValue(props, 'getNode', () => null),
-        triggerCompGetCtx: getPropValue(props, 'triggerCompGetCtx', noop),
+        triggerCompGetCtx: getPropValue(props, 'triggerCompGetCtx', () => void 0),
       };
     },
     true

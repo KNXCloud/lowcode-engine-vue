@@ -1,5 +1,5 @@
-import { isString } from 'lodash-es';
-import { RequestOptions } from './interface';
+import { isPlainObject } from '../utils';
+import { RequestOptions, ResponseType } from './interface';
 
 function serializeParams(obj: Record<string, unknown>) {
   const result: string[] = [];
@@ -26,20 +26,44 @@ function buildUrl(dataAPI: string, params?: Record<string, unknown>) {
   return dataAPI;
 }
 
-function getContentType(headers: Record<string, unknown>): string {
-  let contentType = 'application/json';
-  if (headers) {
-    Object.keys(headers).forEach((key) => {
-      if (key.toLowerCase() === 'content-type') {
-        const value = headers[key];
-        if (isString(value)) {
-          contentType = value;
-        }
-      }
-    });
+function find(o: Record<string, string>, k: string): [string, string] | [] {
+  for (const key in o) {
+    if (key.toLowerCase() === k) {
+      return [o[key], key];
+    }
   }
+  return [];
+}
 
-  return contentType;
+function isValidResponseType(type: string): type is ResponseType {
+  return ['arrayBuffer', 'blob', 'formData', 'json', 'text'].includes(type);
+}
+
+function createFormData(data: Record<string, unknown>): FormData {
+  const formData = new FormData();
+  for (const key in data) {
+    const value = data[key];
+    if (value instanceof Blob) {
+      formData.append(key, value);
+    } else {
+      formData.append(key, String(value));
+    }
+  }
+  return formData;
+}
+
+function parseRequestBody(contentType: string, data: Record<string, unknown>): BodyInit {
+  switch (contentType) {
+    case 'application/json':
+      return JSON.stringify(data);
+    case 'multipart/form-data': {
+      return isPlainObject(data) ? createFormData(data) : data;
+    }
+    case 'application/x-www-form-urlencoded':
+      return serializeParams(data);
+    default:
+      return data as unknown as BodyInit;
+  }
 }
 
 export class RequestError<T = unknown> extends Error {
@@ -53,28 +77,35 @@ export class Response<T = unknown> {
 }
 
 export async function request(options: RequestOptions): Promise<Response> {
-  const { method, uri, timeout, headers, params } = options;
+  const {
+    uri,
+    method,
+    timeout,
+    params = {},
+    headers = {},
+    responseType = 'json',
+  } = options;
 
   let url: string;
+  const requestHeaders: Record<string, string> = {
+    Accept: 'application/json',
+    ...headers,
+  };
+
   const fetchOptions: RequestInit = {
     method,
-    headers: {
-      Accept: 'application/json',
-      ...headers,
-    },
+    headers: requestHeaders,
   };
 
   if (method === 'GET' || method === 'DELETE' || method === 'OPTIONS') {
     url = buildUrl(uri, params);
   } else {
     url = uri;
-    if (params instanceof FormData) {
-      // 处理form表单类型（文件上传）
-      fetchOptions.body = params;
-    } else {
-      fetchOptions.body = getContentType(headers).includes('application/json')
-        ? JSON.stringify(params)
-        : serializeParams(params);
+    const [contentType, key] = find(requestHeaders, 'content-type');
+    fetchOptions.body = parseRequestBody(contentType ?? 'application/json', params);
+
+    if (contentType === 'multipart/form-data') {
+      key && delete requestHeaders[key];
     }
   }
 
@@ -95,19 +126,10 @@ export async function request(options: RequestOptions): Promise<Response> {
         throw new RequestError(res.statusText, code);
       }
     } else {
-      if (options.responseType === 'blob') {
-        return new Response(code, await res.blob());
+      if (!isValidResponseType(responseType)) {
+        throw new RequestError(`invalid response type: ${responseType}`, -1);
       }
-      if (options.responseType === 'arrayBuffer') {
-        return new Response(code, await res.arrayBuffer());
-      }
-      if (options.responseType === 'formData') {
-        return new Response(code, await res.formData());
-      }
-      if (options.responseType === 'text') {
-        return new Response(code, await res.text());
-      }
-      return new Response(code, await res.json());
+      return new Response(code, await res[responseType]());
     }
   } else if (code >= 400) {
     try {

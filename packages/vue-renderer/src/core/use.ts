@@ -40,7 +40,11 @@ import {
   TransformStage,
 } from '@alilc/lowcode-types';
 import { isNil, isString, camelCase, pickBy, isFunction } from 'lodash-es';
-import { contextFactory, useRendererContext } from '../context';
+import {
+  getCurrentNodeKey,
+  getRendererContextKey,
+  useRendererContext,
+} from '@knxcloud/lowcode-hooks';
 import { LeafProps, RendererProps } from './base';
 import { Hoc } from './hoc';
 import { Live } from './live';
@@ -55,6 +59,8 @@ import {
 } from '../utils';
 import { createDataSourceManager } from '../data-source';
 import { MaybeArray, BlockScope, RuntimeScope } from '../utils';
+
+const currentNodeKey = getCurrentNodeKey();
 
 const VUE_LIFTCYCLES_MAP = {
   beforeMount: onBeforeMount,
@@ -130,6 +136,12 @@ export function useLeaf(props: LeafProps) {
   const locked = node ? useLocked(node.isLocked) : ref(false);
 
   const isDesignMode = designMode === 'design';
+
+  provide(currentNodeKey, {
+    mode: designMode,
+    node: node,
+    isDesignerEnv: isDesignMode,
+  });
 
   /**
    * 渲染节点 vnode
@@ -680,7 +692,7 @@ export function useRenderer(props: RendererProps) {
     schema: computed(() => props.__schema),
   });
 
-  const contextKey = contextFactory();
+  const contextKey = getRendererContextKey();
 
   const designModeRef = computed(() => props.__designMode);
   const componentsRef = computed(() => props.__components);
@@ -784,11 +796,11 @@ export function useRootScope(rendererProps: RendererProps) {
   addToScope({ i18n, currentLocale });
 
   // 处理 dataSource
-  const { dataSourceMap, reloadDataSource } = createDataSourceManager(
+  const { dataSource, dataSourceMap, reloadDataSource } = createDataSourceManager(
     schema.dataSource ?? { list: [], dataHandler: undefined },
     scope
   );
-  addToScope({ dataSourceMap, reloadDataSource });
+  addToScope({ dataSource, dataSourceMap, reloadDataSource });
   reloadDataSource();
 
   return {
