@@ -2,9 +2,11 @@ export type ResponseType = 'blob' | 'arrayBuffer' | 'formData' | 'text' | 'json'
 
 export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
 
+export type RequestParams = Record<string, unknown>;
+
 export interface RequestOptions {
   uri: string;
-  params: Record<string, unknown>;
+  params: RequestParams;
   method: RequestMethod;
   isCors: boolean;
   timeout: number;

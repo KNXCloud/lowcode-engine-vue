@@ -1,4 +1,4 @@
-import { isString } from 'lodash-es';
+import { isPlainObject } from '../utils';
 import { RequestOptions, ResponseType } from './interface';
 
 function serializeParams(obj: Record<string, unknown>) {
@@ -26,24 +26,30 @@ function buildUrl(dataAPI: string, params?: Record<string, unknown>) {
   return dataAPI;
 }
 
-function getContentType(headers: Record<string, unknown>): string {
-  let contentType = 'application/json';
-  if (headers) {
-    Object.keys(headers).forEach((key) => {
-      if (key.toLowerCase() === 'content-type') {
-        const value = headers[key];
-        if (isString(value)) {
-          contentType = value;
-        }
-      }
-    });
+function find(o: Record<string, string>, k: string): [string, string] | [] {
+  for (const key in o) {
+    if (key.toLowerCase() === k) {
+      return [o[key], key];
+    }
   }
-
-  return contentType.trim();
+  return [];
 }
 
 function isValidResponseType(type: string): type is ResponseType {
   return ['arrayBuffer', 'blob', 'formData', 'json', 'text'].includes(type);
+}
+
+function createFormData(data: Record<string, unknown>): FormData {
+  const formData = new FormData();
+  for (const key in data) {
+    const value = data[key];
+    if (value instanceof Blob) {
+      formData.append(key, value);
+    } else {
+      formData.append(key, String(value));
+    }
+  }
+  return formData;
 }
 
 function parseRequestBody(contentType: string, data: Record<string, unknown>): BodyInit {
@@ -51,11 +57,7 @@ function parseRequestBody(contentType: string, data: Record<string, unknown>): B
     case 'application/json':
       return JSON.stringify(data);
     case 'multipart/form-data': {
-      const formData = new FormData();
-      for (const key in data) {
-        formData.append(key, data[key] as any);
-      }
-      return formData;
+      return isPlainObject(data) ? createFormData(data) : data;
     }
     case 'application/x-www-form-urlencoded':
       return serializeParams(data);
@@ -75,23 +77,36 @@ export class Response<T = unknown> {
 }
 
 export async function request(options: RequestOptions): Promise<Response> {
-  const { method, uri, timeout, headers, params, responseType = 'json' } = options;
+  const {
+    uri,
+    method,
+    timeout,
+    params = {},
+    headers = {},
+    responseType = 'json',
+  } = options;
 
   let url: string;
+  const requestHeaders: Record<string, string> = {
+    Accept: 'application/json',
+    ...headers,
+  };
+
   const fetchOptions: RequestInit = {
     method,
-    headers: {
-      Accept: 'application/json',
-      ...headers,
-    },
+    headers: requestHeaders,
   };
 
   if (method === 'GET' || method === 'DELETE' || method === 'OPTIONS') {
     url = buildUrl(uri, params);
   } else {
     url = uri;
-    const contentType = getContentType(headers);
-    fetchOptions.body = parseRequestBody(contentType, params);
+    const [contentType, key] = find(requestHeaders, 'content-type');
+    fetchOptions.body = parseRequestBody(contentType ?? 'application/json', params);
+
+    if (contentType === 'multipart/form-data') {
+      key && delete requestHeaders[key];
+    }
   }
 
   if (timeout) {

@@ -1,7 +1,7 @@
 import { ComponentPublicInstance, isProxy, reactive } from 'vue';
 import { isObject } from './object';
 import { MaybeArray } from './array';
-import { DataSource } from '../data-source';
+import { DataSourceItem } from '../data-source';
 
 export interface BlockScope {
   [x: string]: unknown;
@@ -10,7 +10,7 @@ export interface BlockScope {
 export interface RuntimeScope extends BlockScope, ComponentPublicInstance {
   i18n(key: string, values: any): string;
   currentLocale: string;
-  dataSourceMap: Record<string, DataSource>;
+  dataSourceMap: Record<string, DataSourceItem>;
   reloadDataSource(): Promise<any[]>;
   __loopScope?: boolean;
   __loopRefIndex?: number;

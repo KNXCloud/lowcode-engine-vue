@@ -796,11 +796,11 @@ export function useRootScope(rendererProps: RendererProps) {
   addToScope({ i18n, currentLocale });
 
   // 处理 dataSource
-  const { dataSourceMap, reloadDataSource } = createDataSourceManager(
+  const { dataSource, dataSourceMap, reloadDataSource } = createDataSourceManager(
     schema.dataSource ?? { list: [], dataHandler: undefined },
     scope
   );
-  addToScope({ dataSourceMap, reloadDataSource });
+  addToScope({ dataSource, dataSourceMap, reloadDataSource });
   reloadDataSource();
 
   return {
