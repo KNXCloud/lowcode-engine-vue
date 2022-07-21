@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.3](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.2...v1.4.3) (2022-07-21)
+
+
+### Bug Fixes
+
+* **vue-renderer:** 调整 dataSource options 处理逻辑 ([9b9642a](https://github.com/KNXCloud/lowcode-engine-vue/commit/9b9642ac8bb78bd7f77af9ae99f6596e7aa00106))
+
+
+### Features
+
+* **hooks:** 提供 hooks 用于自定义组件和画布通讯 ([7af68a9](https://github.com/KNXCloud/lowcode-engine-vue/commit/7af68a985fd1374d3a2d6a17b80e735a30bb54fe))
+* **vue-renderer:** 新增 dataSource 对象便于调用数据源接口 ([08c9704](https://github.com/KNXCloud/lowcode-engine-vue/commit/08c970457ba5691df14e8d122ba2192a90a3e529))
+
+
+
+
+
 ## [1.4.2](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.1...v1.4.2) (2022-07-14)
 
 

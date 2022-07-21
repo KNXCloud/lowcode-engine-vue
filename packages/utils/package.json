@@ -2,7 +2,7 @@
   "name": "@knxcloud/lowcode-utils",
   "main": "./lib/index.js",
   "module": "./es/index.js",
-  "version": "1.4.1",
+  "version": "1.4.3",
   "files": [
     "es",
     "lib"
