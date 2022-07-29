@@ -22,3 +22,7 @@ export function isESModule(obj: unknown): obj is ESModule {
 export function isCSSUrl(url: string): boolean {
   return /\.css$/.test(url);
 }
+
+export function isElement(node: unknown): node is Element {
+  return isObject(node) && node.nodeType === Node.ELEMENT_NODE;
+}

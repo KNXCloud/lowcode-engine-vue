@@ -16,9 +16,6 @@ win.addEventListener('beforeunload', () => {
 export default simulator;
 export * from '@knxcloud/lowcode-vue-renderer';
 export {
-  useLeaf,
-  useRenderer,
-  useRootScope,
   config as vueRendererConfig,
   default as VueRenderer,
 } from '@knxcloud/lowcode-vue-renderer';

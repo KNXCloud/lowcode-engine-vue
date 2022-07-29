@@ -5,3 +5,5 @@ export * from './check';
 export * from './closest-node';
 export * from './find-dom-nodes';
 export * from './logger';
+export * from './cursor';
+export * from './navtive-selection';

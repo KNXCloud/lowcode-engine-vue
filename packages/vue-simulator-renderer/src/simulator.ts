@@ -1,12 +1,6 @@
 import { DocumentModel } from '@alilc/lowcode-designer';
 import { TransformStage } from '@alilc/lowcode-types';
 import {
-  AssetLoader,
-  cursor,
-  getSubComponent,
-  setNativeSelection,
-} from '@alilc/lowcode-utils';
-import {
   Ref,
   Component,
   createApp,
@@ -18,7 +12,7 @@ import {
   onUnmounted,
 } from 'vue';
 import { config } from '@knxcloud/lowcode-vue-renderer';
-import { buildComponents } from '@knxcloud/lowcode-utils';
+import { AssetLoader, buildComponents, getSubComponent } from '@knxcloud/lowcode-utils';
 import {
   ComponentInstance,
   DocumentInstance,
@@ -30,6 +24,7 @@ import { Renderer, SimulatorRendererView } from './simulator-view';
 import { Slot, Leaf, Page } from './buildin-components';
 import { host } from './host';
 import {
+  cursor,
   findDOMNodes,
   getClientRects,
   getCompRootData,
@@ -38,6 +33,7 @@ import {
   ComponentRecord,
   isComponentRecord,
   getClosestNodeInstanceByComponent,
+  setNativeSelection,
 } from './utils';
 import { createMemoryHistory, createRouter } from 'vue-router';
 

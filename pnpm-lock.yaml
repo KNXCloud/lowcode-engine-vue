@@ -119,14 +119,12 @@ importers:
     specifiers:
       '@alilc/lowcode-designer': ^1.0.11
       '@alilc/lowcode-types': ^1.0.11
-      '@alilc/lowcode-utils': ^1.0.11
-      '@knxcloud/lowcode-utils': ^1.4.1
-      '@knxcloud/lowcode-vue-renderer': ^1.4.2
+      '@knxcloud/lowcode-utils': ^1.4.3
+      '@knxcloud/lowcode-vue-renderer': ^1.4.3
       vue: ^3.2.37
       vue-router: ^4.0.16
     dependencies:
       '@alilc/lowcode-types': 1.0.12
-      '@alilc/lowcode-utils': 1.0.12
       '@knxcloud/lowcode-utils': link:../utils
       '@knxcloud/lowcode-vue-renderer': link:../vue-renderer
       vue-router: 4.1.2_vue@3.2.37
@@ -176,31 +174,6 @@ packages:
     dependencies:
       '@alifd/validate': 1.2.3
       prop-types: 15.8.1
-
-  /@alifd/next/1.25.45_react@16.14.0:
-    resolution: {integrity: sha512-8GSsZ5gbM1WI1cgc0gYhRTuIzx39EjWojm8JSsUerRnaThorcJ+4Oc+eEJh9pszZEsZtFGOA2+fR1FYALh2GcQ==}
-    peerDependencies:
-      '@alifd/meet-react': ^2.0.0
-      moment: ^2.22.1
-      react: '>=16.0.0'
-      react-dom: '>=16.0.0'
-    dependencies:
-      '@alifd/field': 1.5.8
-      '@alifd/overlay': 0.2.11
-      '@alifd/validate': 1.2.3
-      babel-runtime: 6.26.0
-      bignumber.js: 9.0.2
-      classnames: 2.3.1
-      dayjs: 1.11.3
-      hoist-non-react-statics: 3.3.2
-      lodash.clonedeep: 4.5.0
-      prop-types: 15.8.1
-      react: 16.14.0
-      react-lifecycles-compat: 3.0.4
-      react-transition-group: 2.9.0_react@16.14.0
-      resize-observer-polyfill: 1.5.1
-      shallow-element-equals: 1.0.1
-    dev: false
 
   /@alifd/next/1.25.45_wcqkhtmu7mswc6yz4uyexck3ty:
     resolution: {integrity: sha512-8GSsZ5gbM1WI1cgc0gYhRTuIzx39EjWojm8JSsUerRnaThorcJ+4Oc+eEJh9pszZEsZtFGOA2+fR1FYALh2GcQ==}
@@ -324,20 +297,6 @@ packages:
       '@alilc/lowcode-datasource-types': 1.0.1
       react: 16.14.0
       strict-event-emitter-types: 2.0.0
-
-  /@alilc/lowcode-utils/1.0.12:
-    resolution: {integrity: sha512-8JVZ3xeNUQ6euNSEFnRDnMpMYFBApEhd7fZxcYBtFgKBmk5drOJwWoaE/BMVFVkyO9wq4JQX92gvgb4VPyfmpw==}
-    dependencies:
-      '@alifd/next': 1.25.45_react@16.14.0
-      '@alilc/lowcode-types': 1.0.12
-      lodash: 4.17.21
-      react: 16.14.0
-      zen-logger: 1.1.4
-    transitivePeerDependencies:
-      - '@alifd/meet-react'
-      - moment
-      - react-dom
-    dev: false
 
   /@alilc/lowcode-utils/1.0.12_react-dom@16.14.0:
     resolution: {integrity: sha512-8JVZ3xeNUQ6euNSEFnRDnMpMYFBApEhd7fZxcYBtFgKBmk5drOJwWoaE/BMVFVkyO9wq4JQX92gvgb4VPyfmpw==}
@@ -15704,19 +15663,6 @@ packages:
       react: 16.14.0
       react-is: 16.13.1
       scheduler: 0.19.1
-
-  /react-transition-group/2.9.0_react@16.14.0:
-    resolution: {integrity: sha512-+HzNTCHpeQyl4MJ/bdE0u6XRMe9+XG/+aL4mCxVN4DnPBQ0/5bfHWPDuOZUzYdMj94daZaZdCCc1Dzt9R/xSSg==}
-    peerDependencies:
-      react: '>=15.0.0'
-      react-dom: '>=15.0.0'
-    dependencies:
-      dom-helpers: 3.4.0
-      loose-envify: 1.4.0
-      prop-types: 15.8.1
-      react: 16.14.0
-      react-lifecycles-compat: 3.0.4
-    dev: false
 
   /react-transition-group/2.9.0_wcqkhtmu7mswc6yz4uyexck3ty:
     resolution: {integrity: sha512-+HzNTCHpeQyl4MJ/bdE0u6XRMe9+XG/+aL4mCxVN4DnPBQ0/5bfHWPDuOZUzYdMj94daZaZdCCc1Dzt9R/xSSg==}
