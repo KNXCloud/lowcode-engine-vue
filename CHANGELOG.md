@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.6](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.5...v1.4.6) (2022-08-10)
+
+
+### Bug Fixes
+
+* **vue-renderer:** 修复跨层级更新子组件时组件渲染异常 ([44bbabb](https://github.com/KNXCloud/lowcode-engine-vue/commit/44bbabbef9c7b945225a4a60031e479f6faf5b51))
+* **vue-simulator-renderer:** 修复移动画布组件位置导致的渲染错误 ([2fc636d](https://github.com/KNXCloud/lowcode-engine-vue/commit/2fc636d8521ecb15bef23c5c3ee2181c3cad42cd))
+
+
+
+
+
 ## [1.4.5](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.4...v1.4.5) (2022-07-29)
 
 **Note:** Version bump only for package lowcode-engine-vue
