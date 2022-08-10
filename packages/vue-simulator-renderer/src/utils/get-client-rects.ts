@@ -4,6 +4,8 @@ import { isElement } from '@knxcloud/lowcode-utils';
 const cycleRange = document.createRange();
 
 export function getClientRects(node: Element | Text) {
+  if (!node.parentNode) return [];
+
   if (isElement(node)) {
     return [node.getBoundingClientRect()];
   }
