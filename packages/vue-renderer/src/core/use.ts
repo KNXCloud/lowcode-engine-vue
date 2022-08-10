@@ -233,7 +233,7 @@ export function useLeaf(props: LeafProps) {
    * - className prop 会被处理为 class prop
    */
   const buildSchema = () => {
-    const { schema } = props;
+    const schema = node ? node.export(TransformStage.Render) : props.schema;
 
     const slotProps: SlotSchemaMap = {};
     const normalProps: PropSchemaMap = {};
