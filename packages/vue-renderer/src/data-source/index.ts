@@ -45,14 +45,14 @@ export function createDataSourceItem(
     errorHandler: errorHandler ? parseSchema(errorHandler, scope) : noop,
   };
 
-  const load: ExecutionFunc = async (inputParams, otherOptions) => {
+  const load: ExecutionFunc = async (inputParams, otherOptions = {}) => {
     try {
       const { type, options, id } = config;
       const {
         headers: inputHeaders,
-        assignToScope,
+        assignToScope = true,
         ...inputOptions
-      } = otherOptions ?? {};
+      } = otherOptions;
       if (!request) {
         throw new Error('unsupport fetch type: ' + type);
       }
