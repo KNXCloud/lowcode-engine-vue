@@ -1,9 +1,9 @@
-import { defineComponent } from 'vue';
+import { defineComponent, renderSlot } from 'vue';
 
 const Leaf = defineComponent({
   name: 'Leaf',
   render() {
-    return this.$slots.default?.();
+    return renderSlot(this.$slots, 'default');
   },
 });
 

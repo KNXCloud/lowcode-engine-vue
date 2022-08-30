@@ -1,4 +1,4 @@
-import { defineComponent, h, PropType } from 'vue';
+import { defineComponent, h, PropType, renderSlot } from 'vue';
 import LowCodeRenderer from '@knxcloud/lowcode-vue-renderer';
 import { DocumentInstance, VueSimulatorRenderer } from './interface';
 import { RouterView } from 'vue-router';
@@ -23,7 +23,7 @@ export const Layout = defineComponent({
         return h(ComputedComponent, { ...props, key: 'layout', simulator }, $slots);
       }
     }
-    return $slots.default?.();
+    return renderSlot($slots, 'default');
   },
 });
 
