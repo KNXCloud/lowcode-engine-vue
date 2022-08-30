@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.7](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.6...v1.4.7) (2022-08-30)
+
+
+### Bug Fixes
+
+* **vue-renderer:** 修复数据源初始化无法正常设置值到 state 中 ([97f3b08](https://github.com/KNXCloud/lowcode-engine-vue/commit/97f3b08bf5fcb745ccc84bcb537a3170a53b3564))
+
+
+
+
+
 ## [1.4.6](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.5...v1.4.6) (2022-08-10)
 
 

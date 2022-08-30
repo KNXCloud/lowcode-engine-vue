@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.4.7](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.6...v1.4.7) (2022-08-30)
+
+
+### Features
+
+* **vue-simulator-renderer:** slot 组件自动撑满父级容器高度 ([87dd933](https://github.com/KNXCloud/lowcode-engine-vue/commit/87dd933f1144481403cff0ecc1b96a470ba0a4de))
+
+
+
+
+
 ## [1.4.6](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.5...v1.4.6) (2022-08-10)
 
 

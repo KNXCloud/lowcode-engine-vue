@@ -3,7 +3,7 @@
   "main": "./lib/index.js",
   "module": "./es/index.js",
   "unpkg": "./dist/vue-renderer.js",
-  "version": "1.4.6",
+  "version": "1.4.7",
   "files": [
     "es",
     "lib",
