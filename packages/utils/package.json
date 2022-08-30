@@ -18,7 +18,7 @@
     "@alilc/lowcode-types": "^1.0.13"
   },
   "devDependencies": {
-    "vue": "^3.2.37"
+    "vue": "^3.2.38"
   },
   "peerDependencies": {
     "vue": ">=3.2"
