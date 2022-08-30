@@ -52,18 +52,17 @@ function createFormData(data: Record<string, unknown>): FormData {
   return formData;
 }
 
+const bodyParseStrategies: Record<string, (data: Record<string, unknown>) => BodyInit> = {
+  'application/json': (data) => JSON.stringify(data),
+  'multipart/form-data': (data) => (isPlainObject(data) ? createFormData(data) : data),
+  'application/x-www-form-urlencoded': (data) => serializeParams(data),
+};
+
 function parseRequestBody(contentType: string, data: Record<string, unknown>): BodyInit {
-  switch (contentType) {
-    case 'application/json':
-      return JSON.stringify(data);
-    case 'multipart/form-data': {
-      return isPlainObject(data) ? createFormData(data) : data;
-    }
-    case 'application/x-www-form-urlencoded':
-      return serializeParams(data);
-    default:
-      return data as unknown as BodyInit;
-  }
+  const parser = Object.keys(bodyParseStrategies).find((key) =>
+    contentType.includes(key)
+  );
+  return parser ? bodyParseStrategies[parser](data) : (data as unknown as BodyInit);
 }
 
 export class RequestError<T = unknown> extends Error {
