@@ -39,7 +39,7 @@ import {
   isJSExpression,
   TransformStage,
 } from '@alilc/lowcode-types';
-import { isNil, isString, camelCase, pickBy, isFunction } from 'lodash-es';
+import { isNil, isString, camelCase, pickBy, isFunction, isUndefined } from 'lodash-es';
 import {
   getCurrentNodeKey,
   getRendererContextKey,
@@ -796,8 +796,14 @@ export function useRootScope(rendererProps: RendererProps) {
   addToScope({ i18n, currentLocale });
 
   // 处理 dataSource
+  const schemaDataSource = schema.dataSource ?? { list: [], dataHandler: undefined };
+  schemaDataSource.list.map(({ id }) => {
+    if (isUndefined(data[id])) {
+      data[id] = null;
+    }
+  });
   const { dataSource, dataSourceMap, reloadDataSource } = createDataSourceManager(
-    schema.dataSource ?? { list: [], dataHandler: undefined },
+    schemaDataSource,
     scope
   );
   addToScope({ dataSource, dataSourceMap, reloadDataSource });
