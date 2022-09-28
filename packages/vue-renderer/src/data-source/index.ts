@@ -117,7 +117,7 @@ export function createDataSourceItem(
 }
 
 export function createDataSourceManager(
-  { list, dataHandler }: InterpretDataSource,
+  { list = [], dataHandler }: InterpretDataSource,
   scope: RuntimeScope
 ) {
   const dataSource: Record<string, ExecutionFunc> = {};

@@ -800,6 +800,9 @@ export function useRootScope(rendererProps: RendererProps) {
     schema.dataSource ?? { list: [], dataHandler: undefined },
     scope
   );
+  Object.keys(dataSourceMap)
+    .filter((key) => !(key in data))
+    .forEach((key) => (data[key] = ref()));
   addToScope({ dataSource, dataSourceMap, reloadDataSource });
   reloadDataSource();
 
