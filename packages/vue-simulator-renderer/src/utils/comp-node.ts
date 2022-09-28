@@ -31,7 +31,7 @@ export class ComponentRecord {
 }
 
 export function isVNodeHTMLElement(el: unknown): el is VNodeHTMLElement {
-  return isObject(el) && isNil(el.__vueParentComponent);
+  return isObject(el) && !isNil(el.__vueParentComponent);
 }
 
 export function isCompRootHTMLElement(
