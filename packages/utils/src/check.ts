@@ -3,8 +3,8 @@ export type ESModule = {
   default: any;
 };
 
-export function isNil<T>(val: T): val is NonNullable<T> {
-  return val !== null && val !== undefined;
+export function isNil<T>(val: T | null | undefined): val is null | undefined {
+  return val === null && val === undefined;
 }
 
 export function isObject(val: unknown): val is Record<string, unknown> {

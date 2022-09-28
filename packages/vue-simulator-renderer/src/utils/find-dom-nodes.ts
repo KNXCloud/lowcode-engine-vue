@@ -1,7 +1,8 @@
-import { ComponentInternalInstance } from 'vue';
+import { ComponentInternalInstance, VNode, isVNode } from 'vue';
 import { ComponentInstance } from '../interface';
 import { isVNodeHTMLElement } from './comp-node';
-import { isEmptyNode } from './check-node';
+import { isDomNode, isEmptyNode } from './check-node';
+import { getClientRects } from './get-client-rects';
 
 export function findDOMNodes(instance: ComponentInstance) {
   const els: (Element | Text)[] = [];
@@ -9,10 +10,12 @@ export function findDOMNodes(instance: ComponentInstance) {
   const el: Element | Text = instance.$el;
 
   if (isEmptyNode(el)) {
-    appendSiblingElement(els, instance.$, el, (node) => {
+    const internalInstance = instance.$;
+    appendSiblingElement(els, internalInstance, el, (node) => {
       return node.previousSibling;
     });
-    appendSiblingElement(els, instance.$, el, (node) => {
+    appendDescendantComponent(els, internalInstance);
+    appendSiblingElement(els, internalInstance, el, (node) => {
       return node.nextSibling;
     });
   } else {
@@ -44,6 +47,60 @@ function appendSiblingElement(
     }
     break;
   }
+}
+
+function appendDescendantComponent(
+  target: (Element | Text)[],
+  instance: ComponentInternalInstance
+): boolean {
+  const subNode = instance.subTree;
+  const current = subNode.el as Element | Text;
+  if (isValidElement(current)) {
+    target.push(current);
+    return true;
+  }
+  if (Array.isArray(subNode.children) && subNode.children.length > 0) {
+    return appendDescendantChildren(target, subNode.children as VNode<Element | Text>[]);
+  } else if (subNode.component) {
+    return appendDescendantComponent(target, subNode.component);
+  }
+  return false;
+}
+
+function appendDescendantChildren(
+  target: (Element | Text)[],
+  children: VNode[]
+): boolean {
+  const validElements = children.map(({ el }) => el).filter(isValidElement);
+  if (validElements.length > 0) {
+    target.push(...validElements);
+    return true;
+  } else {
+    return (
+      children.length > 0 &&
+      children.some((item) => {
+        if (Array.isArray(item.children) && item.children.length > 0) {
+          return appendDescendantChildren(
+            target,
+            item.children.filter((child): child is VNode<Element | Text> =>
+              isVNode(child)
+            )
+          );
+        } else if (item.component) {
+          return appendDescendantComponent(target, item.component);
+        }
+        return false;
+      })
+    );
+  }
+}
+
+function isValidElement(el: unknown): el is Element | Text {
+  if (el && isDomNode(el) && !isEmptyNode(el)) {
+    const rect = getClientRects(el);
+    return rect.some((item) => item.width || item.height);
+  }
+  return false;
 }
 
 function isChildInstance(
