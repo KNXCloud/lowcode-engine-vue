@@ -1,5 +1,5 @@
 import { Router } from 'vue-router';
-import { Config } from '@knxcloud/lowcode-vue-renderer';
+import { Config, I18nMessages } from '@knxcloud/lowcode-vue-renderer';
 import { Component, ComponentPublicInstance, App } from 'vue';
 import { ComponentSchema, NpmInfo, RootSchema } from '@alilc/lowcode-types';
 import { BuiltinSimulatorRenderer, DocumentModel, Node } from '@alilc/lowcode-designer';
@@ -37,9 +37,11 @@ export interface DocumentInstance {
   readonly id: string;
   readonly key: string;
   readonly path: string;
+  readonly scope: Record<string, unknown>;
   readonly document: DocumentModel;
   readonly instancesMap: Map<string, ComponentInstance[]>;
   readonly schema: RootSchema;
+  readonly messages: I18nMessages;
   getComponentInstance(id: number): ComponentInstance | null;
   mountInstance(id: string, instance: ComponentInstance): (() => void) | void;
   unmountIntance(id: string, instance: ComponentInstance): void;
