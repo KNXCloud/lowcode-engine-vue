@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.1](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.5.0...v1.5.1) (2022-09-29)
+
+
+### Bug Fixes
+
+* **vue-simulator-renderer:** 修复 appHelper 为空时报错 ([1e3db97](https://github.com/KNXCloud/lowcode-engine-vue/commit/1e3db97237e7de2a2a466580a20b3d666826f6e1))
+
+
+
+
+
 # [1.5.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.7...v1.5.0) (2022-09-29)
 
 
