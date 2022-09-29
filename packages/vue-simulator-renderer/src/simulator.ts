@@ -393,7 +393,7 @@ function createSimulatorRenderer() {
   });
 
   host.injectionConsumer.consume((data) => {
-    if (context.appHelper) {
+    if (data.appHelper) {
       const { utils, constants, ...others } = data.appHelper;
       Object.assign(context.appHelper, {
         utils: Array.isArray(utils) ? buildUtils(host.libraryMap, utils) : utils ?? {},
