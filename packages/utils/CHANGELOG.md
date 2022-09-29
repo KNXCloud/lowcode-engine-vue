@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.5.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.7...v1.5.0) (2022-09-29)
+
+
+### Bug Fixes
+
+* **vue-simulator-renderer:** 修复当组件根元素 teleport 时,无法正确获取组件 dom 实例 ([a41e658](https://github.com/KNXCloud/lowcode-engine-vue/commit/a41e65824869c8829895f71daeb00abe1fe21578))
+
+
+### Features
+
+* **utils:** 添加 buildUtils 工具方法 ([df37aab](https://github.com/KNXCloud/lowcode-engine-vue/commit/df37aab88daa01d8cbd617f1bf58895acd4cdc8e))
+
+
+
+
+
 ## [1.4.7](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.6...v1.4.7) (2022-08-30)
 
 **Note:** Version bump only for package @knxcloud/lowcode-utils

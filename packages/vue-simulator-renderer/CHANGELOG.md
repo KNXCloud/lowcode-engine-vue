@@ -3,6 +3,22 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [1.5.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.7...v1.5.0) (2022-09-29)
+
+
+### Bug Fixes
+
+* **vue-simulator-renderer:** 修复当组件根元素 teleport 时,无法正确获取组件 dom 实例 ([a41e658](https://github.com/KNXCloud/lowcode-engine-vue/commit/a41e65824869c8829895f71daeb00abe1fe21578))
+
+
+### Features
+
+* **vue-simulator-renderer:** 适配器支持设计器 dataHelper 参数 ([b3fa0db](https://github.com/KNXCloud/lowcode-engine-vue/commit/b3fa0db929cdd03376310f1e8cbdbd2e0d6d8582))
+
+
+
+
+
 ## [1.4.7](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.6...v1.4.7) (2022-08-30)
 
 
