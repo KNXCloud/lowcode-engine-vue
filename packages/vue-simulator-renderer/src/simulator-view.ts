@@ -53,18 +53,19 @@ export const Renderer = defineComponent({
   },
   render() {
     const { documentInstance, simulator } = this;
-    const { schema } = documentInstance;
+    const { schema, scope, messages } = documentInstance;
     const { designMode, device, locale, components } = simulator;
 
     if (!simulator.autoRender) return null;
 
     return h(LowCodeRenderer, {
+      scope: scope,
       schema: schema,
-      components: components,
       locale: locale,
-      messages: {},
-      designMode: designMode,
       device: device,
+      messages: messages,
+      components: components,
+      designMode: designMode,
       getNode: (id) => documentInstance.getNode(id),
       onCompGetCtx: (schema, ref) => documentInstance.mountInstance(schema.id!, ref),
     });

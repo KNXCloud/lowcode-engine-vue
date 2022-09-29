@@ -7,3 +7,4 @@ export * from './find-dom-nodes';
 export * from './logger';
 export * from './cursor';
 export * from './navtive-selection';
+export * from './deep-merge';

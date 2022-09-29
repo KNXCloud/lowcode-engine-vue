@@ -12,7 +12,12 @@ import {
   onUnmounted,
 } from 'vue';
 import { config } from '@knxcloud/lowcode-vue-renderer';
-import { AssetLoader, buildComponents, getSubComponent } from '@knxcloud/lowcode-utils';
+import {
+  AssetLoader,
+  buildUtils,
+  buildComponents,
+  getSubComponent,
+} from '@knxcloud/lowcode-utils';
 import {
   ComponentInstance,
   DocumentInstance,
@@ -25,6 +30,7 @@ import { Slot, Leaf, Page } from './buildin-components';
 import { host } from './host';
 import {
   cursor,
+  deepMerge,
   findDOMNodes,
   getClientRects,
   getCompRootData,
@@ -41,13 +47,27 @@ const loader = new AssetLoader();
 
 const builtinComponents = { Slot, Leaf, Page };
 
-function createDocumentInstance(document: DocumentModel): DocumentInstance {
+export interface ProjectContext {
+  i18n: Record<string, object>;
+  appHelper: {
+    utils?: Record<string, unknown>;
+    constants?: Record<string, unknown>;
+    [x: string]: unknown;
+  };
+}
+
+function createDocumentInstance(
+  document: DocumentModel,
+  context: ProjectContext
+): DocumentInstance {
   /** 记录单个节点的组件实例列表 */
   const instancesMap = new Map<string, ComponentInstance[]>();
   /** 记录 vue 组件实例和组件 uid 的映射关系 */
   const vueInstanceMap = new Map<number, ComponentInstance>();
 
   const timestamp = ref(Date.now());
+
+  const schema = computed(() => document.export(TransformStage.Render));
 
   const checkInstanceMounted = (instance: ComponentInstance): boolean => {
     return instance.$.isMounted;
@@ -141,8 +161,30 @@ function createDocumentInstance(document: DocumentModel): DocumentInstance {
       return fileName.startsWith('/') ? fileName : `/${fileName}`;
     }),
     key: computed(() => `${document.id}:${timestamp.value}`),
-    schema: computed(() => document.export(TransformStage.Render)),
+    scope: computed(() => {
+      const _schema = schema.value;
+
+      const {
+        utils: utilsInContext,
+        constants: constantsInContext,
+        ...otherHelpers
+      } = context.appHelper;
+
+      return {
+        utils: {
+          ...utilsInContext,
+          ...buildUtils(host.libraryMap, Reflect.get(_schema, 'utils') ?? []),
+        },
+        constants: {
+          ...constantsInContext,
+          ...Reflect.get(_schema, 'constants'),
+        },
+        ...otherHelpers,
+      };
+    }),
+    schema: schema,
     document: computed(() => document),
+    messages: computed(() => deepMerge(context.i18n, Reflect.get(schema.value, 'i18n'))),
     instancesMap: computed(() => instancesMap),
     getNode,
     mountInstance,
@@ -163,6 +205,14 @@ function createSimulatorRenderer() {
   const componentsMap: Ref<Record<string, MinxedComponent>> = shallowRef({});
   const requestHandlersMap: Ref<Record<string, CallableFunction>> = shallowRef({});
   const documentInstances: Ref<DocumentInstance[]> = shallowRef([]);
+
+  const context: ProjectContext = reactive({
+    i18n: {},
+    appHelper: {
+      utils: {},
+      constants: {},
+    },
+  });
 
   const disposeFunctions: Array<() => void> = [];
 
@@ -305,7 +355,7 @@ function createSimulatorRenderer() {
       documentInstances.value = host.project.documents.map((doc) => {
         let documentInstance = documentInstanceMap.get(doc.id);
         if (!documentInstance) {
-          documentInstance = createDocumentInstance(doc);
+          documentInstance = createDocumentInstance(doc, context);
           documentInstanceMap.set(doc.id, documentInstance);
           router.addRoute({
             name: documentInstance.id,
@@ -342,8 +392,16 @@ function createSimulatorRenderer() {
     }
   });
 
-  host.injectionConsumer.consume(() => {
-    // TODO: handle designer injection
+  host.injectionConsumer.consume((data) => {
+    if (context.appHelper) {
+      const { utils, constants, ...others } = data.appHelper;
+      Object.assign(context.appHelper, {
+        utils: Array.isArray(utils) ? buildUtils(host.libraryMap, utils) : utils ?? {},
+        constants: constants ?? {},
+        ...others,
+      });
+    }
+    context.i18n = data.i18n ?? {};
   });
 
   return simulator;
