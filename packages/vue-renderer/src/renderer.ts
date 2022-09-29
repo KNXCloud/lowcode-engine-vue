@@ -119,4 +119,4 @@ const Renderer = defineComponent({
   },
 }) as new (...args: any[]) => { $props: RendererProps };
 
-export { RendererProps, Renderer };
+export { RendererProps, Renderer, I18nMessages, BlockScope };

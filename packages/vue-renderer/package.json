@@ -17,14 +17,15 @@
   },
   "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-renderer@1.1.1/build/index.html",
   "dependencies": {
-    "@alilc/lowcode-types": "^1.0.13",
-    "intl-messageformat": "^10.1.4",
+    "@alilc/lowcode-types": "^1.0.14",
+    "@knxcloud/lowcode-hooks": "^1.4.6",
+    "intl-messageformat": "^10.1.5",
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
-    "@alilc/lowcode-designer": "^1.0.13",
+    "@alilc/lowcode-designer": "^1.0.14",
     "@types/lodash-es": "^4.17.6",
-    "vue": "^3.2.38"
+    "vue": "^3.2.40"
   },
   "publishConfig": {
     "access": "public",
