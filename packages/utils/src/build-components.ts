@@ -1,6 +1,7 @@
-import { Component, defineComponent, h } from 'vue';
-import { isESModule, isFunction, isObject } from './check';
+import type { Component } from 'vue';
 import type { ComponentSchema, NpmInfo } from '@alilc/lowcode-types';
+import { defineComponent, h } from 'vue';
+import { isESModule, isFunction, isObject } from './check';
 
 export function isVueComponent(val: unknown): val is Component {
   if (isFunction(val)) return true;

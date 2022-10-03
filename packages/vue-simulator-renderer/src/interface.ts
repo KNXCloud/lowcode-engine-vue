@@ -1,8 +1,12 @@
-import { Router } from 'vue-router';
-import { Config, I18nMessages } from '@knxcloud/lowcode-vue-renderer';
-import { Component, ComponentPublicInstance, App } from 'vue';
-import { ComponentSchema, NpmInfo, RootSchema } from '@alilc/lowcode-types';
-import { BuiltinSimulatorRenderer, DocumentModel, Node } from '@alilc/lowcode-designer';
+import type { Router } from 'vue-router';
+import type { Config, I18nMessages } from '@knxcloud/lowcode-vue-renderer';
+import type { Component, ComponentPublicInstance, App } from 'vue';
+import type { ComponentSchema, NpmInfo, RootSchema } from '@alilc/lowcode-types';
+import type {
+  Node,
+  DocumentModel,
+  BuiltinSimulatorRenderer,
+} from '@alilc/lowcode-designer';
 
 export type MinxedComponent = NpmInfo | Component | ComponentSchema;
 

@@ -1,15 +1,9 @@
-import {
-  I18nData,
-  JSFunction,
-  JSExpression,
-  isI18nData,
-  isJSExpression,
-  isJSFunction,
-} from '@alilc/lowcode-types';
+import type { I18nData, JSFunction, JSExpression } from '@alilc/lowcode-types';
+import type { BlockScope, RuntimeScope } from './scope';
+import { isI18nData, isJSExpression, isJSFunction } from '@alilc/lowcode-types';
 import { isFunction, isString } from 'lodash-es';
 import { isPlainObject } from './object';
 import { ensureArray } from './array';
-import { BlockScope, RuntimeScope } from './scope';
 
 export const EXPRESSION_TYPE = {
   JSEXPRESSION: 'JSExpression',

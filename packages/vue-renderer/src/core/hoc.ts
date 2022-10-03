@@ -1,18 +1,13 @@
+import type { SlotNode } from '@alilc/lowcode-designer';
+import type { ComponentPublicInstance } from 'vue';
+import type { PropSchemaMap, SlotSchemaMap } from './use';
 import { isNil } from 'lodash-es';
 import { isJSSlot, TransformStage } from '@alilc/lowcode-types';
-import { SlotNode } from '@alilc/lowcode-designer';
-import {
-  ComponentPublicInstance,
-  h,
-  Fragment,
-  reactive,
-  onUnmounted,
-  defineComponent,
-} from 'vue';
+import { h, Fragment, reactive, onUnmounted, defineComponent } from 'vue';
 import { leafProps } from './base';
 import { useRendererContext } from '@knxcloud/lowcode-hooks';
 import { ensureArray } from '../utils';
-import { PropSchemaMap, SlotSchemaMap, useLeaf } from './use';
+import { useLeaf } from './use';
 
 export const Hoc = defineComponent({
   name: 'Hoc',

@@ -1,9 +1,14 @@
-import { InterpretDataSource, InterpretDataSourceConfig } from '@alilc/lowcode-types';
+import type {
+  InterpretDataSource,
+  InterpretDataSourceConfig,
+} from '@alilc/lowcode-types';
+import type { RequestParams } from './interface';
+import type { RuntimeScope } from '../utils';
 import { computed, reactive, ref, shallowRef } from 'vue';
 import { isBoolean, isFunction, isUndefined } from 'lodash-es';
 import { request, Response } from './request';
-import { DataSourceStatus, RequestParams } from './interface';
-import { isPlainObject, parseSchema, RuntimeScope } from '../utils';
+import { DataSourceStatus } from './interface';
+import { isPlainObject, parseSchema } from '../utils';
 
 const same = <T>(v: T) => v;
 const noop = () => void 0;

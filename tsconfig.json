@@ -10,6 +10,7 @@
     "noImplicitThis": true,
     "strict": true,
     "preserveValueImports": true,
+    "isolatedModules": true,
     "target": "ESNext",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,

@@ -1,16 +1,8 @@
 /**
  * copy from https://github.com/alibaba/lowcode-engine/blob/main/packages/utils/src/asset.ts
  */
-
-import {
-  Asset,
-  AssetBundle,
-  AssetItem,
-  AssetLevel,
-  AssetLevels,
-  AssetList,
-  AssetType,
-} from '@alilc/lowcode-types';
+import type { Asset, AssetBundle, AssetItem, AssetList } from '@alilc/lowcode-types';
+import { AssetLevel, AssetLevels, AssetType } from '@alilc/lowcode-types';
 import { isCSSUrl } from './check';
 import { createDefer } from './create-defer';
 import { evaluate, load } from './script';

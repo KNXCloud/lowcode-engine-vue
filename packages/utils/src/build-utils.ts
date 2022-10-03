@@ -1,4 +1,5 @@
-import { isJSFunction, JSFunction, NpmInfo } from '@alilc/lowcode-types';
+import type { JSFunction, NpmInfo } from '@alilc/lowcode-types';
+import { isJSFunction } from '@alilc/lowcode-types';
 import { accessLibrary } from './build-components';
 
 export interface UtilsNpmMetadata {

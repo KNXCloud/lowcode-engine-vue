@@ -1,6 +1,7 @@
-import { defineComponent, h, PropType, renderSlot } from 'vue';
+import type { PropType } from 'vue';
+import type { DocumentInstance, VueSimulatorRenderer } from './interface';
+import { defineComponent, h, renderSlot } from 'vue';
 import LowCodeRenderer from '@knxcloud/lowcode-vue-renderer';
-import { DocumentInstance, VueSimulatorRenderer } from './interface';
 import { RouterView } from 'vue-router';
 
 export const Layout = defineComponent({

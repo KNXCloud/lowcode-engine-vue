@@ -1,12 +1,7 @@
-import {
-  Component,
-  ComponentPublicInstance,
-  InjectionKey,
-  inject,
-  getCurrentInstance,
-} from 'vue';
-import { Node } from '@alilc/lowcode-designer';
-import { NodeSchema } from '@alilc/lowcode-types';
+import type { Component, ComponentPublicInstance, InjectionKey } from 'vue';
+import type { Node } from '@alilc/lowcode-designer';
+import type { NodeSchema } from '@alilc/lowcode-types';
+import { inject, getCurrentInstance } from 'vue';
 
 export type DesignMode = 'live' | 'design';
 

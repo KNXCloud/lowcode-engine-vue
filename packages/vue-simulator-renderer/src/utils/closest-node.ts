@@ -1,5 +1,5 @@
-import { NodeInstance } from '@alilc/lowcode-designer';
-import { ComponentInternalInstance } from 'vue';
+import type { NodeInstance } from '@alilc/lowcode-designer';
+import type { ComponentInternalInstance } from 'vue';
 import { isCommentNode } from './check-node';
 import {
   ComponentRecord,

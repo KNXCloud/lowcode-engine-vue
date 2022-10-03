@@ -1,7 +1,8 @@
-import { ComponentPublicInstance, isProxy, reactive } from 'vue';
+import type { ComponentPublicInstance } from 'vue';
+import type { MaybeArray } from './array';
+import type { DataSourceItem } from '../data-source';
 import { isObject } from './object';
-import { MaybeArray } from './array';
-import { DataSourceItem } from '../data-source';
+import { isProxy, reactive } from 'vue';
 
 export interface BlockScope {
   [x: string]: unknown;

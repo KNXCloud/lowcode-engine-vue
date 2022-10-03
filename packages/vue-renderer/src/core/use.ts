@@ -1,11 +1,16 @@
-import { Prop } from '@alilc/lowcode-designer';
+import type { Prop } from '@alilc/lowcode-designer';
+import type { Component, VNode, Ref, ComputedRef, Slot, Slots, InjectionKey } from 'vue';
+import type {
+  NodeData,
+  SlotSchema,
+  NodeSchema,
+  JSFunction,
+  CompositeValue,
+} from '@alilc/lowcode-types';
+import type { LeafProps, RendererProps } from './base';
+import type { MaybeArray, BlockScope, RuntimeScope } from '../utils';
+
 import {
-  Component,
-  VNode,
-  Ref,
-  ComputedRef,
-  Slot,
-  Slots,
   h,
   createTextVNode,
   computed,
@@ -24,14 +29,8 @@ import {
   toRaw,
   toDisplayString,
   inject,
-  InjectionKey,
 } from 'vue';
 import {
-  NodeData,
-  SlotSchema,
-  NodeSchema,
-  JSFunction,
-  CompositeValue,
   isJSSlot,
   isJSFunction,
   isDOMText,
@@ -45,7 +44,6 @@ import {
   getRendererContextKey,
   useRendererContext,
 } from '@knxcloud/lowcode-hooks';
-import { LeafProps, RendererProps } from './base';
 import { Hoc } from './hoc';
 import { Live } from './live';
 import {
@@ -58,7 +56,6 @@ import {
   parseExpression,
 } from '../utils';
 import { createDataSourceManager } from '../data-source';
-import { MaybeArray, BlockScope, RuntimeScope } from '../utils';
 
 const currentNodeKey = getCurrentNodeKey();
 

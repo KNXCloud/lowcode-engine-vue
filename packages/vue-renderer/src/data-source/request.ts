@@ -1,5 +1,5 @@
+import type { RequestOptions, ResponseType } from './interface';
 import { isPlainObject } from '../utils';
-import { RequestOptions, ResponseType } from './interface';
 
 function serializeParams(obj: Record<string, unknown>) {
   const result: string[] = [];

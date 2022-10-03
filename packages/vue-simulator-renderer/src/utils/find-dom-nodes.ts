@@ -1,5 +1,6 @@
-import { ComponentInternalInstance, VNode, isVNode } from 'vue';
-import { ComponentInstance } from '../interface';
+import type { ComponentInternalInstance, VNode } from 'vue';
+import type { ComponentInstance } from '../interface';
+import { isVNode } from 'vue';
 import { isVNodeHTMLElement } from './comp-node';
 import { isDomNode, isEmptyNode } from './check-node';
 import { getClientRects } from './get-client-rects';

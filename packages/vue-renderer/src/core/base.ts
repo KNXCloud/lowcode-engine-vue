@@ -1,7 +1,7 @@
-import { NodeSchema, RootSchema } from '@alilc/lowcode-types';
-import { Node } from '@alilc/lowcode-designer';
-import { Component, ComponentPublicInstance, PropType, VNodeProps } from 'vue';
-import { BlockScope, I18nMessages, RuntimeScope } from '../utils';
+import type { NodeSchema, RootSchema } from '@alilc/lowcode-types';
+import type { Node } from '@alilc/lowcode-designer';
+import type { Component, ComponentPublicInstance, PropType, VNodeProps } from 'vue';
+import type { BlockScope, I18nMessages, RuntimeScope } from '../utils';
 
 export const rendererProps = {
   __scope: {

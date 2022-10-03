@@ -1,16 +1,10 @@
-import { NodeSchema, RootSchema } from '@alilc/lowcode-types';
+import type { NodeSchema, RootSchema } from '@alilc/lowcode-types';
+import type { PropType, Component, ComponentPublicInstance } from 'vue';
+import type { I18nMessages, BlockScope } from './utils';
 import { Node } from '@alilc/lowcode-designer';
-import {
-  PropType,
-  Component,
-  ComponentPublicInstance,
-  h,
-  computed,
-  defineComponent,
-} from 'vue';
+import { h, computed, defineComponent } from 'vue';
 import config from './config';
 import { RENDERER_COMPS } from './renderers';
-import { I18nMessages, BlockScope } from './utils';
 
 interface RendererProps {
   scope?: BlockScope;
@@ -119,4 +113,5 @@ const Renderer = defineComponent({
   },
 }) as new (...args: any[]) => { $props: RendererProps };
 
-export { RendererProps, Renderer, I18nMessages, BlockScope };
+export { Renderer };
+export type { RendererProps, I18nMessages, BlockScope };

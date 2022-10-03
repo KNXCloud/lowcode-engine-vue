@@ -1,8 +1,14 @@
-import { DocumentModel } from '@alilc/lowcode-designer';
+import type { DocumentModel } from '@alilc/lowcode-designer';
+import type { Ref, Component } from 'vue';
+import type {
+  ComponentInstance,
+  DocumentInstance,
+  MinxedComponent,
+  SimulatorViewLayout,
+  VueSimulatorRenderer,
+} from './interface';
 import { TransformStage } from '@alilc/lowcode-types';
 import {
-  Ref,
-  Component,
   createApp,
   ref,
   shallowRef,
@@ -18,13 +24,6 @@ import {
   buildComponents,
   getSubComponent,
 } from '@knxcloud/lowcode-utils';
-import {
-  ComponentInstance,
-  DocumentInstance,
-  MinxedComponent,
-  SimulatorViewLayout,
-  VueSimulatorRenderer,
-} from './interface';
 import { Renderer, SimulatorRendererView } from './simulator-view';
 import { Slot, Leaf, Page } from './buildin-components';
 import { host } from './host';
