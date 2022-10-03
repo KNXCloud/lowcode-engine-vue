@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.2](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.5.1...v1.5.2) (2022-10-03)
+
+
+### Bug Fixes
+
+* 优化类型声明以支持 Vite ([5d02fda](https://github.com/KNXCloud/lowcode-engine-vue/commit/5d02fdadf04b7eced15fe836b1a39295f41f0695))
+
+
+
+
+
 # [1.5.0](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.4.7...v1.5.0) (2022-09-29)
 
 

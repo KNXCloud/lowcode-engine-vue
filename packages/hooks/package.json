@@ -1,6 +1,6 @@
 {
   "name": "@knxcloud/lowcode-hooks",
-  "version": "1.5.0",
+  "version": "1.5.2",
   "main": "lib/index.js",
   "module": "es/index.js",
   "typings": "es/index.d.ts",
