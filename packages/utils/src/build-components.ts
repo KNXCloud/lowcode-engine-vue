@@ -5,7 +5,7 @@ import { isESModule, isFunction, isObject } from './check';
 
 export function isVueComponent(val: unknown): val is Component {
   if (isFunction(val)) return true;
-  if (isObject(val) && ('render' in val || 'setup' in val)) {
+  if (isObject(val) && ('render' in val || 'setup' in val || 'template' in val)) {
     return true;
   }
   return false;
@@ -24,7 +24,7 @@ export function accessLibrary(library: string | Record<string, unknown>) {
 }
 
 export function generateHtmlComp(library: string) {
-  if (['a', 'img', 'div', 'span', 'svg'].includes(library)) {
+  if (/^[a-z-]+$/.test(library)) {
     return defineComponent((_, { attrs, slots }) => {
       return () => h(library, attrs, slots);
     });
