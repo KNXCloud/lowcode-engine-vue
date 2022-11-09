@@ -8,7 +8,7 @@ export const Live = defineComponent({
     const { buildSchema, buildProps, buildLoop, buildSlots, buildShow } = useLeaf(props);
 
     const { show } = buildShow(props.schema);
-    const { loop, loopArgs } = buildLoop(props.schema);
+    const { loop, loopArgs, buildLoopScope } = buildLoop(props.schema);
     const { props: compProps, slots: compSlots } = buildSchema();
 
     return {
@@ -19,11 +19,20 @@ export const Live = defineComponent({
       compSlots,
       buildSlots,
       buildProps,
+      buildLoopScope,
     };
   },
   render() {
-    const { show, comp, loop, loopArgs, compProps, compSlots, buildProps, buildSlots } =
-      this;
+    const {
+      show,
+      comp,
+      loop,
+      compProps,
+      compSlots,
+      buildProps,
+      buildSlots,
+      buildLoopScope,
+    } = this;
 
     if (!show) return null;
     if (!comp) return h('div', 'component not found');
@@ -38,11 +47,8 @@ export const Live = defineComponent({
 
     return h(
       Fragment,
-      loop.map((item, index) => {
-        const blockScope = {
-          [loopArgs[0]]: item,
-          [loopArgs[1]]: index,
-        };
+      loop.map((item, index, arr) => {
+        const blockScope = buildLoopScope(item, index, arr.length);
         return h(
           comp,
           buildProps(compProps, blockScope),
