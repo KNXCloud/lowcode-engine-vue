@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.3](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.5.2...v1.5.3) (2022-11-15)
+
+
+### Bug Fixes
+
+* **utils:** 修复 isNil 方法逻辑错误 [#41](https://github.com/KNXCloud/lowcode-engine-vue/issues/41) ([2607a75](https://github.com/KNXCloud/lowcode-engine-vue/commit/2607a751b060ff76260ea99b6e667d39311a78d7))
+
+
+
+
+
 ## [1.5.2](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.5.1...v1.5.2) (2022-10-03)
 
 

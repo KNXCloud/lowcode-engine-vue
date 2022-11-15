@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [1.5.3](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.5.2...v1.5.3) (2022-11-15)
+
+
+### Bug Fixes
+
+* **utils:** 修复 isNil 方法逻辑错误 [#41](https://github.com/KNXCloud/lowcode-engine-vue/issues/41) ([2607a75](https://github.com/KNXCloud/lowcode-engine-vue/commit/2607a751b060ff76260ea99b6e667d39311a78d7))
+* **vue-renderer:** 修复 live 渲染时 ref 获取异常 ([91928c9](https://github.com/KNXCloud/lowcode-engine-vue/commit/91928c97dbedb32f4de6e061bdb761e1656bef0e))
+
+
+### Features
+
+* **utils:** 优化 vue 组件判定条件 ([60ddbc8](https://github.com/KNXCloud/lowcode-engine-vue/commit/60ddbc8684daf0d2c52a2c5ed16f4bc86a9612c6))
+
+
+
+
+
 ## [1.5.2](https://github.com/KNXCloud/lowcode-engine-vue/compare/v1.5.1...v1.5.2) (2022-10-03)
 
 
