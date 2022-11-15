@@ -1,8 +1,7 @@
 import type { ComponentInternalInstance, VNode } from 'vue';
 import type { ComponentInstance } from '../interface';
-import { isNil } from '@knxcloud/lowcode-utils';
 import { isProxy } from 'vue';
-import { isObject } from './check';
+import { isObject, isNil } from './check';
 
 const SYMBOL_VDID = Symbol('_LCDocId');
 const SYMBOL_VNID = Symbol('_LCNodeId');

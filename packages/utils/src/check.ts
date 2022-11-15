@@ -4,7 +4,7 @@ export type ESModule = {
 };
 
 export function isNil<T>(val: T | null | undefined): val is null | undefined {
-  return val === null && val === undefined;
+  return val === null || val === undefined;
 }
 
 export function isObject(val: unknown): val is Record<string, unknown> {
