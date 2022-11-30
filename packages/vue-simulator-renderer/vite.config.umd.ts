@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite';
+import Vue from '@vitejs/plugin-vue';
+import VueJsx from '@vitejs/plugin-vue-jsx';
 
 export default defineConfig({
+  plugins: [Vue(), VueJsx()],
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
   },

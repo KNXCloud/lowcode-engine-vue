@@ -92,6 +92,8 @@ importers:
       '@alilc/lowcode-types': ^1.0.14
       '@knxcloud/lowcode-hooks': workspace:*
       '@types/lodash-es': ^4.17.6
+      '@vitejs/plugin-vue': ^3.2.0
+      '@vitejs/plugin-vue-jsx': ^2.1.1
       deepmerge: ^4.2.2
       intl-messageformat: ^10.1.5
       lodash-es: ^4.17.21
@@ -106,6 +108,8 @@ importers:
       lodash-es: 4.17.21
     devDependencies:
       '@types/lodash-es': 4.17.6
+      '@vitejs/plugin-vue': 3.2.0_vite@3.2.4+vue@3.2.45
+      '@vitejs/plugin-vue-jsx': 2.1.1_vite@3.2.4+vue@3.2.45
       deepmerge: 4.2.2
       vite: 3.2.4
       vite-plugin-lib-types: 0.0.5_vite@3.2.4+vue@3.2.45
@@ -117,6 +121,8 @@ importers:
       '@alilc/lowcode-types': ^1.0.14
       '@knxcloud/lowcode-utils': workspace:*
       '@knxcloud/lowcode-vue-renderer': workspace:*
+      '@vitejs/plugin-vue': ^3.2.0
+      '@vitejs/plugin-vue-jsx': ^2.1.1
       '@vue/cli-plugin-babel': ^5.0.8
       '@vue/cli-plugin-eslint': ^5.0.8
       '@vue/cli-plugin-typescript': ^5.0.8
@@ -134,6 +140,8 @@ importers:
       '@knxcloud/lowcode-vue-renderer': link:../vue-renderer
       vue-router: 4.1.6_vue@3.2.45
     devDependencies:
+      '@vitejs/plugin-vue': 3.2.0_vite@3.2.4+vue@3.2.45
+      '@vitejs/plugin-vue-jsx': 2.1.1_vite@3.2.4+vue@3.2.45
       '@vue/cli-plugin-babel': 5.0.8_zv3r53khrgh7vuaklrzhzxuxhq
       '@vue/cli-plugin-eslint': 5.0.8_@vue+cli-service@5.0.8
       '@vue/cli-plugin-typescript': 5.0.8_zv3r53khrgh7vuaklrzhzxuxhq
@@ -998,6 +1006,16 @@ packages:
       '@babel/helper-plugin-utils': 7.20.2
     dev: true
 
+  /@babel/plugin-syntax-typescript/7.20.0_@babel+core@7.20.5:
+    resolution: {integrity: sha512-rd9TkG+u1CExzS4SM1BlMEhMXwFLKVjOAFFCDx9PbX5ycJWDoWMcwdJH9RhkPu1dOgn5TrxLot/Gx6lWFuAUNQ==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+    dependencies:
+      '@babel/core': 7.20.5
+      '@babel/helper-plugin-utils': 7.20.2
+    dev: true
+
   /@babel/plugin-transform-arrow-functions/7.18.6_@babel+core@7.20.5:
     resolution: {integrity: sha512-9S9X9RUefzrsHZmKMbDXxweEH+YlE8JJEuat9FdvW9Qh1cw7W64jELCtWNkPBPX5En45uy28KGvA/AySqUh8CQ==}
     engines: {node: '>=6.9.0'}
@@ -1352,6 +1370,20 @@ packages:
     dependencies:
       '@babel/core': 7.20.5
       '@babel/helper-plugin-utils': 7.20.2
+    dev: true
+
+  /@babel/plugin-transform-typescript/7.20.2_@babel+core@7.20.5:
+    resolution: {integrity: sha512-jvS+ngBfrnTUBfOQq8NfGnSbF9BrqlR6hjJ2yVxMkmO5nL/cdifNbI30EfjRlN4g5wYWNnMPyj5Sa6R1pbLeag==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+    dependencies:
+      '@babel/core': 7.20.5
+      '@babel/helper-create-class-features-plugin': 7.20.5_@babel+core@7.20.5
+      '@babel/helper-plugin-utils': 7.20.2
+      '@babel/plugin-syntax-typescript': 7.20.0_@babel+core@7.20.5
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /@babel/plugin-transform-unicode-escapes/7.18.10_@babel+core@7.20.5:
@@ -2197,6 +2229,33 @@ packages:
     dependencies:
       '@typescript-eslint/types': 5.45.0
       eslint-visitor-keys: 3.3.0
+    dev: true
+
+  /@vitejs/plugin-vue-jsx/2.1.1_vite@3.2.4+vue@3.2.45:
+    resolution: {integrity: sha512-JgDhxstQlwnHBvZ1BSnU5mbmyQ14/t5JhREc6YH5kWyu2QdAAOsLF6xgHoIWarj8tddaiwFrNzLbWJPudpXKYA==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    peerDependencies:
+      vite: ^3.0.0
+      vue: ^3.0.0
+    dependencies:
+      '@babel/core': 7.20.5
+      '@babel/plugin-transform-typescript': 7.20.2_@babel+core@7.20.5
+      '@vue/babel-plugin-jsx': 1.1.1_@babel+core@7.20.5
+      vite: 3.2.4
+      vue: 3.2.45
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@vitejs/plugin-vue/3.2.0_vite@3.2.4+vue@3.2.45:
+    resolution: {integrity: sha512-E0tnaL4fr+qkdCNxJ+Xd0yM31UwMkQje76fsDVBBUCoGOUPexu2VDUYHL8P4CwV+zMvWw6nlRw19OnRKmYAJpw==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    peerDependencies:
+      vite: ^3.0.0
+      vue: ^3.2.25
+    dependencies:
+      vite: 3.2.4
+      vue: 3.2.45
     dev: true
 
   /@vue/babel-helper-vue-jsx-merge-props/1.4.0:

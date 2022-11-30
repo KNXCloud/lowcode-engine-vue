@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite';
-import libTypes from 'vite-plugin-lib-types';
+import LibTypes from 'vite-plugin-lib-types';
 
 import pkg from './package.json';
 
 export default defineConfig({
-  plugins: [libTypes()],
+  plugins: [LibTypes()],
   build: {
     lib: {
       entry: 'src/index.ts',
