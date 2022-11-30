@@ -3,7 +3,7 @@
   "main": "./dist/vue-simulator-renderer.js",
   "module": "./dist/vue-simulator-renderer.mjs",
   "typings": "./dist/vue-simulator-renderer.d.ts",
-  "version": "1.5.4",
+  "version": "1.5.6",
   "files": [
     "es",
     "lib",
