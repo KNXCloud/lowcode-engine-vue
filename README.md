@@ -2,6 +2,27 @@
 
 Lowcode Engine Vue 渲染器及适配器实现，点击查看[在线演示](https://knxcloud.github.io/lowcode-engine-demo/)
 
+> PS: 该项目仅包含画布实现，不能直接运行，如果需要本地查看效果请访问 [DEMO](https://github.com/KNXCloud/lowcode-engine-demo) 仓库
+
+## 如何自定义组件
+
+我们提供了 `npm init @knxcloud/lowcode@latest` 命令用于初始化一个基础的低代码组件项目，该项目基于 `vue-cli` 构建。项目启动后，会生成一个 `/assets.json` 文件，该文件可直接作为低代码物料的导入入口，部分代码示例如下：
+
+```ts
+const editorInit = (ctx: ILowCodePluginContext) => {
+  return {
+    name: 'editor-init',
+    async init() {
+      const { material, project } = ctx;
+      const assets = await fetch('http://127.0.0.1:9000/assets.json').then((res) =>
+        res.json()
+      );
+      material.setAssets(assets);
+    },
+  };
+};
+```
+
 ## 和 React 渲染器使用区别
 
 使用变量时：
