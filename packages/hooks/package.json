@@ -1,21 +1,28 @@
 {
   "name": "@knxcloud/lowcode-hooks",
-  "version": "1.5.2",
-  "main": "lib/index.js",
-  "module": "es/index.js",
-  "typings": "es/index.d.ts",
+  "version": "1.5.3",
+  "main": "dist/lowcode-hooks.js",
+  "module": "dist/lowcode-hooks.mjs",
+  "typings": "dist/lowcode-hooks.d.ts",
   "files": [
-    "es",
-    "lib"
+    "dist"
   ],
   "scripts": {
-    "build": "build-scripts build",
+    "build": "vite build",
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
-    "prepublishOnly": "pnpm build"
+    "prepack": "pnpm build"
   },
   "dependencies": {
     "@alilc/lowcode-designer": "^1.0.14",
     "@alilc/lowcode-types": "^1.0.14"
+  },
+  "devDependencies": {
+    "vite": "^3.2.4",
+    "vite-plugin-lib-types": "^0.0.5",
+    "vue": "^3.2.45"
+  },
+  "peerDependencies": {
+    "vue": "^3.2.0"
   },
   "publishConfig": {
     "access": "public",
@@ -24,6 +31,5 @@
   "repository": {
     "type": "http",
     "url": "https://github.com/KNXCloud/lowcode-engine-vue/tree/main/packages/hooks"
-  },
-  "homepage": "https://unpkg.com/@knxcloud/lowcode-hooks@0.0.0/build/index.html"
+  }
 }

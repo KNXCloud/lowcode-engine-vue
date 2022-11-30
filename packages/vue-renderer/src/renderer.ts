@@ -1,7 +1,7 @@
 import type { NodeSchema, RootSchema } from '@alilc/lowcode-types';
 import type { PropType, Component, ComponentPublicInstance } from 'vue';
 import type { I18nMessages, BlockScope } from './utils';
-import { Node } from '@alilc/lowcode-designer';
+import type { Node } from '@alilc/lowcode-designer';
 import { h, computed, defineComponent } from 'vue';
 import config from './config';
 import { RENDERER_COMPS } from './renderers';

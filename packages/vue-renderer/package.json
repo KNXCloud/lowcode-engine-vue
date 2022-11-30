@@ -1,31 +1,36 @@
 {
   "name": "@knxcloud/lowcode-vue-renderer",
-  "main": "./lib/index.js",
-  "module": "./es/index.js",
-  "unpkg": "./dist/vue-renderer.js",
-  "version": "1.5.3",
+  "main": "./dist/vue-renderer.js",
+  "module": "./dist/vue-renderer.mjs",
+  "typings": "./dist/vue-renderer.d.ts",
+  "version": "1.5.4",
   "files": [
     "es",
     "lib",
     "dist"
   ],
   "scripts": {
-    "build": "build-scripts build",
-    "build:umd": "build-scripts build --config=build.umd.json",
+    "build": "vite build",
+    "build:umd": "vite build -c vite.config.umd.ts",
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
-    "prepublishOnly": "pnpm build && pnpm build:umd"
+    "prepack": "pnpm build && pnpm build:umd"
   },
-  "homepage": "https://unpkg.com/@knxcloud/lowcode-vue-renderer@1.1.1/build/index.html",
   "dependencies": {
+    "@alilc/lowcode-designer": "^1.0.16",
     "@alilc/lowcode-types": "^1.0.14",
-    "@knxcloud/lowcode-hooks": "^1.5.2",
+    "@knxcloud/lowcode-hooks": "workspace:*",
     "intl-messageformat": "^10.1.5",
     "lodash-es": "^4.17.21"
   },
   "devDependencies": {
-    "@alilc/lowcode-designer": "^1.0.14",
     "@types/lodash-es": "^4.17.6",
+    "deepmerge": "^4.2.2",
+    "vite": "^3.2.4",
+    "vite-plugin-lib-types": "^0.0.5",
     "vue": "^3.2.40"
+  },
+  "peerDependencies": {
+    "vue": "^3.2.0"
   },
   "publishConfig": {
     "access": "public",

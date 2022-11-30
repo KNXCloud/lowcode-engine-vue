@@ -1,4 +1,4 @@
-node_modules
+es
 lib
 dist
-es
+node_modules
