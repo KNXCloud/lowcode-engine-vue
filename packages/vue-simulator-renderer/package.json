@@ -33,7 +33,7 @@
     "less": "^4.1.1",
     "less-loader": "^10.2.0",
     "vite": "^3.2.4",
-    "vite-plugin-lib-types": "^0.0.5",
+    "vite-plugin-lib-types": "^0.0.6",
     "vue": "^3.2.40"
   },
   "peerDependencies": {

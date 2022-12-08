@@ -61,14 +61,14 @@ importers:
       '@alilc/lowcode-designer': ^1.0.14
       '@alilc/lowcode-types': ^1.0.14
       vite: ^3.2.4
-      vite-plugin-lib-types: ^0.0.5
+      vite-plugin-lib-types: ^0.0.6
       vue: ^3.2.45
     dependencies:
       '@alilc/lowcode-designer': 1.0.16
       '@alilc/lowcode-types': 1.0.16
     devDependencies:
       vite: 3.2.4
-      vite-plugin-lib-types: 0.0.5_vite@3.2.4+vue@3.2.45
+      vite-plugin-lib-types: 0.0.6_vite@3.2.4+vue@3.2.45
       vue: 3.2.45
 
   packages/utils:
@@ -76,14 +76,14 @@ importers:
       '@alilc/lowcode-shell': ^1.0.14
       '@alilc/lowcode-types': ^1.0.14
       vite: ^3.2.4
-      vite-plugin-lib-types: ^0.0.5
+      vite-plugin-lib-types: ^0.0.6
       vue: ^3.2.40
     dependencies:
       '@alilc/lowcode-shell': 1.0.16
       '@alilc/lowcode-types': 1.0.16
     devDependencies:
       vite: 3.2.4
-      vite-plugin-lib-types: 0.0.5_vite@3.2.4+vue@3.2.45
+      vite-plugin-lib-types: 0.0.6_vite@3.2.4+vue@3.2.45
       vue: 3.2.45
 
   packages/vue-renderer:
@@ -98,7 +98,7 @@ importers:
       intl-messageformat: ^10.1.5
       lodash-es: ^4.17.21
       vite: ^3.2.4
-      vite-plugin-lib-types: ^0.0.5
+      vite-plugin-lib-types: ^0.0.6
       vue: ^3.2.40
     dependencies:
       '@alilc/lowcode-designer': 1.0.16
@@ -112,7 +112,7 @@ importers:
       '@vitejs/plugin-vue-jsx': 2.1.1_vite@3.2.4+vue@3.2.45
       deepmerge: 4.2.2
       vite: 3.2.4
-      vite-plugin-lib-types: 0.0.5_vite@3.2.4+vue@3.2.45
+      vite-plugin-lib-types: 0.0.6_vite@3.2.4+vue@3.2.45
       vue: 3.2.45
 
   packages/vue-simulator-renderer:
@@ -130,7 +130,7 @@ importers:
       less: ^4.1.1
       less-loader: ^10.2.0
       vite: ^3.2.4
-      vite-plugin-lib-types: ^0.0.5
+      vite-plugin-lib-types: ^0.0.6
       vue: ^3.2.40
       vue-router: ^4.1.5
     dependencies:
@@ -149,7 +149,7 @@ importers:
       less: 4.1.3
       less-loader: 10.2.0_less@4.1.3
       vite: 3.2.4_less@4.1.3
-      vite-plugin-lib-types: 0.0.5_vite@3.2.4+vue@3.2.45
+      vite-plugin-lib-types: 0.0.6_vite@3.2.4+vue@3.2.45
       vue: 3.2.45
 
 packages:
@@ -10746,8 +10746,8 @@ packages:
       vfile-message: 1.1.1
     dev: true
 
-  /vite-plugin-lib-types/0.0.5_vite@3.2.4+vue@3.2.45:
-    resolution: {integrity: sha512-XpTZusGkNMFlLZmraPH8FaNwBrbYqd3hDB/3K13Y5FmwVygRFG+ATd5aKM4FpfEUW87HD0gF6kCbGx1c+N3+5Q==}
+  /vite-plugin-lib-types/0.0.6_vite@3.2.4+vue@3.2.45:
+    resolution: {integrity: sha512-uPWLdxlG6EP+aVk5l+gqx30M1ZBgnkhH2BsWnpvY3cjTgqOpICYf9AIzITMocPiwhLwlLjlpVYlRW1d4TjezUw==}
     hasBin: true
     peerDependencies:
       vite: ^2.0.0 || ^3.0.0
