@@ -3,7 +3,12 @@
   "main": "./dist/vue-simulator-renderer.js",
   "module": "./dist/vue-simulator-renderer.mjs",
   "typings": "./dist/vue-simulator-renderer.d.ts",
-  "version": "1.5.7",
+  "version": "1.5.8",
+  "keywords": [
+    "vue",
+    "lowcode",
+    "lowcode-engine"
+  ],
   "files": [
     "es",
     "lib",

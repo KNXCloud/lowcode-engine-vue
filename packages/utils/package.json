@@ -4,6 +4,11 @@
   "module": "./dist/lowcode-utils.mjs",
   "typings": "./dist/lowcode-utils.d.ts",
   "version": "1.5.4",
+  "keywords": [
+    "vue",
+    "lowcode",
+    "lowcode-engine"
+  ],
   "files": [
     "dist"
   ],

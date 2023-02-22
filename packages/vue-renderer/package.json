@@ -4,6 +4,11 @@
   "module": "./dist/vue-renderer.mjs",
   "typings": "./dist/vue-renderer.d.ts",
   "version": "1.5.7",
+  "keywords": [
+    "vue",
+    "lowcode",
+    "lowcode-engine"
+  ],
   "files": [
     "es",
     "lib",

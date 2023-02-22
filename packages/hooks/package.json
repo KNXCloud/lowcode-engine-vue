@@ -4,6 +4,11 @@
   "main": "dist/lowcode-hooks.js",
   "module": "dist/lowcode-hooks.mjs",
   "typings": "dist/lowcode-hooks.d.ts",
+  "keywords": [
+    "vue",
+    "lowcode",
+    "lowcode-engine"
+  ],
   "files": [
     "dist"
   ],
