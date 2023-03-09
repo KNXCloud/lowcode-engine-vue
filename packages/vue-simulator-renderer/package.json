@@ -18,7 +18,7 @@
     "start": "vue-cli-service serve",
     "build": "vite build && vite build -c vite.config.umd.ts",
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
-    "prepack": "pnpm build && pnpm build:umd"
+    "prepack": "pnpm build"
   },
   "dependencies": {
     "@alilc/lowcode-designer": "^1.1.2",
