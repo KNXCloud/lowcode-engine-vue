@@ -1,10 +1,11 @@
-import type { NodeInstance } from '@alilc/lowcode-designer';
+import type { IPublicTypeNodeInstance as NodeInstance } from '@alilc/lowcode-types';
 import type { ComponentInternalInstance } from 'vue';
+import type { ComponentRecord } from '../interface';
 import {
-  ComponentRecord,
   getCompRootData,
   isVNodeHTMLElement,
   isCompRootHTMLElement,
+  createComponentRecord,
 } from './comp-node';
 
 export function getClosestNodeInstance(
@@ -32,7 +33,7 @@ export function getClosestNodeInstanceByElement(
         return {
           docId,
           nodeId,
-          instance: new ComponentRecord(docId, nodeId, instance.$.uid),
+          instance: createComponentRecord(docId, nodeId, instance.$.uid),
         };
       }
     }
@@ -54,7 +55,7 @@ export function getClosestNodeInstanceByComponent(
         return {
           docId,
           nodeId,
-          instance: new ComponentRecord(docId, nodeId, instance.$.uid),
+          instance: createComponentRecord(docId, nodeId, instance.$.uid),
         };
       }
     }

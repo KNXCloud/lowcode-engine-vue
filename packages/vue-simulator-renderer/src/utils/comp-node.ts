@@ -1,7 +1,7 @@
 import type { ComponentInternalInstance, VNode } from 'vue';
-import type { ComponentInstance } from '../interface';
+import type { ComponentInstance, ComponentRecord } from '../interface';
 import { isProxy } from 'vue';
-import { isObject, isNil } from './check';
+import { isNil, isObject } from '@knxcloud/lowcode-utils';
 
 const SYMBOL_VDID = Symbol('_LCDocId');
 const SYMBOL_VNID = Symbol('_LCNodeId');
@@ -25,11 +25,6 @@ export interface CompRootData {
   instance: ComponentInstance;
 }
 
-export class ComponentRecord {
-  [SYMBOL_RECORD_FLAG] = true;
-  constructor(public did: string, public nid: string, public cid: number) {}
-}
-
 export function isVNodeHTMLElement(el: unknown): el is VNodeHTMLElement {
   return isObject(el) && !isNil(el.__vueParentComponent);
 }
@@ -46,6 +41,15 @@ export function isComponentRecord(el: unknown): el is ComponentRecord {
 
 export function isInternalInstance(el: unknown): el is ComponentInternalInstance {
   return isObject(el) && isProxy(el.proxy);
+}
+
+export function createComponentRecord(did: string, nid: string, cid: number) {
+  return {
+    did,
+    nid,
+    cid,
+    [SYMBOL_RECORD_FLAG]: true,
+  };
 }
 
 export function getCompRootData(el: CompRootHTMLElement): CompRootData {

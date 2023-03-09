@@ -1,6 +1,6 @@
 {
   "name": "@knxcloud/lowcode-hooks",
-  "version": "1.5.3",
+  "version": "1.6.0-beta.0",
   "main": "dist/lowcode-hooks.js",
   "module": "dist/lowcode-hooks.mjs",
   "typings": "dist/lowcode-hooks.d.ts",
@@ -18,13 +18,13 @@
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@alilc/lowcode-designer": "^1.0.14",
-    "@alilc/lowcode-types": "^1.0.14"
+    "@alilc/lowcode-designer": "^1.1.2",
+    "@alilc/lowcode-types": "^1.1.2"
   },
   "devDependencies": {
-    "vite": "^3.2.4",
-    "vite-plugin-lib-types": "^0.0.6",
-    "vue": "^3.2.45"
+    "vite": "^4.1.4",
+    "vite-plugin-lib-types": "^0.1.0",
+    "vue": "^3.2.47"
   },
   "peerDependencies": {
     "vue": "^3.2.0"

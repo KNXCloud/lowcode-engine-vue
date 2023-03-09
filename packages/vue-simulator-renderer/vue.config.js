@@ -1,5 +1,8 @@
 /* eslint-env node */
+const path = require('path');
 const { defineConfig } = require('@vue/cli-service');
+
+const resolve = (...p) => path.resolve(__dirname, ...p);
 
 module.exports = defineConfig({
   productionSourceMap: false,
@@ -42,6 +45,12 @@ module.exports = defineConfig({
           chunkFilename: '[name].css',
         }),
       ];
+    });
+
+    config.resolve.alias.merge({
+      '@knxcloud/hooks': resolve('../hooks/src'),
+      '@knxcloud/utils': resolve('../utils/src'),
+      '@knxcloud/vue-renderer': resolve('../vue-renderer/src'),
     });
 
     config.devServer.allowedHosts.add('all');

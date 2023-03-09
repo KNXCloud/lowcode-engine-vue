@@ -1,8 +1,16 @@
-import type { I18nData, JSFunction, JSExpression } from '@alilc/lowcode-types';
+import type {
+  IPublicTypeI18nData as I18nData,
+  IPublicTypeJSFunction as JSFunction,
+  IPublicTypeJSExpression as JSExpression,
+} from '@alilc/lowcode-types';
 import type { BlockScope, RuntimeScope } from './scope';
-import { isI18nData, isJSExpression, isJSFunction } from '@alilc/lowcode-types';
+import {
+  isI18nData,
+  isJSExpression,
+  isJSFunction,
+  isPlainObject,
+} from '@knxcloud/lowcode-utils';
 import { isFunction, isString } from 'lodash-es';
-import { isPlainObject } from './object';
 import { ensureArray } from './array';
 
 export const EXPRESSION_TYPE = {

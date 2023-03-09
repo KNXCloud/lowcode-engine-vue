@@ -1,17 +1,17 @@
-import type { JSFunction, NpmInfo } from '@alilc/lowcode-types';
-import { isJSFunction } from '@alilc/lowcode-types';
+import type { IPublicTypeNpmInfo } from '@alilc/lowcode-types';
 import { accessLibrary } from './build-components';
+import { isJSFunction } from './check';
 
 export interface UtilsNpmMetadata {
   name: string;
   type: 'npm';
-  content: NpmInfo;
+  content: IPublicTypeNpmInfo;
 }
 
 export interface UtilsFunctionMetadata {
   name: string;
   type: 'function';
-  content: JSFunction | CallableFunction;
+  content: IPublicTypeNpmInfo | CallableFunction;
 }
 
 export type UtilsMetadata = UtilsNpmMetadata | UtilsFunctionMetadata;

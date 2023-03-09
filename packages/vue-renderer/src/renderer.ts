@@ -1,7 +1,10 @@
-import type { NodeSchema, RootSchema } from '@alilc/lowcode-types';
+import type {
+  IPublicModelNode as Node,
+  IPublicTypeNodeSchema as NodeSchema,
+  IPublicTypeRootSchema as RootSchema,
+} from '@alilc/lowcode-types';
 import type { PropType, Component, ComponentPublicInstance } from 'vue';
 import type { I18nMessages, BlockScope } from './utils';
-import type { Node } from '@alilc/lowcode-designer';
 import { h, computed, defineComponent } from 'vue';
 import config from './config';
 import { RENDERER_COMPS } from './renderers';
@@ -14,7 +17,7 @@ interface RendererProps {
   device?: string;
   locale?: string;
   messages?: I18nMessages;
-  getNode?: (id: string) => Node<NodeSchema> | null;
+  getNode?: (id: string) => Node | null;
   onCompGetCtx?: (schema: NodeSchema, ref: ComponentPublicInstance) => void;
 }
 
@@ -52,7 +55,7 @@ const Renderer = defineComponent({
       default: () => ({}),
     },
     getNode: {
-      type: Function as PropType<(id: string) => Node<NodeSchema> | null>,
+      type: Function as PropType<(id: string) => Node | null>,
       default: undefined,
     },
     /** 组件获取 ref 时触发的钩子 */

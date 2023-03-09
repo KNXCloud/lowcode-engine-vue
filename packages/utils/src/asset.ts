@@ -2,7 +2,7 @@
  * copy from https://github.com/alibaba/lowcode-engine/blob/main/packages/utils/src/asset.ts
  */
 import type { Asset, AssetBundle, AssetItem, AssetList } from '@alilc/lowcode-types';
-import { AssetLevel, AssetLevels, AssetType } from '@alilc/lowcode-types';
+import { AssetLevel, AssetLevels, AssetType } from '@alilc/lowcode-types/es/assets';
 import { isCSSUrl } from './check';
 import { createDefer } from './create-defer';
 import { evaluate, load } from './script';
@@ -87,18 +87,10 @@ export class StylePoint {
 
   private lastUrl: string | undefined;
 
-  private placeholder: Element | Text;
+  private placeholder: Node;
 
-  readonly id: string | undefined;
-
-  readonly level: number;
-
-  constructor(level: number, id?: string) {
-    this.level = level;
-    if (id) {
-      this.id = id;
-    }
-    let placeholder: any;
+  constructor(public readonly level: number, public readonly id?: string) {
+    let placeholder: Node | null = null;
     if (id) {
       placeholder = document.head.querySelector(`style[data-id="${id}"]`);
     }

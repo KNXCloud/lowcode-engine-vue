@@ -2,12 +2,12 @@ import type { DocumentModel } from '@alilc/lowcode-designer';
 import type { Ref, Component } from 'vue';
 import type {
   ComponentInstance,
+  ComponentRecord,
   DocumentInstance,
   MinxedComponent,
   SimulatorViewLayout,
   VueSimulatorRenderer,
 } from './interface';
-import { TransformStage } from '@alilc/lowcode-types';
 import {
   createApp,
   ref,
@@ -18,6 +18,7 @@ import {
   onUnmounted,
 } from 'vue';
 import { config } from '@knxcloud/lowcode-vue-renderer';
+import { IPublicEnumTransformStage as TransformStage } from '@alilc/lowcode-types/es/shell/enum';
 import {
   AssetLoader,
   buildUtils,
@@ -35,12 +36,13 @@ import {
   getCompRootData,
   setCompRootData,
   getClosestNodeInstance,
-  ComponentRecord,
   isComponentRecord,
   getClosestNodeInstanceByComponent,
   setNativeSelection,
+  createComponentRecord,
 } from './utils';
 import { createMemoryHistory, createRouter } from 'vue-router';
+import type { IPublicTypeRootSchema } from '@alilc/lowcode-types';
 
 const loader = new AssetLoader();
 
@@ -66,7 +68,9 @@ function createDocumentInstance(
 
   const timestamp = ref(Date.now());
 
-  const schema = computed(() => document.export(TransformStage.Render));
+  const schema = computed(
+    () => document.export(TransformStage.Render) as IPublicTypeRootSchema
+  );
 
   const checkInstanceMounted = (instance: ComponentInstance): boolean => {
     return instance.$.isMounted;
@@ -79,7 +83,7 @@ function createDocumentInstance(
   ) => {
     const instanceRecords = !instances
       ? null
-      : instances.map((inst) => new ComponentRecord(docId, nodeId, inst.$.uid));
+      : instances.map((inst) => createComponentRecord(docId, nodeId, inst.$.uid));
     host.setInstance(docId, nodeId, instanceRecords);
   };
 
@@ -156,7 +160,7 @@ function createDocumentInstance(
   return reactive({
     id: computed(() => document.id),
     path: computed(() => {
-      const { fileName } = document;
+      const { fileName } = schema.value;
       return fileName.startsWith('/') ? fileName : `/${fileName}`;
     }),
     key: computed(() => `${document.id}:${timestamp.value}`),
@@ -300,7 +304,7 @@ function createSimulatorRenderer() {
   simulator.getCurrentDocument = () => {
     const crr = host.project.currentDocument;
     const docs = documentInstances.value;
-    return docs.find((doc) => doc.id === crr.id);
+    return crr ? docs.find((doc) => doc.id === crr.id) ?? null : null;
   };
 
   let running = false;
@@ -354,6 +358,7 @@ function createSimulatorRenderer() {
       documentInstances.value = host.project.documents.map((doc) => {
         let documentInstance = documentInstanceMap.get(doc.id);
         if (!documentInstance) {
+          // @ts-ignore ts check IDocumentModel to DocumentModel
           documentInstance = createDocumentInstance(doc, context);
           documentInstanceMap.set(doc.id, documentInstance);
           router.addRoute({

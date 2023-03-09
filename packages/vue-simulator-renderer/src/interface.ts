@@ -1,9 +1,15 @@
 import type { Router } from 'vue-router';
 import type { Config, I18nMessages } from '@knxcloud/lowcode-vue-renderer';
 import type { Component, ComponentPublicInstance, App } from 'vue';
-import type { ComponentSchema, NpmInfo, RootSchema } from '@alilc/lowcode-types';
 import type {
-  Node,
+  IPublicTypeNpmInfo as NpmInfo,
+  IPublicTypeRootSchema as RootSchema,
+  IPublicTypeComponentSchema as ComponentSchema,
+  IPublicTypeNodeSchema as NodeSchema,
+  IPublicTypeNodeInstance,
+} from '@alilc/lowcode-types';
+import type {
+  INode,
   DocumentModel,
   BuiltinSimulatorRenderer,
 } from '@alilc/lowcode-designer';
@@ -12,29 +18,16 @@ export type MinxedComponent = NpmInfo | Component | ComponentSchema;
 
 export type ComponentInstance = ComponentPublicInstance;
 
+export interface ComponentRecord {
+  did: string;
+  nid: string;
+  cid: number;
+}
+
 export interface SimulatorViewLayout {
   Component?: Component;
   componentName?: string;
   props?: Record<string, unknown>;
-}
-
-export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
-  app: App;
-  config: Config;
-  router: Router;
-  layout: SimulatorViewLayout;
-  device: string;
-  locale: string;
-  designMode: 'design';
-  libraryMap: Record<string, string>;
-  components: Record<string, Component>;
-  autoRender: boolean;
-  componentsMap: Record<string, MinxedComponent>;
-  documentInstances: DocumentInstance[];
-  requestHandlersMap: Record<string, CallableFunction>;
-  dispose(): void;
-  rerender(): void;
-  getCurrentDocument(): DocumentInstance | undefined;
 }
 
 export interface DocumentInstance {
@@ -50,5 +43,33 @@ export interface DocumentInstance {
   mountInstance(id: string, instance: ComponentInstance): (() => void) | void;
   unmountIntance(id: string, instance: ComponentInstance): void;
   rerender(): void;
-  getNode(id: string): Node | null;
+  getNode(id: string): INode | null;
+}
+
+export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
+  readonly isSimulatorRenderer: true;
+  app: App;
+  config: Config;
+  router: Router;
+  layout: SimulatorViewLayout;
+  device: string;
+  locale: string;
+  designMode: 'design';
+  libraryMap: Record<string, string>;
+  components: Record<string, Component>;
+  autoRender: boolean;
+  componentsMap: Record<string, MinxedComponent>;
+  documentInstances: DocumentInstance[];
+  requestHandlersMap: Record<string, CallableFunction>;
+  dispose(): void;
+  rerender(): void;
+  getCurrentDocument(): DocumentInstance | null;
+  rerender: () => void;
+  createComponent(schema: NodeSchema): Component | null;
+  getComponent(componentName: string): Component;
+  getClosestNodeInstance(
+    from: ComponentRecord | Element,
+    nodeId?: string
+  ): IPublicTypeNodeInstance<ComponentRecord> | null;
+  findDOMNodes(instance: ComponentRecord): Array<Element | Text> | null;
 }

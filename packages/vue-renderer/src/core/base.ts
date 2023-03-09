@@ -1,5 +1,8 @@
-import type { NodeSchema, RootSchema } from '@alilc/lowcode-types';
-import type { Node } from '@alilc/lowcode-designer';
+import type {
+  IPublicModelNode as INode,
+  IPublicTypeNodeSchema as NodeSchema,
+  IPublicTypeRootSchema as RootSchema,
+} from '@alilc/lowcode-types';
 import type { Component, ComponentPublicInstance, PropType, VNodeProps } from 'vue';
 import type { BlockScope, I18nMessages, RuntimeScope } from '../utils';
 
@@ -29,7 +32,7 @@ export const rendererProps = {
     default: () => ({}),
   },
   __getNode: {
-    type: Function as PropType<(id: string) => Node<NodeSchema> | null>,
+    type: Function as PropType<(id: string) => INode | null>,
     required: true,
   },
   __triggerCompGetCtx: {
@@ -47,7 +50,7 @@ export interface RendererProps {
   __designMode?: 'live' | 'design';
   __schema: RootSchema;
   __components: Record<string, Component>;
-  __getNode: (id: string) => Node<NodeSchema> | null;
+  __getNode: (id: string) => INode | null;
   __triggerCompGetCtx: (schema: NodeSchema, ref: ComponentPublicInstance) => void;
 }
 
@@ -60,24 +63,24 @@ export type RendererComponent = {
 };
 
 export const leafProps = {
-  comp: {
+  __comp: {
     type: Object as PropType<Component | null>,
     default: undefined,
   },
-  scope: {
+  __scope: {
     type: Object as PropType<RuntimeScope>,
     default: () => ({}),
   },
-  schema: {
+  __schema: {
     type: Object as PropType<NodeSchema>,
     default: () => ({}),
   },
 } as const;
 
 export interface LeafProps {
-  comp?: Component | null;
-  scope: RuntimeScope;
-  schema: NodeSchema;
+  __comp?: Component | null;
+  __scope: RuntimeScope;
+  __schema: NodeSchema;
 }
 
 export const leafPropKeys = Object.keys(rendererProps) as (keyof LeafProps)[];

@@ -1,11 +1,12 @@
-import type { SlotNode } from '@alilc/lowcode-designer';
 import type { ComponentPublicInstance } from 'vue';
 import type { PropSchemaMap, SlotSchemaMap } from './use';
-import { isNil } from 'lodash-es';
-import { isJSSlot, TransformStage } from '@alilc/lowcode-types';
+import type { IPublicModelNode } from '@alilc/lowcode-types';
+
+import { IPublicEnumTransformStage as TransformStage } from '@alilc/lowcode-types/es/shell/enum';
+import { isJSSlot, isNil } from '@knxcloud/lowcode-utils';
+import { useRendererContext } from '@knxcloud/lowcode-hooks';
 import { h, Fragment, reactive, onUnmounted, defineComponent } from 'vue';
 import { leafProps } from './base';
-import { useRendererContext } from '@knxcloud/lowcode-hooks';
 import { ensureArray } from '../utils';
 import { useLeaf } from './use';
 
@@ -17,8 +18,8 @@ export const Hoc = defineComponent({
     const { node, locked, buildSchema, buildProps, buildSlots, buildLoop, buildShow } =
       useLeaf(props);
 
-    const { show, hidden, condition } = buildShow(props.schema);
-    const { loop, updateLoop, updateLoopArg, buildLoopScope } = buildLoop(props.schema);
+    const { show, hidden, condition } = buildShow(props.__schema);
+    const { loop, updateLoop, updateLoopArg, buildLoopScope } = buildLoop(props.__schema);
 
     const compProps: PropSchemaMap = reactive({});
     const compSlots: SlotSchemaMap = reactive({});
@@ -83,8 +84,8 @@ export const Hoc = defineComponent({
             } else if (key === 'children') {
               // 默认插槽更新
               if (isJSSlot(newValue)) {
-                const slotNode: SlotNode = prop.slotNode;
-                const schema = slotNode.export(TransformStage.Render);
+                const slotNode: IPublicModelNode = prop.slotNode;
+                const schema = slotNode.schema;
                 compSlots.default = schema;
               } else if (!isNil(newValue)) {
                 compSlots.default = ensureArray(newValue);
@@ -93,8 +94,8 @@ export const Hoc = defineComponent({
               }
             } else if (isJSSlot(newValue)) {
               // 具名插槽更新
-              const slotNode: SlotNode = prop.slotNode;
-              const schema = slotNode.export(TransformStage.Render);
+              const slotNode: IPublicModelNode = prop.slotNode;
+              const schema = slotNode.schema;
               compSlots[key] = schema;
             } else if (isNil(newValue) && isJSSlot(oldValue)) {
               // 具名插槽移除
@@ -115,7 +116,7 @@ export const Hoc = defineComponent({
     }
 
     const getRef = (inst: ComponentPublicInstance) => {
-      triggerCompGetCtx(props.schema, inst);
+      triggerCompGetCtx(props.__schema, inst);
     };
 
     return {
@@ -131,7 +132,7 @@ export const Hoc = defineComponent({
   },
   render() {
     const {
-      comp,
+      __comp: comp,
       show,
       loop,
       compProps,
