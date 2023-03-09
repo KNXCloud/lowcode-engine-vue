@@ -1,11 +1,21 @@
-import type { Prop } from '@alilc/lowcode-designer';
-import type { Component, VNode, Ref, ComputedRef, Slot, Slots, InjectionKey } from 'vue';
+import {
+  type Component,
+  type VNode,
+  type Ref,
+  type ComputedRef,
+  type Slot,
+  type Slots,
+  type InjectionKey,
+  defineComponent,
+} from 'vue';
+import type { Node, Prop } from '@alilc/lowcode-designer';
 import type {
-  NodeData,
-  SlotSchema,
-  NodeSchema,
-  JSFunction,
-  CompositeValue,
+  IPublicModelNode,
+  IPublicTypeNodeData as NodeData,
+  IPublicTypeSlotSchema as SlotSchema,
+  IPublicTypeNodeSchema as NodeSchema,
+  IPublicTypeJSFunction as JSFunction,
+  IPublicTypeCompositeValue as CompositeValue,
 } from '@alilc/lowcode-types';
 import type { LeafProps, RendererProps } from './base';
 import type { MaybeArray, BlockScope, RuntimeScope } from '../utils';
@@ -30,15 +40,7 @@ import {
   toDisplayString,
   inject,
 } from 'vue';
-import {
-  isJSSlot,
-  isJSFunction,
-  isDOMText,
-  isNodeSchema,
-  isJSExpression,
-  TransformStage,
-} from '@alilc/lowcode-types';
-import { isNil, isString, camelCase, pickBy, isFunction } from 'lodash-es';
+import { camelCase, pickBy } from 'lodash-es';
 import {
   getCurrentNodeKey,
   getRendererContextKey,
@@ -47,7 +49,6 @@ import {
 import { Hoc } from './hoc';
 import { Live } from './live';
 import {
-  isObject,
   ensureArray,
   getI18n,
   mergeScope,
@@ -56,6 +57,18 @@ import {
   parseExpression,
 } from '../utils';
 import { createDataSourceManager } from '../data-source';
+import {
+  isNil,
+  isString,
+  isFunction,
+  isDOMText,
+  isJSExpression,
+  isNodeSchema,
+  isObject,
+  isJSSlot,
+  isJSFunction,
+  isSlotSchema,
+} from '@knxcloud/lowcode-utils';
 
 const currentNodeKey = getCurrentNodeKey();
 
@@ -82,12 +95,18 @@ const LIFTCYCLES_MAP = {
   ...REACT_ADATPOR_LIFTCYCLES_MAP,
 };
 
+const Slot = defineComponent({
+  render() {
+    return h('div', { class: 'lc-container' }, this.$slots);
+  },
+});
+
 export function isLifecycleKey(key: string): key is keyof typeof LIFTCYCLES_MAP {
   return key in LIFTCYCLES_MAP;
 }
 
 export type SlotSchemaMap = {
-  [x: string]: SlotSchema | NodeData[] | undefined;
+  [x: string]: SlotSchema | NodeData | NodeData[] | undefined;
 };
 
 export type PropSchemaMap = {
@@ -128,7 +147,7 @@ export function useLocked(defaultValue: boolean) {
 export function useLeaf(props: LeafProps) {
   const { components, getNode, designMode } = useRendererContext();
 
-  const node = props.schema.id ? getNode(props.schema.id) : null;
+  const node = props.__schema.id ? (getNode(props.__schema.id) as unknown as Node) : null;
   // 仅在设计模式下生效
   const locked = node ? useLocked(node.isLocked) : ref(false);
 
@@ -136,7 +155,7 @@ export function useLeaf(props: LeafProps) {
 
   provide(currentNodeKey, {
     mode: designMode,
-    node: node,
+    node: node as unknown as IPublicModelNode | null,
     isDesignerEnv: isDesignMode,
   });
 
@@ -153,7 +172,7 @@ export function useLeaf(props: LeafProps) {
     blockScope?: MaybeArray<BlockScope | undefined | null>,
     comp?: Component
   ) => {
-    const mergedScope = mergeScope(props.scope, blockScope);
+    const mergedScope = mergeScope(props.__scope, blockScope);
 
     // 若 schema 不为 NodeSchema，则直接渲染
     if (isString(schema)) {
@@ -167,9 +186,15 @@ export function useLeaf(props: LeafProps) {
     if (!comp) {
       const { componentName } = schema;
       comp = components[componentName];
-    }
 
-    if (!comp) return h('div', 'component not found');
+      if (!comp) {
+        if (componentName === 'Slot') {
+          comp = Slot;
+        } else {
+          return h('div', 'component not found');
+        }
+      }
+    }
 
     // 应用节点组件的私有属性，适配 naive-ui 的 grid,popover 等组件
     const privateProperties = pickBy(comp, (_, k) => {
@@ -182,9 +207,9 @@ export function useLeaf(props: LeafProps) {
     // 渲染 leaf 组件
     return h(base, {
       key: schema.id,
-      comp,
-      scope: mergedScope,
-      schema: schema,
+      __comp: comp,
+      __scope: mergedScope,
+      __schema: schema,
     } as any);
   };
 
@@ -230,7 +255,7 @@ export function useLeaf(props: LeafProps) {
    * - className prop 会被处理为 class prop
    */
   const buildSchema = () => {
-    const schema = node ? node.export(TransformStage.Render) : props.schema;
+    const schema = node ? node.schema : props.__schema;
 
     const slotProps: SlotSchemaMap = {};
     const normalProps: PropSchemaMap = {};
@@ -241,17 +266,20 @@ export function useLeaf(props: LeafProps) {
     Object.entries(schema.props ?? {}).forEach(([key, val]) => {
       if (isJSSlot(val)) {
         // 处理具名插槽
-        const prop = node?.getProp(key);
+        const prop = node?.getProp(key, false);
         if (prop && prop.slotNode) {
           // design 模式，从 prop 对象到处 schema
-          const slotSchema = prop.slotNode.export(TransformStage.Render);
-          slotProps[key] = slotSchema;
+          const slotSchema = prop.slotNode.schema;
+          if (isSlotSchema(slotSchema)) {
+            slotProps[key] = slotSchema;
+          }
         } else if (val.value) {
           // live 模式，直接获取 schema 值，若值为空则不渲染插槽
+          // @ts-ignore children 应该为 NodeData 而不是强制喂 NodeSchema
           slotProps[key] = {
             componentName: 'Slot',
             params: val.params,
-            children: val.value,
+            children: ensureArray(val.value),
           };
         }
       } else if (key === 'className') {
@@ -289,11 +317,11 @@ export function useLeaf(props: LeafProps) {
     } else if (isJSSlot(schema)) {
       // 处理属性插槽
       let slotParams: string[];
-      let slotSchema: NodeData[] | SlotSchema;
+      let slotSchema: NodeData[] | NodeSchema | SlotSchema;
       if (prop?.slotNode) {
         // design 模式，从 prop 中导出 schema
-        slotSchema = prop.slotNode.export(TransformStage.Render);
-        slotParams = slotSchema.params ?? [];
+        slotSchema = prop.slotNode.schema;
+        slotParams = isSlotSchema(slotSchema) ? slotSchema.params ?? [] : [];
       } else {
         // live 模式，直接获取 schema 值
         slotSchema = ensureArray(schema.value);
@@ -468,13 +496,15 @@ export function useLeaf(props: LeafProps) {
 
     // 将属性 schema 转化成真实的属性值
     const parsedProps: Record<string, unknown> = {};
-    const mergedScope = blockScope ? mergeScope(props.scope, blockScope) : props.scope;
+    const mergedScope = blockScope
+      ? mergeScope(props.__scope, blockScope)
+      : props.__scope;
     Object.keys(processed).forEach((propName) => {
       const schema = processed[propName];
       parsedProps[propName] =
         propName === 'ref'
-          ? buildRefProp(schema, mergedScope, blockScope, node?.getProp(propName))
-          : buildProp(schema, mergedScope, blockScope, node?.getProp(propName));
+          ? buildRefProp(schema, mergedScope, blockScope, node?.getProp(propName) as Prop)
+          : buildProp(schema, mergedScope, blockScope, node?.getProp(propName) as Prop);
     });
 
     // 应用运行时附加的属性值
@@ -501,7 +531,7 @@ export function useLeaf(props: LeafProps) {
     return {
       loop: computed(() => {
         if (!loop.value) return null;
-        return parseSchema(loop.value, props.scope);
+        return parseSchema(loop.value, props.__scope);
       }),
       loopArgs,
       updateLoop(value: CompositeValue): void {
@@ -517,7 +547,7 @@ export function useLeaf(props: LeafProps) {
         }
       },
       buildLoopScope(item, index, len): BlockScope {
-        const scope = props.scope;
+        const scope = props.__scope;
         const offset = scope.__loopRefOffset ?? 0;
         const [itemKey, indexKey] = loopArgs.value;
         return {
@@ -572,7 +602,7 @@ export function useLeaf(props: LeafProps) {
       if (hidden.value) return false;
       const { value: showCondition } = condition;
       if (typeof showCondition === 'boolean') return showCondition;
-      return !!parseSchema(showCondition, props.scope);
+      return !!parseSchema(showCondition, props.__scope);
     });
 
     return {
@@ -625,7 +655,7 @@ export function useLeaf(props: LeafProps) {
       // 默认插槽内容为空，且当前节点不是容器节点时，不渲染默认插槽
       if (
         isDefaultSlot &&
-        !node?.isContainer() &&
+        !node?.isContainerNode &&
         Array.isArray(slotSchema) &&
         slotSchema.length === 0
       )
@@ -640,27 +670,34 @@ export function useLeaf(props: LeafProps) {
             .map((item) => renderComp(item, blockScope))
             .filter((vnode): vnode is VNode => !isNil(vnode));
         };
-      } else if (slotSchema.id) {
-        // 存在 slot id，则当前插槽可拖拽编辑，渲染 Hoc
-        renderSlot = (...args: unknown[]) => {
-          const vnode = renderComp(slotSchema, [
-            blockScope,
-            parseSlotScope(args, slotSchema.params ?? []),
-          ]);
-          return isNil(vnode) ? [] : [vnode];
-        };
+      } else if (isSlotSchema(slotSchema)) {
+        if (slotSchema.id) {
+          // 存在 slot id，则当前插槽可拖拽编辑，渲染 Hoc
+          renderSlot = (...args: unknown[]) => {
+            const vnode = renderComp(slotSchema, [
+              blockScope,
+              parseSlotScope(args, slotSchema.params ?? []),
+            ]);
+            return isNil(vnode) ? [] : [vnode];
+          };
+        } else {
+          // 不存在 slot id，插槽不可拖拽编辑，直接渲染插槽内容
+          renderSlot = (...args: unknown[]) => {
+            const slotScope = parseSlotScope(args, slotSchema.params ?? []);
+            return ensureArray(slotSchema.children)
+              .map((item) => renderComp(item, [blockScope, slotScope]))
+              .filter((vnode): vnode is VNode => !isNil(vnode));
+          };
+        }
       } else {
-        // 不存在 slot id，插槽不可拖拽编辑，直接渲染插槽内容
-        renderSlot = (...args: unknown[]) => {
-          const slotScope = parseSlotScope(args, slotSchema.params ?? []);
-          return ensureArray(slotSchema.children)
-            .map((item) => renderComp(item, [blockScope, slotScope]))
-            .filter((vnode): vnode is VNode => !isNil(vnode));
+        renderSlot = () => {
+          const vnode = renderComp(slotSchema, blockScope);
+          return vnode ? [vnode] : [];
         };
       }
 
       prev[next] =
-        isDefaultSlot && isDesignMode && node?.isContainer()
+        isDefaultSlot && isDesignMode && node?.isContainerNode
           ? decorateDefaultSlot(renderSlot) // 当节点为容器节点，且为设计模式下，则装饰默认插槽
           : renderSlot;
 
@@ -684,14 +721,14 @@ export function useRenderer(props: RendererProps) {
   const { scope } = useRootScope(props);
 
   const leafProps: LeafProps = reactive({
-    comp: null,
-    scope: scope,
-    schema: computed(() => props.__schema),
+    __comp: null,
+    __scope: scope,
+    __schema: computed(() => props.__schema),
   });
 
   const contextKey = getRendererContextKey();
 
-  const designModeRef = computed(() => props.__designMode);
+  const designModeRef = computed(() => props.__designMode ?? 'live');
   const componentsRef = computed(() => props.__components);
 
   provide(

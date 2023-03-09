@@ -1,8 +1,8 @@
 import type { ComponentPublicInstance } from 'vue';
 import type { MaybeArray } from './array';
 import type { DataSourceItem } from '../data-source';
-import { isObject } from './object';
 import { isProxy, reactive } from 'vue';
+import { isObject } from '@knxcloud/lowcode-utils';
 
 export interface BlockScope {
   [x: string]: unknown;

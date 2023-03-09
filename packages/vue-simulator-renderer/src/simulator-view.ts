@@ -67,7 +67,7 @@ export const Renderer = defineComponent({
       messages: messages,
       components: components,
       designMode: designMode,
-      getNode: (id) => documentInstance.getNode(id),
+      getNode: (id) => documentInstance.getNode(id) as any,
       onCompGetCtx: (schema, ref) => documentInstance.mountInstance(schema.id!, ref),
     });
   },

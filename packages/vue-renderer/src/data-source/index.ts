@@ -8,7 +8,8 @@ import { computed, reactive, ref, shallowRef } from 'vue';
 import { isBoolean, isFunction, isUndefined } from 'lodash-es';
 import { request, Response } from './request';
 import { DataSourceStatus } from './interface';
-import { isPlainObject, parseSchema } from '../utils';
+import { parseSchema } from '../utils';
+import { isPlainObject } from '@knxcloud/lowcode-utils';
 
 const same = <T>(v: T) => v;
 const noop = () => void 0;

@@ -1,5 +1,5 @@
+import { isPlainObject } from '@knxcloud/lowcode-utils';
 import type { RequestOptions, ResponseType } from './interface';
-import { isPlainObject } from '../utils';
 
 function serializeParams(obj: Record<string, unknown>) {
   const result: string[] = [];

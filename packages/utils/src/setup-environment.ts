@@ -1,8 +1,11 @@
-import type { Project } from '@alilc/lowcode-shell';
-import { AssetType } from '@alilc/lowcode-types';
+import type { IPublicApiProject } from '@alilc/lowcode-types';
+import { AssetType } from '@alilc/lowcode-types/es/assets';
 import { assetItem } from './asset';
 
-export function setupHostEnvironment(project: Project, vueRuntimeUrl: string): void {
+export function setupHostEnvironment(
+  project: IPublicApiProject,
+  vueRuntimeUrl: string
+): void {
   project.onSimulatorHostReady((host) => {
     host.set('environment', [
       assetItem(

@@ -1,5 +1,8 @@
 import type { Component } from 'vue';
-import type { ComponentSchema, NpmInfo } from '@alilc/lowcode-types';
+import type {
+  IPublicTypeNpmInfo,
+  IPublicTypeComponentSchema,
+} from '@alilc/lowcode-types';
 import { defineComponent, h } from 'vue';
 import { isESModule, isFunction, isObject } from './check';
 
@@ -11,7 +14,7 @@ export function isVueComponent(val: unknown): val is Component {
   return false;
 }
 
-export function isComponentSchema(val: unknown): val is ComponentSchema {
+export function isComponentSchema(val: unknown): val is IPublicTypeComponentSchema {
   return isObject(val) && val.componentName === 'Component';
 }
 
@@ -64,7 +67,7 @@ export function getSubComponent(library: any, paths: string[]) {
 export function findComponent(
   libraryMap: Record<string, string>,
   componentName: string,
-  npm?: NpmInfo
+  npm?: IPublicTypeNpmInfo
 ) {
   if (!npm) {
     return accessLibrary(componentName);
@@ -83,15 +86,20 @@ export function findComponent(
 
 export function buildComponents(
   libraryMap: Record<string, string>,
-  componentsMap: Record<string, NpmInfo | Component | ComponentSchema>,
-  createComponent?: (schema: ComponentSchema) => Component | null
+  componentsMap: Record<
+    string,
+    IPublicTypeNpmInfo | Component | IPublicTypeComponentSchema
+  >,
+  createComponent?: (schema: IPublicTypeComponentSchema) => Component | null
 ) {
   const components: any = {};
   Object.keys(componentsMap).forEach((componentName) => {
     let component = componentsMap[componentName];
     if (isComponentSchema(component)) {
       if (createComponent) {
-        components[componentName] = createComponent(component as ComponentSchema);
+        components[componentName] = createComponent(
+          component as IPublicTypeComponentSchema
+        );
       }
     } else if (isVueComponent(component)) {
       components[componentName] = component;

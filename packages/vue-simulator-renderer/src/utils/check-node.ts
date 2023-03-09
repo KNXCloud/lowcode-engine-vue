@@ -1,4 +1,4 @@
-import { isObject } from './check';
+import { isObject } from '@knxcloud/lowcode-utils';
 
 export function isCommentNode(el: Element | Text | Comment | Node): el is Comment {
   return el.nodeType === 8;

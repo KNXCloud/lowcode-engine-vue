@@ -1,6 +1,5 @@
 import type { Component, ComponentPublicInstance, InjectionKey } from 'vue';
-import type { Node } from '@alilc/lowcode-designer';
-import type { NodeSchema } from '@alilc/lowcode-types';
+import type { IPublicTypeNodeSchema, IPublicModelNode } from '@alilc/lowcode-types';
 import { inject, getCurrentInstance } from 'vue';
 
 export type DesignMode = 'live' | 'design';
@@ -8,8 +7,8 @@ export type DesignMode = 'live' | 'design';
 export interface RendererContext {
   readonly components: Record<string, Component>;
   readonly designMode: DesignMode;
-  getNode(id: string): Node<NodeSchema> | null;
-  triggerCompGetCtx(schema: NodeSchema, val: ComponentPublicInstance): void;
+  getNode(id: string): IPublicModelNode | null;
+  triggerCompGetCtx(schema: IPublicTypeNodeSchema, val: ComponentPublicInstance): void;
 }
 
 export function getRendererContextKey(): InjectionKey<RendererContext> {
@@ -21,7 +20,7 @@ export function getRendererContextKey(): InjectionKey<RendererContext> {
   return key;
 }
 
-export function useRendererContext() {
+export function useRendererContext(): RendererContext {
   const key = getRendererContextKey();
   return inject(
     key,
