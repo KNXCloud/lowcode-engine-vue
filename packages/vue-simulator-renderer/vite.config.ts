@@ -11,7 +11,10 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)],
+      external: [
+        ...Object.keys(pkg.dependencies),
+        ...Object.keys(pkg.peerDependencies),
+      ].filter((item) => !item.includes('@alilc')),
       output: {
         assetFileNames({ name }) {
           return name === 'style.css' ? 'vue-simulator-renderer.css' : name!;

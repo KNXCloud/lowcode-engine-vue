@@ -48,9 +48,9 @@ module.exports = defineConfig({
     });
 
     config.resolve.alias.merge({
-      '@knxcloud/hooks': resolve('../hooks/src'),
-      '@knxcloud/utils': resolve('../utils/src'),
-      '@knxcloud/vue-renderer': resolve('../vue-renderer/src'),
+      '@knxcloud/lowcode-hooks': resolve('../hooks/src'),
+      '@knxcloud/lowcode-utils': resolve('../utils/src'),
+      '@knxcloud/lowcode-vue-renderer': resolve('../vue-renderer/src'),
     });
 
     config.devServer.allowedHosts.add('all');

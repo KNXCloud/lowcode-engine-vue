@@ -18,12 +18,12 @@ import {
   onUnmounted,
 } from 'vue';
 import { config } from '@knxcloud/lowcode-vue-renderer';
-import { IPublicEnumTransformStage as TransformStage } from '@alilc/lowcode-types/es/shell/enum';
 import {
   AssetLoader,
   buildUtils,
   buildComponents,
   getSubComponent,
+  exportSchema,
 } from '@knxcloud/lowcode-utils';
 import { Renderer, SimulatorRendererView } from './simulator-view';
 import { Slot, Leaf, Page } from './buildin-components';
@@ -68,9 +68,7 @@ function createDocumentInstance(
 
   const timestamp = ref(Date.now());
 
-  const schema = computed(
-    () => document.export(TransformStage.Render) as IPublicTypeRootSchema
-  );
+  const schema = computed(() => exportSchema<IPublicTypeRootSchema>(document));
 
   const checkInstanceMounted = (instance: ComponentInstance): boolean => {
     return instance.$.isMounted;
