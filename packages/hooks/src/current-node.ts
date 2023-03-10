@@ -1,17 +1,17 @@
-import type { IPublicModelNode } from '@alilc/lowcode-types';
+import type { Node } from '@alilc/lowcode-designer';
 import type { InjectionKey } from 'vue';
 import type { DesignMode } from './renderer-context';
 import { inject } from 'vue';
 
 export interface EnvNode {
   mode: DesignMode;
-  node: IPublicModelNode | null;
+  node: Node | null;
   isDesignerEnv: boolean;
 }
 
 export interface DesignerEnvNode extends EnvNode {
   mode: 'design';
-  node: IPublicModelNode;
+  node: Node;
   isDesignerEnv: true;
 }
 

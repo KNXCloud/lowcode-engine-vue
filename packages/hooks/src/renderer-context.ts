@@ -1,5 +1,6 @@
+import type { Node } from '@alilc/lowcode-designer';
+import type { IPublicTypeNodeSchema } from '@alilc/lowcode-types';
 import type { Component, ComponentPublicInstance, InjectionKey } from 'vue';
-import type { IPublicTypeNodeSchema, IPublicModelNode } from '@alilc/lowcode-types';
 import { inject, getCurrentInstance } from 'vue';
 
 export type DesignMode = 'live' | 'design';
@@ -7,7 +8,8 @@ export type DesignMode = 'live' | 'design';
 export interface RendererContext {
   readonly components: Record<string, Component>;
   readonly designMode: DesignMode;
-  getNode(id: string): IPublicModelNode | null;
+  getNode(id: string): Node | null;
+  rerender(): void;
   triggerCompGetCtx(schema: IPublicTypeNodeSchema, val: ComponentPublicInstance): void;
 }
 
@@ -27,6 +29,7 @@ export function useRendererContext(): RendererContext {
     () => {
       const props = getCurrentInstance()?.props ?? {};
       return {
+        rerender: () => void 0,
         components: getPropValue(props, 'components', {}),
         designMode: getPropValue<DesignMode>(props, 'designMode', 'live'),
         getNode: getPropValue(props, 'getNode', () => null),
