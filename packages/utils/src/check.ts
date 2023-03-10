@@ -16,12 +16,20 @@ export function isNil<T>(val: T | null | undefined): val is null | undefined {
   return val === null || val === undefined;
 }
 
+export function isUndefined(val: unknown): val is undefined {
+  return val === undefined;
+}
+
 export function isString(val: unknown): val is string {
   return typeof val === 'string';
 }
 
 export function isObject(val: unknown): val is Record<string, unknown> {
   return !isNil(val) && typeof val === 'object';
+}
+
+export function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
 }
 
 export function isFunction(val: unknown): val is (...args: any[]) => any {

@@ -12,7 +12,10 @@ export default defineConfig({
     },
     emptyOutDir: true,
     rollupOptions: {
-      external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)],
+      external: [
+        ...Object.keys(pkg.dependencies),
+        ...Object.keys(pkg.peerDependencies),
+      ].filter((item) => !item.includes('@alilc')),
     },
   },
 });

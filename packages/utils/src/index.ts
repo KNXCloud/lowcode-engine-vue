@@ -4,3 +4,5 @@ export * from './setup-environment';
 export * from './asset';
 export * from './check';
 export * from './create-defer';
+export * from './string';
+export * from './schema';
