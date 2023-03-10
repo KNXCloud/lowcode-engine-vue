@@ -5,12 +5,13 @@ import type {
 } from '@alilc/lowcode-types';
 import type { BlockScope, RuntimeScope } from './scope';
 import {
+  isFunction,
   isI18nData,
   isJSExpression,
   isJSFunction,
   isPlainObject,
+  isString,
 } from '@knxcloud/lowcode-utils';
-import { isFunction, isString } from 'lodash-es';
 import { ensureArray } from './array';
 
 export const EXPRESSION_TYPE = {

@@ -1,62 +1,29 @@
-import { defineComponent, Fragment, h } from 'vue';
-import { useLeaf } from './use';
+import { defineComponent, h, mergeProps } from 'vue';
+import { splitLeafProps } from './use';
 import { leafProps } from './base';
+import { useRendererContext } from '@knxcloud/lowcode-hooks';
 
 export const Live = defineComponent({
+  inheritAttrs: false,
   props: leafProps,
-  setup(props) {
-    const { buildSchema, buildProps, buildLoop, buildSlots, buildShow } = useLeaf(props);
+  setup: (props, { attrs, slots }) => {
+    const { triggerCompGetCtx } = useRendererContext();
 
-    const { show } = buildShow(props.__schema);
-    const { loop, loopArgs, buildLoopScope } = buildLoop(props.__schema);
-    const { props: compProps, slots: compSlots } = buildSchema();
-
-    return {
-      show,
-      loop,
-      loopArgs,
-      compProps,
-      compSlots,
-      buildSlots,
-      buildProps,
-      buildLoopScope,
+    return () => {
+      const { __comp: comp, __vnodeProps: vnodeProps, __schema: schema } = props;
+      const compProps = splitLeafProps(attrs)[1];
+      return comp
+        ? h(
+            comp,
+            mergeProps(compProps, vnodeProps, {
+              onVnodeMounted(vnode) {
+                const instance = vnode.component?.proxy;
+                instance && triggerCompGetCtx(schema, instance);
+              },
+            }),
+            slots
+          )
+        : null;
     };
-  },
-  render() {
-    const {
-      __comp: comp,
-      show,
-      loop,
-      compProps,
-      compSlots,
-      buildProps,
-      buildSlots,
-      buildLoopScope,
-    } = this;
-
-    console.log(comp);
-
-    if (!show) return null;
-    if (!comp) return h('div', 'component not found');
-    if (!loop) {
-      return h(comp, buildProps(compProps), buildSlots(compSlots));
-    }
-
-    if (!Array.isArray(loop)) {
-      console.warn('[vue-renderer]: loop must be array', loop);
-      return null;
-    }
-
-    return h(
-      Fragment,
-      loop.map((item, index, arr) => {
-        const blockScope = buildLoopScope(item, index, arr.length);
-        return h(
-          comp,
-          buildProps(compProps, blockScope),
-          buildSlots(compSlots, blockScope)
-        );
-      })
-    );
   },
 });

@@ -1,170 +1,145 @@
-import type { ComponentPublicInstance } from 'vue';
-import type { PropSchemaMap, SlotSchemaMap } from './use';
-import type { IPublicModelNode } from '@alilc/lowcode-types';
+import {
+  h,
+  shallowRef,
+  mergeProps,
+  type InjectionKey,
+  inject,
+  provide,
+  watch,
+} from 'vue';
 
-import { IPublicEnumTransformStage as TransformStage } from '@alilc/lowcode-types/es/shell/enum';
-import { isJSSlot, isNil } from '@knxcloud/lowcode-utils';
-import { useRendererContext } from '@knxcloud/lowcode-hooks';
-import { h, Fragment, reactive, onUnmounted, defineComponent } from 'vue';
+import { onUnmounted, defineComponent, nextTick } from 'vue';
 import { leafProps } from './base';
-import { ensureArray } from '../utils';
-import { useLeaf } from './use';
+import { buildSchema, splitLeafProps, useLeaf, type SlotSchemaMap } from './use';
+import { useRendererContext } from '@knxcloud/lowcode-hooks';
+import type { IPublicTypeNodeSchema } from '@alilc/lowcode-types';
+import { exportSchema } from '@knxcloud/lowcode-utils';
+
+const HOC_NODE_KEY: InjectionKey<{ rerenderSlots: () => void }> = Symbol('hocNode');
+const useHocNode = (rerenderSlots: () => void) => {
+  const parentNode = inject(HOC_NODE_KEY, null);
+
+  let shouldRerender = false;
+
+  const debouncedRerender = () => {
+    if (!shouldRerender) {
+      shouldRerender = true;
+      nextTick(() => {
+        rerenderSlots();
+        shouldRerender = false;
+      });
+    }
+  };
+
+  provide(HOC_NODE_KEY, {
+    rerenderSlots: debouncedRerender,
+  });
+
+  if (!parentNode) {
+    const { rerender } = useRendererContext();
+    return {
+      isRootNode: true,
+      rerender: debouncedRerender,
+      rerenderParent: rerender,
+    };
+  } else {
+    return {
+      isRootNode: false,
+      rerender: debouncedRerender,
+      rerenderParent: parentNode.rerenderSlots,
+    };
+  }
+};
 
 export const Hoc = defineComponent({
   name: 'Hoc',
+  inheritAttrs: false,
   props: leafProps,
-  setup(props) {
-    const { triggerCompGetCtx } = useRendererContext();
-    const { node, locked, buildSchema, buildProps, buildSlots, buildLoop, buildShow } =
-      useLeaf(props);
+  setup(props, { slots, attrs }) {
+    const showNode = shallowRef(true);
+    const nodeSchmea = shallowRef(props.__schema);
+    const slotSchema = shallowRef<SlotSchemaMap>();
+    const updateSchema = (newSchema: IPublicTypeNodeSchema) => {
+      nodeSchmea.value = newSchema;
+      slotSchema.value = buildSchema(newSchema, node).slots;
+    };
+    const { rerenderParent, rerender, isRootNode } = useHocNode(() => {
+      const newSchema = node ? exportSchema(node) : null;
+      newSchema && updateSchema(newSchema);
+    });
 
-    const { show, hidden, condition } = buildShow(props.__schema);
-    const { loop, updateLoop, updateLoopArg, buildLoopScope } = buildLoop(props.__schema);
+    const listenRecord: Record<string, () => void> = {};
+    onUnmounted(() =>
+      Object.keys(listenRecord).forEach((k) => {
+        listenRecord[k]();
+        delete listenRecord[k];
+      })
+    );
 
-    const compProps: PropSchemaMap = reactive({});
-    const compSlots: SlotSchemaMap = reactive({});
-    const result = buildSchema();
-    Object.assign(compProps, result.props);
-    Object.assign(compSlots, result.slots);
+    const { locked, node, buildSlots, getNode } = useLeaf(props, (schema, show) => {
+      const id = schema.id;
+      if (id) {
+        if (show && listenRecord[id]) {
+          listenRecord[id]();
+          delete listenRecord[id];
+        } else if (!show && !listenRecord[id]) {
+          const childNode = getNode(id);
+          if (childNode) {
+            listenRecord[id] = childNode.onVisibleChange(() => rerender());
+          }
+        }
+      }
+    });
 
-    // hoc
     if (node) {
-      const disposeFunctions: Array<CallableFunction | undefined> = [];
-      onUnmounted(() => disposeFunctions.forEach((dispose) => dispose?.()));
-      disposeFunctions.push(
-        node.onChildrenChange(() => {
-          const schema = node.export(TransformStage.Render);
-          compSlots.default = ensureArray(schema.children);
-        })
-      );
-      disposeFunctions.push(
+      onUnmounted(node.onChildrenChange(() => rerender()));
+      onUnmounted(
         node.onPropChange((info) => {
-          const { key, prop, newValue, oldValue } = info;
-
-          /**
-           * 是否为根属性的修改
-           *
-           * @remark
-           *
-           * 对于 props
-           *
-           * ```js
-           * {
-           *    color: 'red',
-           *    border: {
-           *      top: 12,
-           *      left: 20,
-           *    }
-           * }
-           * ```
-           *
-           * 则，对于属性 `color` 的修改为根属性的修改，而对于 `border.top` 的修改为非根属性的修改
-           */
+          const { key, prop, newValue } = info;
           const isRootProp = prop.path.length === 1;
-
-          /** 根属性的 key 值 */
-          const rootPropKey: string = prop.path[0];
-
-          if (isRootProp && key) {
-            if (key === '___isLocked___') {
-              // 设计器控制组件锁定
-              locked.value = newValue;
-            } else if (key === '___hidden___') {
-              // 设计器控制组件渲染
-              hidden(newValue);
-            } else if (key === '___condition___') {
-              // 条件渲染更新 v-if
-              condition(newValue);
-            } else if (key === '___loop___') {
-              // 循环数据更新 v-for
-              updateLoop(newValue);
-            } else if (key === '___loopArgs___') {
-              // 循环参数初始化 (item, index)
-              updateLoopArg(newValue);
-            } else if (key === 'children') {
-              // 默认插槽更新
-              if (isJSSlot(newValue)) {
-                const slotNode: IPublicModelNode = prop.slotNode;
-                const schema = slotNode.schema;
-                compSlots.default = schema;
-              } else if (!isNil(newValue)) {
-                compSlots.default = ensureArray(newValue);
-              } else {
-                delete compSlots.default;
-              }
-            } else if (isJSSlot(newValue)) {
-              // 具名插槽更新
-              const slotNode: IPublicModelNode = prop.slotNode;
-              const schema = slotNode.schema;
-              compSlots[key] = schema;
-            } else if (isNil(newValue) && isJSSlot(oldValue)) {
-              // 具名插槽移除
-              delete compSlots[key];
-            } else {
-              // 普通根属性更新
-              compProps[key] = newValue;
-            }
-          } else if (rootPropKey === '___loopArgs___') {
-            // 循环参数更新 (item, index)
-            updateLoopArg(newValue, key);
-          } else if (rootPropKey) {
-            // 普通非根属性更新
-            compProps[rootPropKey] = node.getPropValue(rootPropKey);
+          if (isRootProp && key === '___isLocked___') {
+            locked.value = newValue;
+          } else {
+            // 当前节点组件参数发生改变，通知父级组件重新渲染子组件
+            rerenderParent();
           }
         })
       );
+      onUnmounted(
+        node.onVisibleChange((visible) => {
+          isRootNode
+            ? // 当前节点为根节点（Page），直接隐藏
+              (showNode.value = visible)
+            : // 当前节点显示隐藏发生改变，通知父级组件重新渲染子组件
+              rerenderParent();
+        })
+      );
     }
 
-    const getRef = (inst: ComponentPublicInstance) => {
-      triggerCompGetCtx(props.__schema, inst);
-    };
-
-    return {
-      show,
-      loop,
-      compSlots,
-      compProps,
-      getRef,
-      buildSlots,
-      buildProps,
-      buildLoopScope,
-    };
-  },
-  render() {
-    const {
-      __comp: comp,
-      show,
-      loop,
-      compProps,
-      compSlots,
-      getRef,
-      buildSlots,
-      buildProps,
-      buildLoopScope,
-    } = this;
-
-    if (!show) return null;
-    if (!comp) return h('div', 'component not found');
-
-    if (!loop) {
-      const props = buildProps(compProps, null, { ref: getRef });
-      const slots = buildSlots(compSlots);
-      return h(comp, props, slots);
-    }
-
-    if (!Array.isArray(loop)) {
-      console.warn('[vue-renderer]: loop must be array', loop);
-      return null;
-    }
-
-    return h(
-      Fragment,
-      loop.map((item, index, arr) => {
-        const blockScope = buildLoopScope(item, index, arr.length);
-        const props = buildProps(compProps, blockScope, { ref: getRef });
-        const slots = buildSlots(compSlots, blockScope);
-        return h(comp, props, slots);
-      })
+    watch(
+      () => props.__schema,
+      (newSchema) => updateSchema(newSchema)
     );
+
+    const { triggerCompGetCtx } = useRendererContext();
+
+    return () => {
+      const { __comp: comp, __vnodeProps: vnodeProps } = props;
+      const compProps = splitLeafProps(attrs)[1];
+      if (isRootNode && !showNode.value) return null;
+
+      return comp
+        ? h(
+            comp,
+            mergeProps(compProps, vnodeProps, {
+              onVnodeMounted(vnode) {
+                const instance = vnode.component?.proxy;
+                instance && triggerCompGetCtx(nodeSchmea.value, instance);
+              },
+            }),
+            slotSchema.value ? buildSlots(slotSchema.value) : slots
+          )
+        : h('div', 'component not found');
+    };
   },
 });

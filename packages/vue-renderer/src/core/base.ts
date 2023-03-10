@@ -75,6 +75,10 @@ export const leafProps = {
     type: Object as PropType<NodeSchema>,
     default: () => ({}),
   },
+  __vnodeProps: {
+    type: Object as PropType<Record<string, unknown>>,
+    default: () => ({}),
+  },
 } as const;
 
 export interface LeafProps {
@@ -83,7 +87,7 @@ export interface LeafProps {
   __schema: NodeSchema;
 }
 
-export const leafPropKeys = Object.keys(rendererProps) as (keyof LeafProps)[];
+export const leafPropKeys = Object.keys(leafProps) as (keyof LeafProps)[];
 
 export type LeafComponent = {
   new (...args: any[]): {

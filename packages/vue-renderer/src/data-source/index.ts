@@ -5,11 +5,15 @@ import type {
 import type { RequestParams } from './interface';
 import type { RuntimeScope } from '../utils';
 import { computed, reactive, ref, shallowRef } from 'vue';
-import { isBoolean, isFunction, isUndefined } from 'lodash-es';
 import { request, Response } from './request';
 import { DataSourceStatus } from './interface';
 import { parseSchema } from '../utils';
-import { isPlainObject } from '@knxcloud/lowcode-utils';
+import {
+  isPlainObject,
+  isUndefined,
+  isBoolean,
+  isFunction,
+} from '@knxcloud/lowcode-utils';
 
 const same = <T>(v: T) => v;
 const noop = () => void 0;

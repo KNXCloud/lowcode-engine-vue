@@ -3,7 +3,7 @@
   "main": "./dist/vue-renderer.js",
   "module": "./dist/vue-renderer.mjs",
   "typings": "./dist/vue-renderer.d.ts",
-  "version": "1.6.0-beta.0",
+  "version": "1.6.0-beta.1",
   "keywords": [
     "vue",
     "lowcode",
@@ -23,12 +23,10 @@
     "@alilc/lowcode-types": "^1.1.2",
     "@knxcloud/lowcode-hooks": "workspace:*",
     "@knxcloud/lowcode-utils": "workspace:*",
-    "intl-messageformat": "^10.3.1",
-    "lodash-es": "^4.17.21"
+    "intl-messageformat": "^10.3.1"
   },
   "devDependencies": {
     "@alilc/lowcode-designer": "^1.1.2",
-    "@types/lodash-es": "^4.17.6",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vitejs/plugin-vue-jsx": "^3.0.0",
     "deepmerge": "^4.3.0",

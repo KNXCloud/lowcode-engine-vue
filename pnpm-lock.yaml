@@ -75,15 +75,15 @@ importers:
     specifiers:
       '@alilc/lowcode-designer': ^1.1.2
       '@alilc/lowcode-types': ^1.1.2
-      vite: ^4.1.1
+      vite: ^4.1.4
       vite-plugin-lib-types: ^0.1.0
       vue: ^3.2.47
     dependencies:
       '@alilc/lowcode-designer': 1.1.2
       '@alilc/lowcode-types': 1.1.2
     devDependencies:
-      vite: 4.1.1
-      vite-plugin-lib-types: 0.1.0_vite@4.1.1+vue@3.2.47
+      vite: 4.1.4
+      vite-plugin-lib-types: 0.1.0_vite@4.1.4+vue@3.2.47
       vue: 3.2.47
 
   packages/vue-renderer:
@@ -92,12 +92,10 @@ importers:
       '@alilc/lowcode-types': ^1.1.2
       '@knxcloud/lowcode-hooks': workspace:*
       '@knxcloud/lowcode-utils': workspace:*
-      '@types/lodash-es': ^4.17.6
       '@vitejs/plugin-vue': ^4.0.0
       '@vitejs/plugin-vue-jsx': ^3.0.0
       deepmerge: ^4.3.0
       intl-messageformat: ^10.3.1
-      lodash-es: ^4.17.21
       vite: ^4.1.4
       vite-plugin-lib-types: ^0.1.0
       vue: ^3.2.47
@@ -106,10 +104,8 @@ importers:
       '@knxcloud/lowcode-hooks': link:../hooks
       '@knxcloud/lowcode-utils': link:../utils
       intl-messageformat: 10.3.1
-      lodash-es: 4.17.21
     devDependencies:
       '@alilc/lowcode-designer': 1.1.2
-      '@types/lodash-es': 4.17.6
       '@vitejs/plugin-vue': 4.0.0_vite@4.1.4+vue@3.2.47
       '@vitejs/plugin-vue-jsx': 3.0.0_vite@4.1.4+vue@3.2.47
       deepmerge: 4.3.0
@@ -2162,16 +2158,6 @@ packages:
 
   /@types/json-schema/7.0.11:
     resolution: {integrity: sha512-wOuvG1SN4Us4rez+tylwwwCV1psiNVOkJeM3AUWUNWg/jDQY2+HE/444y5gc+jBmRqASOm2Oeh5c1axHobwRKQ==}
-    dev: true
-
-  /@types/lodash-es/4.17.6:
-    resolution: {integrity: sha512-R+zTeVUKDdfoRxpAryaQNRKk3105Rrgx2CFRClIgRGaqDTdjsm8h6IYA8ir584W3ePzkZfst5xIgDwYrlh9HLg==}
-    dependencies:
-      '@types/lodash': 4.14.191
-    dev: true
-
-  /@types/lodash/4.14.191:
-    resolution: {integrity: sha512-BdZ5BCCvho3EIXw6wUCXHe7rS53AIDPLE+JzwgT+OsJk53oBfbSmZZ7CX4VaRoN78N+TJpFi9QPlfIVNmJYWxQ==}
     dev: true
 
   /@types/mime/3.0.1:
@@ -6784,10 +6770,6 @@ packages:
       p-locate: 5.0.0
     dev: true
 
-  /lodash-es/4.17.21:
-    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
-    dev: false
-
   /lodash.clonedeep/4.5.0:
     resolution: {integrity: sha512-H5ZhCF25riFd9uB5UCkVKo61m3S/xZk1x4wA6yp/L3RFP6Z/eHH1ymQcGLo7J3GMPfm0V/7m1tryHuGVxpqEBQ==}
 
@@ -10295,31 +10277,6 @@ packages:
       vfile-message: 1.1.1
     dev: true
 
-  /vite-plugin-lib-types/0.1.0_vite@4.1.1+vue@3.2.47:
-    resolution: {integrity: sha512-hbEBMzWU8YyhLQYK17ifflZkIn6Dz0+NJ4D2nQra50EBFHdl1DSlsGS6wdPqecA9RzsXO72GU39+Ygtc1bhW/w==}
-    hasBin: true
-    peerDependencies:
-      vite: ^2.0.0 || ^3.0.0
-      vue: ^3.2.0
-    peerDependenciesMeta:
-      vite:
-        optional: true
-      vue:
-        optional: true
-    dependencies:
-      '@microsoft/api-extractor': 7.34.4
-      fast-glob: 3.2.12
-      fs-extra: 10.1.0
-      mri: 1.2.0
-      pathe: 1.1.0
-      ts-morph: 17.0.1
-      tsconfig: 7.0.0
-      vite: 4.1.1
-      vue: 3.2.47
-    transitivePeerDependencies:
-      - '@types/node'
-    dev: true
-
   /vite-plugin-lib-types/0.1.0_vite@4.1.4+vue@3.2.47:
     resolution: {integrity: sha512-hbEBMzWU8YyhLQYK17ifflZkIn6Dz0+NJ4D2nQra50EBFHdl1DSlsGS6wdPqecA9RzsXO72GU39+Ygtc1bhW/w==}
     hasBin: true
@@ -10343,39 +10300,6 @@ packages:
       vue: 3.2.47
     transitivePeerDependencies:
       - '@types/node'
-    dev: true
-
-  /vite/4.1.1:
-    resolution: {integrity: sha512-LM9WWea8vsxhr782r9ntg+bhSFS06FJgCvvB0+8hf8UWtvaiDagKYWXndjfX6kGl74keHJUcpzrQliDXZlF5yg==}
-    engines: {node: ^14.18.0 || >=16.0.0}
-    hasBin: true
-    peerDependencies:
-      '@types/node': '>= 14'
-      less: '*'
-      sass: '*'
-      stylus: '*'
-      sugarss: '*'
-      terser: ^5.4.0
-    peerDependenciesMeta:
-      '@types/node':
-        optional: true
-      less:
-        optional: true
-      sass:
-        optional: true
-      stylus:
-        optional: true
-      sugarss:
-        optional: true
-      terser:
-        optional: true
-    dependencies:
-      esbuild: 0.16.17
-      postcss: 8.4.21
-      resolve: 1.22.1
-      rollup: 3.15.0
-    optionalDependencies:
-      fsevents: 2.3.2
     dev: true
 
   /vite/4.1.4:
