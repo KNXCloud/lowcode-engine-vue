@@ -68,7 +68,10 @@ function createDocumentInstance(
 
   const timestamp = ref(Date.now());
 
-  const schema = computed(() => exportSchema<IPublicTypeRootSchema>(document));
+  const schema = computed(() => {
+    void timestamp.value;
+    return exportSchema<IPublicTypeRootSchema>(document);
+  });
 
   const checkInstanceMounted = (instance: ComponentInstance): boolean => {
     return instance.$.isMounted;
@@ -364,6 +367,17 @@ function createSimulatorRenderer() {
           // @ts-ignore ts check IDocumentModel to DocumentModel
           documentInstance = createDocumentInstance(doc, context);
           documentInstanceMap.set(doc.id, documentInstance);
+        } else {
+          const route = router.resolve({ name: documentInstance.id });
+          if (route) {
+            if (route.path === documentInstance.path) {
+              documentInstance.rerender();
+              return documentInstance;
+            } else {
+              router.removeRoute(documentInstance.id);
+            }
+          }
+        }
           router.addRoute({
             name: documentInstance.id,
             path: documentInstance.path,
@@ -374,7 +388,6 @@ function createSimulatorRenderer() {
               simulator,
             }),
           });
-        }
         return documentInstance;
       });
       router.getRoutes().forEach((route) => {
