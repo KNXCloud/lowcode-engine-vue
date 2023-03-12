@@ -153,7 +153,8 @@ export function useLeaf(
   leafProps: LeafProps,
   onChildShowChange: (schema: NodeSchema, show: boolean) => void = () => void 0
 ) {
-  const { components, getNode, designMode } = useRendererContext();
+  const renderContext = useRendererContext();
+  const { getNode, designMode } = renderContext;
 
   const node = leafProps.__schema.id ? getNode(leafProps.__schema.id) : null;
   // 仅在设计模式下生效
@@ -193,7 +194,7 @@ export function useLeaf(
     // 若不传入 comp，则根据节点的 componentName 推断
     if (!comp) {
       const { componentName } = schema;
-      comp = components[componentName];
+      comp = renderContext.components[componentName];
 
       if (!comp && componentName !== 'Slot') {
         return h('div', 'component not found');

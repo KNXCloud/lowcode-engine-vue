@@ -2,10 +2,11 @@ import type { Router } from 'vue-router';
 import type { Config, I18nMessages } from '@knxcloud/lowcode-vue-renderer';
 import type { Component, ComponentPublicInstance, App } from 'vue';
 import type {
+  AssetList,
   IPublicTypeNpmInfo as NpmInfo,
   IPublicTypeRootSchema as RootSchema,
+  IPublicTypeContainerSchema as ContainerSchema,
   IPublicTypeComponentSchema as ComponentSchema,
-  IPublicTypeNodeSchema as NodeSchema,
   IPublicTypeNodeInstance,
 } from '@alilc/lowcode-types';
 import type {
@@ -61,11 +62,12 @@ export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
   componentsMap: Record<string, MinxedComponent>;
   documentInstances: DocumentInstance[];
   requestHandlersMap: Record<string, CallableFunction>;
+  load(assets: AssetList): Promise<void>;
   dispose(): void;
   rerender(): void;
   getCurrentDocument(): DocumentInstance | null;
   rerender: () => void;
-  createComponent(schema: NodeSchema): Component | null;
+  createComponent(schema: ContainerSchema): Component | null;
   getComponent(componentName: string): Component;
   getClosestNodeInstance(
     from: ComponentRecord | Element,

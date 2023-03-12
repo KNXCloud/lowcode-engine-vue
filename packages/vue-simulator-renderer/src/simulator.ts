@@ -304,6 +304,11 @@ function createSimulatorRenderer() {
     const docs = documentInstances.value;
     return crr ? docs.find((doc) => doc.id === crr.id) ?? null : null;
   };
+  simulator.load = (assets) => loader.load(assets);
+  simulator.loadAsyncLibrary = async (asyncLibraryMap) => {
+    await loader.loadAsyncLibrary(asyncLibraryMap);
+    _buildComponents();
+  };
 
   let running = false;
   simulator.run = () => {
