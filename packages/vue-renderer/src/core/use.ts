@@ -5,33 +5,16 @@ import {
   type Slot,
   type Slots,
   type InjectionKey,
+  type ComponentPublicInstance,
+  type VNodeChild,
   Comment,
   Fragment,
   createCommentVNode,
-  shallowRef,
-  watch,
-  triggerRef,
-} from 'vue';
-import type { Node, Prop } from '@alilc/lowcode-designer';
-import type {
-  IPublicTypeNodeData as NodeData,
-  IPublicTypeSlotSchema as SlotSchema,
-  IPublicTypeNodeSchema as NodeSchema,
-  IPublicTypeJSFunction as JSFunction,
-  IPublicTypeCompositeValue as CompositeValue,
-  IPublicTypeRootSchema,
-} from '@alilc/lowcode-types';
-import { leafPropKeys, type LeafProps, type RendererProps } from './base';
-import type { MaybeArray, BlockScope, RuntimeScope } from '../utils';
-
-import {
   h,
   createTextVNode,
   computed,
   ref,
-  reactive,
   getCurrentInstance,
-  isRef,
   onBeforeMount,
   onBeforeUnmount,
   onBeforeUpdate,
@@ -44,22 +27,22 @@ import {
   toDisplayString,
   inject,
 } from 'vue';
+import type { Node, Prop } from '@alilc/lowcode-designer';
+import type {
+  IPublicTypeNodeData as NodeData,
+  IPublicTypeSlotSchema as SlotSchema,
+  IPublicTypeNodeSchema as NodeSchema,
+  IPublicTypeJSFunction as JSFunction,
+  IPublicTypeCompositeValue as CompositeValue,
+} from '@alilc/lowcode-types';
+import { leafPropKeys, type LeafProps, type RendererProps } from './base';
 import {
-  getCurrentNodeKey,
-  getRendererContextKey,
-  useRendererContext,
-} from '@knxcloud/lowcode-hooks';
-import { Hoc } from './hoc';
-import { Live } from './live';
-import {
-  ensureArray,
-  getI18n,
-  mergeScope,
-  parseSchema,
-  parseSlotScope,
-  parseExpression,
+  type MaybeArray,
+  type BlockScope,
+  type RuntimeScope,
+  SchemaParser,
 } from '../utils';
-import { createDataSourceManager } from '../data-source';
+import { getCurrentNodeKey, useRendererContext } from '@knxcloud/lowcode-hooks';
 import {
   camelCase,
   isNil,
@@ -72,8 +55,15 @@ import {
   isJSSlot,
   isJSFunction,
   isSlotSchema,
-  exportSchema,
+  isBoolean,
+  isUndefined,
+  fromPairs,
 } from '@knxcloud/lowcode-utils';
+import { Hoc } from './hoc';
+import { Live } from './live';
+import { ensureArray, getI18n, mergeScope } from '../utils';
+import { createDataSourceManager } from '../data-source';
+import { AccessTypes, getAccessTarget } from '../utils/scope';
 
 const currentNodeKey = getCurrentNodeKey();
 
@@ -89,25 +79,39 @@ const VUE_LIFTCYCLES_MAP = {
 
 // 适配 react lifecycle
 const REACT_ADATPOR_LIFTCYCLES_MAP = {
-  componentDidMount: onMounted,
-  componentDidCatch: onErrorCaptured,
-  shouldComponentUpdate: onBeforeUpdate,
-  componentWillUnmount: onBeforeUnmount,
-};
+  componentDidMount: 'mounted',
+  componentDidCatch: 'errorCaptured',
+  shouldComponentUpdate: 'beforeUpdate',
+  componentWillUnmount: 'updated',
+} as const;
 
 const LIFTCYCLES_MAP = {
   ...VUE_LIFTCYCLES_MAP,
   ...REACT_ADATPOR_LIFTCYCLES_MAP,
 };
 
+export function isFragment(val: unknown): val is typeof Fragment {
+  return val === Fragment;
+}
+
 export function isLifecycleKey(key: string): key is keyof typeof LIFTCYCLES_MAP {
   return key in LIFTCYCLES_MAP;
+}
+
+export function isVueLifecycleKey(key: string): key is keyof typeof VUE_LIFTCYCLES_MAP {
+  return key in VUE_LIFTCYCLES_MAP;
+}
+
+export function isReactLifecycleKey(
+  key: string
+): key is keyof typeof REACT_ADATPOR_LIFTCYCLES_MAP {
+  return key in REACT_ADATPOR_LIFTCYCLES_MAP;
 }
 
 export type RenderComponent = (
   nodeSchema: NodeData,
   blockScope?: MaybeArray<BlockScope | undefined | null>,
-  comp?: Component
+  comp?: Component | typeof Fragment
 ) => VNode | null;
 
 export type SlotSchemaMap = {
@@ -134,6 +138,7 @@ export function isVueComponent(val: unknown): val is Component {
 }
 
 const IS_LOCKED: InjectionKey<Ref<boolean>> = Symbol('IS_LOCKED');
+const IS_ROOT_NODE: InjectionKey<boolean> = Symbol('IS_ROOT_NODE');
 
 export function useLocked(defaultValue: boolean) {
   const selfLocked = ref(defaultValue);
@@ -149,12 +154,30 @@ export function useLocked(defaultValue: boolean) {
   return locked;
 }
 
+export function useIsRootNode(isRootNode: boolean | null) {
+  if (isRootNode) {
+    provide(IS_ROOT_NODE, true);
+  } else {
+    isRootNode = inject(IS_ROOT_NODE, null);
+    if (isRootNode == null) {
+      provide(IS_ROOT_NODE, (isRootNode = true));
+    } else if (isRootNode) {
+      provide(IS_ROOT_NODE, false);
+    }
+  }
+
+  return isRootNode;
+}
+
 export function useLeaf(
   leafProps: LeafProps,
   onChildShowChange: (schema: NodeSchema, show: boolean) => void = () => void 0
 ) {
   const renderContext = useRendererContext();
-  const { getNode, designMode } = renderContext;
+  const { getNode, designMode, thisRequiredInJSE } = renderContext;
+  const parser = new SchemaParser({
+    thisRequired: thisRequiredInJSE,
+  });
 
   const node = leafProps.__schema.id ? getNode(leafProps.__schema.id) : null;
   // 仅在设计模式下生效
@@ -179,7 +202,7 @@ export function useLeaf(
     schema: NodeData,
     base: Component,
     blockScope?: MaybeArray<BlockScope | undefined | null>,
-    comp?: Component
+    comp?: Component | typeof Fragment
   ) => {
     const scope = mergeScope(leafProps.__scope, blockScope);
 
@@ -187,7 +210,7 @@ export function useLeaf(
     if (isString(schema)) {
       return createTextVNode(schema);
     } else if (isJSExpression(schema)) {
-      const result = parseExpression(schema, scope);
+      const result = parser.parseExpression(schema, scope);
       return createTextVNode(toDisplayString(result));
     }
 
@@ -201,6 +224,8 @@ export function useLeaf(
       }
     }
 
+    const node = schema.id ? getNode(schema.id) : null;
+
     // 应用节点组件的私有属性，适配 naive-ui 的 grid,popover 等组件
     const [privateOptions, _, privateOptionsCount] = splitOptions(comp);
     if (privateOptionsCount) {
@@ -212,10 +237,14 @@ export function useLeaf(
       return createCommentVNode(`${scence} ${show}`);
     }
 
+    const ref = (inst: ComponentPublicInstance) => {
+      renderContext.triggerCompGetCtx(schema, inst);
+    };
+
     const { props: rawProps, slots: rawSlots } = buildSchema(schema);
     const { loop, buildLoopScope } = buildLoop(schema, scope);
     if (!loop) {
-      const props = buildProps(rawProps, scope, null);
+      const props = buildProps(rawProps, scope, node, null, { ref });
       const [vnodeProps, compProps] = splitProps(props);
       return h(
         base,
@@ -227,7 +256,7 @@ export function useLeaf(
           __vnodeProps: vnodeProps,
           ...compProps,
         },
-        buildSlots(rawSlots)
+        buildSlots(rawSlots, node)
       );
     }
 
@@ -240,7 +269,7 @@ export function useLeaf(
       Fragment,
       loop.map((item, index, arr) => {
         const blockScope = buildLoopScope(item, index, arr.length);
-        const props = buildProps(rawProps, scope, blockScope);
+        const props = buildProps(rawProps, scope, node, blockScope, { ref });
         const [vnodeProps, compProps] = splitProps(props);
         return h(
           base,
@@ -252,7 +281,7 @@ export function useLeaf(
             __vnodeProps: vnodeProps,
             ...compProps,
           },
-          buildSlots(rawSlots)
+          buildSlots(rawSlots, node)
         );
       })
     );
@@ -264,11 +293,7 @@ export function useLeaf(
    * @param blockScope - 节点块级作用域
    * @param comp - 节点渲染的组件，若不传入，则根据节点的 componentName 推断
    */
-  const renderHoc = (
-    nodeSchema: NodeData,
-    blockScope?: MaybeArray<BlockScope | undefined | null>,
-    comp?: Component
-  ): VNode | null => {
+  const renderHoc: RenderComponent = (nodeSchema, blockScope, comp): VNode | null => {
     const vnode = render(nodeSchema, Hoc, blockScope, comp);
 
     if (isNodeSchema(nodeSchema)) {
@@ -288,25 +313,25 @@ export function useLeaf(
    * @param blockScope - 节点块级作用域
    * @param comp - 节点渲染的组件，若不传入，则根据节点的 componentName 推断
    */
-  const renderLive = (
-    nodeSchema: NodeData,
-    blockScope?: MaybeArray<BlockScope | undefined | null>,
-    comp?: Component
-  ): VNode | null => {
+  const renderLive: RenderComponent = (nodeSchema, blockScope, comp): VNode | null => {
     return render(nodeSchema, Live, blockScope, comp);
   };
 
   /**
    * 渲染组件
    */
-  const renderComp = isDesignMode ? renderHoc : renderLive;
+  const renderComp: RenderComponent = isDesignMode ? renderHoc : renderLive;
 
   /**
    * 构建所有插槽 schema，将 schema 构建成 slot 函数
    * @param slots - 插槽 schema
    * @param blockScope - 插槽块级作用域
    */
-  const buildSlots = (slots: SlotSchemaMap, blockScope?: BlockScope | null): Slots => {
+  const buildSlots = (
+    slots: SlotSchemaMap,
+    node?: Node | null,
+    blockScope?: BlockScope | null
+  ): Slots => {
     return Object.keys(slots).reduce((prev, next) => {
       const slotSchema = slots[next];
       const isDefaultSlot = next === 'default';
@@ -338,14 +363,14 @@ export function useLeaf(
           renderSlot = (...args: unknown[]) => {
             const vnode = renderComp(slotSchema, [
               blockScope,
-              parseSlotScope(args, slotSchema.params ?? []),
+              parser.parseSlotScope(args, slotSchema.params ?? []),
             ]);
             return isNil(vnode) ? [] : [vnode];
           };
         } else {
           // 不存在 slot id，插槽不可拖拽编辑，直接渲染插槽内容
           renderSlot = (...args: unknown[]) => {
-            const slotScope = parseSlotScope(args, slotSchema.params ?? []);
+            const slotScope = parser.parseSlotScope(args, slotSchema.params ?? []);
             return ensureArray(slotSchema.children)
               .map((item) => renderComp(item, [blockScope, slotScope]))
               .filter((vnode): vnode is VNode => !isNil(vnode));
@@ -383,7 +408,7 @@ export function useLeaf(
   ): any => {
     if (isJSExpression(schema) || isJSFunction(schema)) {
       // 处理表达式和函数
-      return parseExpression(schema, scope);
+      return parser.parseExpression(schema, scope);
     } else if (isJSSlot(schema)) {
       // 处理属性插槽
       let slotParams: string[];
@@ -400,7 +425,7 @@ export function useLeaf(
 
       // 返回 slot 函数
       return (...args: unknown[]) => {
-        const slotScope = parseSlotScope(args, slotParams);
+        const slotScope = parser.parseSlotScope(args, slotParams);
         const vnodes: VNode[] = [];
         ensureArray(slotSchema).forEach((item) => {
           const vnode = renderComp(item, [blockScope, slotScope]);
@@ -495,6 +520,7 @@ export function useLeaf(
   const buildProps = (
     propsSchema: Record<string, unknown>,
     scope: RuntimeScope,
+    node?: Node | null,
     blockScope?: BlockScope | null,
     extraProps?: Record<string, unknown>
   ): any => {
@@ -530,9 +556,56 @@ export function useLeaf(
     return parsedProps;
   };
 
+  const buildLoop = (schema: NodeSchema, scope: RuntimeScope) => {
+    let loop: CompositeValue | null = null;
+    const loopArgs = ['item', 'index'];
+
+    if (schema.loop) loop = schema.loop;
+    if (schema.loopArgs) {
+      schema.loopArgs.forEach((v, i) => {
+        loopArgs[i] = v;
+      });
+    }
+
+    return {
+      loop: loop ? parser.parseSchema(loop, scope) : null,
+      loopArgs,
+      buildLoopScope(item, index, len): BlockScope {
+        const offset = scope.__loopRefOffset ?? 0;
+        const [itemKey, indexKey] = loopArgs;
+        return {
+          [itemKey]: item,
+          [indexKey]: index,
+          __loopScope: true,
+          __loopRefIndex: offset + index,
+          __loopRefOffset: len * index,
+        };
+      },
+    } as {
+      loop: unknown;
+      loopArgs: [string, string];
+      buildLoopScope(item: unknown, index: number, len: number): BlockScope;
+    };
+  };
+
+  const buildShow = (schema: NodeSchema, scope: RuntimeScope, isDesignMode: boolean) => {
+    const hidden = isDesignMode ? schema.hidden ?? false : false;
+    const condition = schema.condition ?? true;
+
+    if (hidden) return { scence: 'hidden', show: false };
+    return {
+      scence: 'condition',
+      show:
+        typeof condition === 'boolean'
+          ? condition
+          : !!parser.parseSchema(condition, scope),
+    };
+  };
+
   return {
     node,
     locked,
+    isRootNode: useIsRootNode(leafProps.__isRootNode),
     getNode,
     renderComp,
     buildProps,
@@ -540,50 +613,25 @@ export function useLeaf(
   };
 }
 
-export function useRenderer(props: RendererProps) {
-  const { scope } = useRootScope(props);
-  const schema = shallowRef<IPublicTypeRootSchema>(props.__schema);
+export function useRenderer(rendererProps: RendererProps, scope: RuntimeScope) {
+  const schemaRef = computed(() => rendererProps.__schema);
 
-  watch(
-    () => props.__schema,
-    (newVal) => (schema.value = newVal)
-  );
-
-  const leafProps: LeafProps = reactive({
+  const leafProps: LeafProps = {
     __comp: null,
     __scope: scope,
+    __isRootNode: true,
     __vnodeProps: {},
-    __schema: computed(() => props.__schema),
-  });
+    __schema: rendererProps.__schema,
+  };
 
-  const contextKey = getRendererContextKey();
+  const designModeRef = computed(() => rendererProps.__designMode ?? 'live');
+  const componentsRef = computed(() => rendererProps.__components);
 
-  const designModeRef = computed(() => props.__designMode ?? 'live');
-  const componentsRef = computed(() => props.__components);
-
-  provide(
-    contextKey,
-    reactive({
-      designMode: designModeRef,
-      components: componentsRef,
-      getNode: (id: string) => (props.__getNode?.(id) as any) ?? null,
-      triggerCompGetCtx: computed(() => props.__triggerCompGetCtx),
-      rerender: () => {
-        const id = schema.value.id;
-        if (id && props.__getNode) {
-          const node = props.__getNode(id) as unknown as Node;
-          schema.value = exportSchema<IPublicTypeRootSchema>(node);
-          triggerRef(schema);
-        }
-      },
-    })
-  );
-
-  return { scope, schema, designModeRef, componentsRef, ...useLeaf(leafProps) };
+  return { scope, schemaRef, designModeRef, componentsRef, ...useLeaf(leafProps) };
 }
 
 export function useRootScope(rendererProps: RendererProps) {
-  const { __schema: schema, __scope: extraScope } = rendererProps;
+  const { __schema: schema, __scope: extraScope, __parser: parser } = rendererProps;
 
   const {
     props: propsSchema,
@@ -595,68 +643,44 @@ export function useRootScope(rendererProps: RendererProps) {
   // 将全局属性配置应用到 scope 中
   const instance = getCurrentInstance()!;
   const scope = instance.proxy! as RuntimeScope;
-  const data = (instance.data = reactive({} as Record<string, unknown>));
 
   // 处理 props
-  const props = parseSchema(propsSchema) ?? {};
-  Object.assign(instance.props, props);
+  if (propsSchema) {
+    const props = parser.parseOnlyJsValue<object>(propsSchema);
+    addToScope(scope, AccessTypes.PROPS, props);
+  }
 
   // 处理 state
-  const states = parseSchema(stateSchema) ?? {};
-  Object.assign(data, states);
+  if (stateSchema) {
+    const states = parser.parseSchema<object>(stateSchema);
+    addToScope(scope, AccessTypes.DATA, states);
+  }
 
   // 处理 methods
-  const methods = parseSchema(methodsSchema, scope) ?? {};
-  Object.assign(scope, methods);
+  if (methodsSchema) {
+    const methods = parser.parseSchema(methodsSchema, scope);
+    addToScope(scope, AccessTypes.CONTEXT, methods);
+  }
 
   // 处理 lifecycle
-  const lifeCycles = parseSchema(lifeCyclesSchema, scope);
+  const lifeCycles = parser.parseSchema(lifeCyclesSchema, scope);
   if (isObject(lifeCycles)) {
     Object.keys(lifeCycles).forEach((lifeCycle) => {
       if (isLifecycleKey(lifeCycle)) {
         const callback = lifeCycles[lifeCycle];
-        const hook = LIFTCYCLES_MAP[lifeCycle];
-        isFunction(callback) && hook(callback, instance);
+        if (isFunction(callback)) {
+          let hook = LIFTCYCLES_MAP[lifeCycle];
+          if (isString(hook)) {
+            hook = VUE_LIFTCYCLES_MAP[hook];
+          }
+          hook(callback, instance);
+        }
       }
     });
   }
 
   // 处理 css
-  let style: HTMLStyleElement | null = null;
-  if (schema.id) {
-    style = document.querySelector(`style[data-id="${schema.id}"]`);
-  }
-  if (schema.css) {
-    if (!style) {
-      style = document.createElement('style');
-      if (schema.id) {
-        style.setAttribute('data-id', schema.id);
-      }
-      const head = document.head || document.getElementsByTagName('head')[0];
-      head.appendChild(style);
-    }
-    if (style.innerHTML !== schema.css) {
-      style.innerHTML = schema.css;
-    }
-  } else if (style) {
-    style.parentElement?.removeChild(style);
-  }
-
-  /**
-   * 添加属性到作用域，若属性为 ref，则添加到 data 中，否则添加到 ctx 中
-   *
-   * @param source - 作用域属性来源
-   */
-  const addToScope = (source: BlockScope) => {
-    Object.keys(source).forEach((key) => {
-      const val = source[key];
-      const target = isRef(val) ? data : scope;
-      Reflect.set(target, key, val);
-    });
-  };
-
-  // 处理 renderer 额外传入的 scope
-  extraScope && addToScope(extraScope);
+  handleStyle(schema.css, schema.id);
 
   // 处理 i18n
   const i18n = (key: string, values?: any) => {
@@ -665,23 +689,101 @@ export function useRootScope(rendererProps: RendererProps) {
   };
 
   const currentLocale = computed(() => rendererProps.__locale);
-  addToScope({ i18n, currentLocale });
+  addToScope(scope, AccessTypes.CONTEXT, { i18n, $t: i18n });
+  addToScope(scope, AccessTypes.DATA, { currentLocale });
 
   // 处理 dataSource
-  const { dataSource, dataSourceMap, reloadDataSource } = createDataSourceManager(
-    schema.dataSource ?? { list: [], dataHandler: undefined },
-    scope
-  );
-  Object.keys(dataSourceMap)
-    .filter((key) => !(key in data))
-    .forEach((key) => (data[key] = ref()));
-  addToScope({ dataSource, dataSourceMap, reloadDataSource });
-  reloadDataSource();
+  const { dataSource, dataSourceMap, reloadDataSource, hasInitDataSource } =
+    createDataSourceManager(
+      schema.dataSource ?? { list: [], dataHandler: undefined },
+      scope
+    );
+  const dataSourceData = Object.keys(dataSourceMap)
+    .filter((key) => !(key in scope))
+    .map((key) => [key, ref()]);
+  addToScope(scope, AccessTypes.CONTEXT, { dataSource, dataSourceMap, reloadDataSource });
+  addToScope(scope, AccessTypes.SETUP, fromPairs(dataSourceData));
 
-  return {
-    scope,
-    addToScope,
+  // 处理 renderer 额外传入的 scope
+  if (extraScope) {
+    addToScope(scope, AccessTypes.SETUP, extraScope);
+  }
+
+  const wrapRender = (render: () => VNodeChild | null) => {
+    return hasInitDataSource() ? reloadDataSource().then(() => render) : render;
   };
+
+  return { scope, wrapRender };
+}
+
+export function handleStyle(css: string | undefined, id: string | undefined) {
+  // 处理 css
+  let style: HTMLStyleElement | null = null;
+  if (id) {
+    style = document.querySelector(`style[data-id="${id}"]`);
+  }
+  if (css) {
+    if (!style) {
+      style = document.createElement('style');
+      if (id) {
+        style.setAttribute('data-id', id);
+      }
+      const head = document.head || document.getElementsByTagName('head')[0];
+      head.appendChild(style);
+    }
+    if (style.innerHTML !== css) {
+      style.innerHTML = css;
+    }
+  } else if (style) {
+    style.parentElement?.removeChild(style);
+  }
+}
+
+export function addToScope(
+  scope: RuntimeScope,
+  accessType: AccessTypes,
+  source: object
+): void {
+  const instance = scope.$;
+  const target = getAccessTarget(scope, accessType);
+  for (const key in source) {
+    target[key] = Reflect.get(source, key);
+    instance.accessCache[key] = accessType;
+  }
+  if (accessType === AccessTypes.PROPS) {
+    const {
+      propsOptions: [propsOptions, needCastKeys],
+    } = instance;
+    for (const key in source) {
+      const val = Reflect.get(source, key);
+      if (isBoolean(val)) {
+        propsOptions[key] = {
+          // 不传入值时默认为 val
+          0: true,
+          // passVal === '' || passVal === key 时需要转化为 true
+          1: true,
+          type: Boolean,
+          default: val,
+        };
+        needCastKeys.push(key);
+      } else if (!isUndefined(val)) {
+        propsOptions[key] = {
+          // 不传入值时默认为 val
+          0: true,
+          1: false,
+          type: null,
+          default: val,
+        };
+        needCastKeys.push(key);
+      } else {
+        propsOptions[key] = {
+          0: false,
+          1: false,
+          type: null,
+        };
+      }
+    }
+  }
 }
 
 /**
@@ -791,49 +893,6 @@ const processProp = (target: Record<string, unknown>, key: string, val: unknown)
   } else {
     target[key] = val;
   }
-};
-
-const buildLoop = (schema: NodeSchema, scope: RuntimeScope) => {
-  let loop: CompositeValue | null = null;
-  const loopArgs = ['item', 'index'];
-
-  if (schema.loop) loop = schema.loop;
-  if (schema.loopArgs) {
-    schema.loopArgs.forEach((v, i) => {
-      loopArgs[i] = v;
-    });
-  }
-
-  return {
-    loop: loop ? parseSchema(loop, scope) : null,
-    loopArgs,
-    buildLoopScope(item, index, len): BlockScope {
-      const offset = scope.__loopRefOffset ?? 0;
-      const [itemKey, indexKey] = loopArgs;
-      return {
-        [itemKey]: item,
-        [indexKey]: index,
-        __loopScope: true,
-        __loopRefIndex: offset + index,
-        __loopRefOffset: len * index,
-      };
-    },
-  } as {
-    loop: unknown;
-    loopArgs: [string, string];
-    buildLoopScope(item: unknown, index: number, len: number): BlockScope;
-  };
-};
-
-const buildShow = (schema: NodeSchema, scope: RuntimeScope, isDesignMode: boolean) => {
-  const hidden = isDesignMode ? schema.hidden ?? false : false;
-  const condition = schema.condition ?? true;
-
-  if (hidden) return { scence: 'hidden', show: false };
-  return {
-    scence: 'condition',
-    show: typeof condition === 'boolean' ? condition : !!parseSchema(condition, scope),
-  };
 };
 
 /**

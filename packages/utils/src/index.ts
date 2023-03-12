@@ -6,3 +6,4 @@ export * from './check';
 export * from './create-defer';
 export * from './string';
 export * from './schema';
+export * from './misc';

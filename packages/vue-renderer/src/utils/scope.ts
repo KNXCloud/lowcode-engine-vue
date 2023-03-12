@@ -1,4 +1,4 @@
-import type { ComponentPublicInstance } from 'vue';
+import { isReactive, proxyRefs, type ComponentPublicInstance } from 'vue';
 import type { MaybeArray } from './array';
 import type { DataSourceItem } from '../data-source';
 import { isProxy, reactive } from 'vue';
@@ -8,21 +8,65 @@ export interface BlockScope {
   [x: string]: unknown;
 }
 
+declare module 'vue' {
+  export interface ComponentInternalInstance {
+    ctx: Record<string, unknown>;
+    setupState: Record<string, unknown>;
+    propsOptions: [Record<string, object>, string[]];
+    accessCache: Record<string, AccessTypes>;
+  }
+}
+
 export interface RuntimeScope extends BlockScope, ComponentPublicInstance {
   i18n(key: string, values: any): string;
   currentLocale: string;
   dataSourceMap: Record<string, DataSourceItem>;
   reloadDataSource(): Promise<any[]>;
+  __thisRequired: boolean;
   __loopScope?: boolean;
   __loopRefIndex?: number;
   __loopRefOffset?: number;
 }
 
-function isRuntimeScope(scope: object): scope is RuntimeScope {
+export const enum AccessTypes {
+  OTHER,
+  SETUP,
+  DATA,
+  PROPS,
+  CONTEXT,
+}
+
+export function getAccessTarget(
+  scope: RuntimeScope,
+  accessType: AccessTypes
+): Record<string, unknown> {
+  switch (accessType) {
+    case AccessTypes.SETUP:
+      return scope.$.setupState.__lcSetup
+        ? scope.$.setupState
+        : (scope.$.setupState = proxyRefs(
+            Object.create(null, {
+              __lcSetup: {
+                get: () => true,
+                enumerable: false,
+                configurable: false,
+              },
+            })
+          ));
+    case AccessTypes.DATA:
+      return isReactive(scope.$.data) ? scope.$.data : (scope.$.data = reactive({}));
+    case AccessTypes.PROPS:
+      return scope.$.props;
+    default:
+      return scope.$.ctx;
+  }
+}
+
+export function isRuntimeScope(scope: object): scope is RuntimeScope {
   return '$' in scope;
 }
 
-function isValidScope(scope: unknown): scope is BlockScope | RuntimeScope {
+export function isValidScope(scope: unknown): scope is BlockScope | RuntimeScope {
   // 为 null、undefined，或者不是对象
   if (!scope || !isObject(scope)) return false;
 

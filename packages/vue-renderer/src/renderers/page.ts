@@ -1,15 +1,20 @@
 import { defineComponent, h } from 'vue';
-import { useRenderer, rendererProps } from '../core';
+import { useRenderer, rendererProps, useRootScope } from '../core';
 
 const Page = defineComponent((props, { slots }) => {
-  return () => h('div', { class: 'lc-page', ...props }, slots);
+  return () => h('div', { class: 'lc-page', style: { height: '100%' }, ...props }, slots);
 });
 
 export const PageRenderer = defineComponent({
+  name: 'PageRenderer',
   props: rendererProps,
   __renderer__: true,
   setup(props) {
-    const { renderComp, componentsRef, schema } = useRenderer(props);
-    return () => renderComp(schema.value, null, componentsRef.value.Page || Page);
+    const { scope, wrapRender } = useRootScope(props);
+    const { renderComp, componentsRef, schemaRef } = useRenderer(props, scope);
+
+    return wrapRender(() => {
+      return renderComp(schemaRef.value, null, componentsRef.value.Page || Page);
+    });
   },
 });

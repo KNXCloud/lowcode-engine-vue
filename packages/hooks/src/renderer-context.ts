@@ -8,6 +8,7 @@ export type DesignMode = 'live' | 'design';
 export interface RendererContext {
   readonly components: Record<string, Component>;
   readonly designMode: DesignMode;
+  readonly thisRequiredInJSE: boolean;
   getNode(id: string): Node | null;
   rerender(): void;
   triggerCompGetCtx(schema: IPublicTypeNodeSchema, val: ComponentPublicInstance): void;
@@ -30,6 +31,7 @@ export function useRendererContext(): RendererContext {
       const props = getCurrentInstance()?.props ?? {};
       return {
         rerender: () => void 0,
+        thisRequiredInJSE: true,
         components: getPropValue(props, 'components', {}),
         designMode: getPropValue<DesignMode>(props, 'designMode', 'live'),
         getNode: getPropValue(props, 'getNode', () => null),

@@ -57,6 +57,7 @@ export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
   locale: string;
   designMode: 'design';
   libraryMap: Record<string, string>;
+  thisRequiredInJSE: boolean;
   components: Record<string, Component>;
   autoRender: boolean;
   componentsMap: Record<string, MinxedComponent>;

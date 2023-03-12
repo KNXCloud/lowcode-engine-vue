@@ -1,5 +1,6 @@
 export * from './core';
 export { default as config, type Config, type RendererModules } from './config';
-export { Renderer as default } from './renderer';
-export type { RendererProps, I18nMessages, BlockScope } from './renderer';
-export { mergeScope, parseSchema } from './utils';
+export { VueRenderer as default, vueRendererProps } from './renderer';
+export type { VueRendererProps, I18nMessages, BlockScope } from './renderer';
+export { mergeScope, SchemaParser } from './utils';
+export type { RuntimeScope, ExtractPublicPropTypes, MaybeArray } from './utils';

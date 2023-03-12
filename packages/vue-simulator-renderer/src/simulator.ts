@@ -1,14 +1,10 @@
 import type { DocumentModel } from '@alilc/lowcode-designer';
-import type { Ref, Component } from 'vue';
-import type {
-  ComponentInstance,
-  ComponentRecord,
-  DocumentInstance,
-  MinxedComponent,
-  SimulatorViewLayout,
-  VueSimulatorRenderer,
-} from './interface';
+import type { IPublicTypeContainerSchema } from '@alilc/lowcode-types';
 import {
+  type Ref,
+  type Component,
+  defineComponent,
+  h,
   createApp,
   ref,
   shallowRef,
@@ -17,7 +13,16 @@ import {
   markRaw,
   onUnmounted,
 } from 'vue';
-import { config } from '@knxcloud/lowcode-vue-renderer';
+import { createMemoryHistory, createRouter } from 'vue-router';
+import type {
+  ComponentInstance,
+  ComponentRecord,
+  DocumentInstance,
+  MinxedComponent,
+  SimulatorViewLayout,
+  VueSimulatorRenderer,
+} from './interface';
+import VueRenderer, { config } from '@knxcloud/lowcode-vue-renderer';
 import {
   AssetLoader,
   buildUtils,
@@ -41,8 +46,6 @@ import {
   setNativeSelection,
   createComponentRecord,
 } from './utils';
-import { createMemoryHistory, createRouter } from 'vue-router';
-import type { IPublicTypeRootSchema } from '@alilc/lowcode-types';
 
 const loader = new AssetLoader();
 
@@ -68,9 +71,14 @@ function createDocumentInstance(
 
   const timestamp = ref(Date.now());
 
-  const schema = computed(() => {
+  const schema = computed<IPublicTypeContainerSchema>(() => {
     void timestamp.value;
-    return exportSchema<IPublicTypeRootSchema>(document);
+    return (
+      exportSchema(document) ?? {
+        fileName: '/',
+        componentName: 'Page',
+      }
+    );
   });
 
   const checkInstanceMounted = (instance: ComponentInstance): boolean => {
@@ -161,7 +169,7 @@ function createDocumentInstance(
   return reactive({
     id: computed(() => document.id),
     path: computed(() => {
-      const { fileName } = schema.value;
+      const fileName = schema.value.fileName;
       return fileName.startsWith('/') ? fileName : `/${fileName}`;
     }),
     key: computed(() => `${document.id}:${timestamp.value}`),
@@ -209,6 +217,7 @@ function createSimulatorRenderer() {
   const componentsMap: Ref<Record<string, MinxedComponent>> = shallowRef({});
   const requestHandlersMap: Ref<Record<string, CallableFunction>> = shallowRef({});
   const documentInstances: Ref<DocumentInstance[]> = shallowRef([]);
+  const thisRequiredInJSE: Ref<boolean> = shallowRef(true);
 
   const context: ProjectContext = reactive({
     i18n: {},
@@ -244,6 +253,7 @@ function createSimulatorRenderer() {
     componentsMap,
     documentInstances,
     requestHandlersMap,
+    thisRequiredInJSE,
     isSimulatorRenderer: true,
   }) as VueSimulatorRenderer;
 
@@ -289,6 +299,46 @@ function createSimulatorRenderer() {
       return compInst ? findDOMNodes(compInst) : null;
     }
     return null;
+  };
+  simulator.getComponent = (componentName) => components.value[componentName];
+
+  let createdCount = 0;
+  simulator.createComponent = ({ css, ...schema }) => {
+    const compId = `Component-${schema.id || createdCount++}`;
+    const CreatedComponent = defineComponent({
+      props: VueRenderer.props,
+      setup: (props, { slots }) => {
+        let styleEl = document.getElementById(compId);
+        if (css && !styleEl) {
+          const doc = window.document;
+          styleEl = doc.createElement('style');
+          styleEl.setAttribute('type', 'text/css');
+          styleEl.setAttribute('id', compId);
+          styleEl.appendChild(doc.createTextNode(css));
+          doc.head.appendChild(styleEl);
+        }
+        return () => {
+          return h(
+            VueRenderer,
+            {
+              schema,
+              passProps: props,
+              locale: simulator.locale,
+              device: simulator.device,
+              components: components.value,
+            },
+            slots
+          );
+        };
+      },
+    });
+    if (schema.fileName) {
+      CreatedComponent.name = schema.fileName;
+    }
+    if (schema.props) {
+      CreatedComponent.props = Object.keys(schema.props);
+    }
+    return CreatedComponent;
   };
 
   simulator.getClientRects = (element) => getClientRects(element);
@@ -355,6 +405,10 @@ function createSimulatorRenderer() {
 
       // sync requestHandlersMap
       requestHandlersMap.value = host.requestHandlersMap;
+
+      thisRequiredInJSE.value = host.thisRequiredInJSE ?? true;
+
+      documentInstances.value.forEach((doc) => doc.rerender());
     })
   );
 
@@ -378,16 +432,16 @@ function createSimulatorRenderer() {
             }
           }
         }
-          router.addRoute({
-            name: documentInstance.id,
-            path: documentInstance.path,
-            component: Renderer,
-            props: () => ({
-              key: documentInstance?.key,
-              documentInstance,
-              simulator,
-            }),
-          });
+        router.addRoute({
+          name: documentInstance.id,
+          path: documentInstance.path,
+          component: Renderer,
+          props: () => ({
+            key: documentInstance?.key,
+            documentInstance,
+            simulator,
+          }),
+        });
         return documentInstance;
       });
       router.getRoutes().forEach((route) => {
