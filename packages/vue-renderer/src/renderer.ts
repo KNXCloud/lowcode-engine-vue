@@ -1,108 +1,145 @@
 import type {
   IPublicModelNode as Node,
   IPublicTypeNodeSchema as NodeSchema,
-  IPublicTypeRootSchema as RootSchema,
+  IPublicTypeContainerSchema as ContainerSchema,
 } from '@alilc/lowcode-types';
-import type { PropType, Component, ComponentPublicInstance } from 'vue';
-import type { I18nMessages, BlockScope } from './utils';
-import { h, computed, defineComponent } from 'vue';
+import { getRendererContextKey, type DesignMode } from '@knxcloud/lowcode-hooks';
+import {
+  type PropType,
+  type Component,
+  type ComponentPublicInstance,
+  h,
+  reactive,
+  provide,
+  computed,
+  defineComponent,
+  Suspense,
+  shallowRef,
+  watch,
+  triggerRef,
+} from 'vue';
+import {
+  type I18nMessages,
+  type BlockScope,
+  type ExtractPublicPropTypes,
+  SchemaParser,
+} from './utils';
 import config from './config';
 import { RENDERER_COMPS } from './renderers';
+import { debounce, exportSchema } from '@knxcloud/lowcode-utils';
 
-interface RendererProps {
-  scope?: BlockScope;
-  schema: RootSchema;
-  components: Record<string, Component>;
-  designMode?: 'live' | 'design';
-  device?: string;
-  locale?: string;
-  messages?: I18nMessages;
-  getNode?: (id: string) => Node | null;
-  onCompGetCtx?: (schema: NodeSchema, ref: ComponentPublicInstance) => void;
-}
-
-const Renderer = defineComponent({
-  props: {
-    scope: {
-      type: Object as PropType<BlockScope>,
-      default: undefined,
-    },
-    schema: {
-      type: Object as PropType<RootSchema>,
-      required: true,
-    },
-    components: {
-      type: Object as PropType<Record<string, Component>>,
-      required: true,
-    },
-    /** 设计模式，可选值：live、design */
-    designMode: {
-      type: String as PropType<'live' | 'design'>,
-      default: 'live',
-    },
-    /** 设备信息 */
-    device: {
-      type: String,
-      default: undefined,
-    },
-    /** 语言 */
-    locale: {
-      type: String,
-      default: undefined,
-    },
-    messages: {
-      type: Object as PropType<I18nMessages>,
-      default: () => ({}),
-    },
-    getNode: {
-      type: Function as PropType<(id: string) => Node | null>,
-      default: undefined,
-    },
-    /** 组件获取 ref 时触发的钩子 */
-    onCompGetCtx: {
-      type: Function as PropType<
-        (schema: NodeSchema, ref: ComponentPublicInstance) => void
-      >,
-      default: undefined,
-    },
+const vueRendererProps = {
+  scope: Object as PropType<BlockScope>,
+  schema: {
+    type: Object as PropType<ContainerSchema>,
+    required: true,
   },
-  setup(props: RendererProps) {
+  passProps: Object as PropType<Record<string, unknown>>,
+  components: {
+    type: Object as PropType<Record<string, Component>>,
+    required: true,
+  },
+  /** 设计模式，可选值：live、design */
+  designMode: {
+    type: String as PropType<DesignMode>,
+    default: 'live',
+  },
+  /** 设备信息 */
+  device: String,
+  /** 语言 */
+  locale: String,
+  messages: {
+    type: Object as PropType<I18nMessages>,
+    default: () => ({}),
+  },
+  getNode: Function as PropType<(id: string) => Node | null>,
+  /** 组件获取 ref 时触发的钩子 */
+  onCompGetCtx: Function as PropType<
+    (schema: NodeSchema, ref: ComponentPublicInstance) => void
+  >,
+  thisRequiredInJSE: {
+    type: Boolean,
+    default: true,
+  },
+} as const;
+
+type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
+
+const VueRenderer = defineComponent({
+  props: vueRendererProps,
+  setup(props, { slots }) {
     const triggerCompGetCtx = (schema: NodeSchema, val: ComponentPublicInstance) => {
       val && props.onCompGetCtx?.(schema, val);
     };
-
+    const parser = new SchemaParser({ thisRequired: props.thisRequiredInJSE });
     const getNode = (id: string) => props.getNode?.(id) ?? null;
 
-    const componentsRef = computed(() => ({
-      ...config.getRenderers(),
-      ...props.components,
-    }));
+    const schemaRef = shallowRef(props.schema);
+    watch(
+      () => props.schema,
+      () => (schemaRef.value = props.schema)
+    );
+
+    const rendererContext = reactive({
+      designMode: computed(() => props.designMode),
+      components: computed(() => ({
+        ...config.getRenderers(),
+        ...props.components,
+      })),
+      getNode: (id: string) => (props.getNode?.(id) as any) ?? null,
+      triggerCompGetCtx: (schema: NodeSchema, inst: ComponentPublicInstance) => {
+        props.onCompGetCtx?.(schema, inst);
+      },
+      rerender: debounce(() => {
+        const id = props.schema.id;
+        const node = id && getNode(id);
+        if (node) {
+          const newSchema = exportSchema<ContainerSchema>(node);
+          if (newSchema) {
+            schemaRef.value = newSchema;
+          }
+        }
+        triggerRef(schemaRef);
+      }),
+    });
+
+    provide(getRendererContextKey(), rendererContext);
 
     const renderContent = () => {
-      const { value: components } = componentsRef;
-      const { schema, scope, locale, messages, designMode } = props;
+      const { components } = rendererContext;
+      const { scope, locale, messages, designMode, thisRequiredInJSE, passProps } = props;
+      const { value: schema } = schemaRef;
+
       if (!schema) return null;
 
-      const { componentName } = schema!;
+      const { componentName } = schema;
       let Comp = components[componentName] || components[`${componentName}Renderer`];
       if (Comp && !(Comp as any).__renderer__) {
         Comp = RENDERER_COMPS[`${componentName}Renderer`];
       }
 
       return Comp
-        ? h(Comp, {
-            key: schema.__ctx
-              ? `${schema.__ctx.lceKey}_${schema.__ctx.idx || '0'}`
-              : schema.id,
-            __scope: scope,
-            __schema: schema,
-            __locale: locale,
-            __messages: messages,
-            __components: components,
-            __designMode: designMode,
-            __getNode: getNode,
-            __triggerCompGetCtx: triggerCompGetCtx,
-          } as any)
+        ? h(Suspense, null, {
+            ...slots,
+            default: () =>
+              h(Comp, {
+                key: schema.__ctx
+                  ? `${schema.__ctx.lceKey}_${schema.__ctx.idx || '0'}`
+                  : schema.id,
+                ...passProps,
+                ...parser.parseOnlyJsValue(schema.props),
+                __parser: parser,
+                __scope: scope,
+                __schema: schema,
+                __locale: locale,
+                __messages: messages,
+                __components: components,
+                __designMode: designMode,
+                __thisRequiredInJSE: thisRequiredInJSE,
+                __getNode: getNode,
+                __triggerCompGetCtx: triggerCompGetCtx,
+              } as any),
+          })
         : null;
     };
 
@@ -114,7 +151,7 @@ const Renderer = defineComponent({
         : renderContent();
     };
   },
-}) as new (...args: any[]) => { $props: RendererProps };
+});
 
-export { Renderer };
-export type { RendererProps, I18nMessages, BlockScope };
+export { VueRenderer, vueRendererProps };
+export type { VueRendererProps, I18nMessages, BlockScope };

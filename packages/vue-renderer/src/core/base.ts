@@ -1,10 +1,16 @@
 import type {
   IPublicModelNode as INode,
   IPublicTypeNodeSchema as NodeSchema,
-  IPublicTypeRootSchema as RootSchema,
+  IPublicTypeContainerSchema as ContainerSchema,
 } from '@alilc/lowcode-types';
-import type { Component, ComponentPublicInstance, PropType, VNodeProps } from 'vue';
-import type { BlockScope, I18nMessages, RuntimeScope } from '../utils';
+import type {
+  Component,
+  ComponentPublicInstance,
+  DefineComponent,
+  ExtractPropTypes,
+  PropType,
+} from 'vue';
+import type { BlockScope, I18nMessages, RuntimeScope, SchemaParser } from '../utils';
 
 export const rendererProps = {
   __scope: {
@@ -12,7 +18,7 @@ export const rendererProps = {
     default: undefined,
   },
   __schema: {
-    type: Object as PropType<RootSchema>,
+    type: Object as PropType<ContainerSchema>,
     required: true,
   },
   __designMode: {
@@ -41,31 +47,30 @@ export const rendererProps = {
     >,
     required: true,
   },
+  __thisRequiredInJSE: {
+    type: Boolean,
+    default: true,
+  },
+  __props: {
+    type: Object,
+    default: () => ({}),
+  },
+  __parser: {
+    type: Object as PropType<SchemaParser>,
+    required: true,
+  },
 } as const;
 
-export interface RendererProps {
-  __scope?: BlockScope;
-  __locale?: string;
-  __messages?: I18nMessages;
-  __designMode?: 'live' | 'design';
-  __schema: RootSchema;
-  __components: Record<string, Component>;
-  __getNode: (id: string) => INode | null;
-  __triggerCompGetCtx: (schema: NodeSchema, ref: ComponentPublicInstance) => void;
-}
+export type RendererProps = ExtractPropTypes<typeof rendererProps>;
 
 export const baseRendererPropKeys = Object.keys(rendererProps) as (keyof RendererProps)[];
 
-export type RendererComponent = {
-  new (...args: any[]): {
-    $props: VNodeProps & RendererProps;
-  };
-};
+export type RendererComponent = DefineComponent<RendererProps, any, any>;
 
 export const leafProps = {
   __comp: {
     type: Object as PropType<Component | null>,
-    default: undefined,
+    required: true,
   },
   __scope: {
     type: Object as PropType<RuntimeScope>,
@@ -79,18 +84,11 @@ export const leafProps = {
     type: Object as PropType<Record<string, unknown>>,
     default: () => ({}),
   },
+  __isRootNode: Boolean,
 } as const;
 
-export interface LeafProps {
-  __comp?: Component | null;
-  __scope: RuntimeScope;
-  __schema: NodeSchema;
-}
+export type LeafProps = ExtractPropTypes<typeof leafProps>;
 
 export const leafPropKeys = Object.keys(leafProps) as (keyof LeafProps)[];
 
-export type LeafComponent = {
-  new (...args: any[]): {
-    $props: VNodeProps & LeafProps;
-  };
-};
+export type LeafComponent = DefineComponent<LeafProps, any, any>;

@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite';
 import LibTypes from 'vite-plugin-lib-types';
+import VueJsx from '@vitejs/plugin-vue-jsx';
 import pkg from './package.json';
 
 export default defineConfig({
-  plugins: [LibTypes({ fileName: 'vue-simulator-renderer.d.ts' })],
+  plugins: [VueJsx(), LibTypes({ fileName: 'vue-simulator-renderer.d.ts' })],
   build: {
     lib: {
       entry: 'src/index.ts',

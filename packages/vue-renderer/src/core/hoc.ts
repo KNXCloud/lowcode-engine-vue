@@ -6,46 +6,43 @@ import {
   inject,
   provide,
   watch,
+  Fragment,
 } from 'vue';
 
-import { onUnmounted, defineComponent, nextTick } from 'vue';
+import { onUnmounted, defineComponent } from 'vue';
 import { leafProps } from './base';
-import { buildSchema, splitLeafProps, useLeaf, type SlotSchemaMap } from './use';
+import {
+  buildSchema,
+  isFragment,
+  splitLeafProps,
+  useLeaf,
+  type SlotSchemaMap,
+} from './use';
 import { useRendererContext } from '@knxcloud/lowcode-hooks';
 import type { IPublicTypeNodeSchema } from '@alilc/lowcode-types';
-import { exportSchema } from '@knxcloud/lowcode-utils';
+import { debounce, exportSchema, isJSSlot } from '@knxcloud/lowcode-utils';
 
 const HOC_NODE_KEY: InjectionKey<{ rerenderSlots: () => void }> = Symbol('hocNode');
 const useHocNode = (rerenderSlots: () => void) => {
+  const { rerender } = useRendererContext();
   const parentNode = inject(HOC_NODE_KEY, null);
 
-  let shouldRerender = false;
-
-  const debouncedRerender = () => {
-    if (!shouldRerender) {
-      shouldRerender = true;
-      nextTick(() => {
-        rerenderSlots();
-        shouldRerender = false;
-      });
-    }
-  };
+  const debouncedRerender = debounce(rerenderSlots);
 
   provide(HOC_NODE_KEY, {
     rerenderSlots: debouncedRerender,
   });
 
   if (!parentNode) {
-    const { rerender } = useRendererContext();
     return {
-      isRootNode: true,
       rerender: debouncedRerender,
+      rerenderRoot: rerender,
       rerenderParent: rerender,
     };
   } else {
     return {
-      isRootNode: false,
       rerender: debouncedRerender,
+      rerenderRoot: rerender,
       rerenderParent: parentNode.rerenderSlots,
     };
   }
@@ -59,11 +56,12 @@ export const Hoc = defineComponent({
     const showNode = shallowRef(true);
     const nodeSchmea = shallowRef(props.__schema);
     const slotSchema = shallowRef<SlotSchemaMap>();
+
     const updateSchema = (newSchema: IPublicTypeNodeSchema) => {
       nodeSchmea.value = newSchema;
       slotSchema.value = buildSchema(newSchema, node).slots;
     };
-    const { rerenderParent, rerender, isRootNode } = useHocNode(() => {
+    const { rerender, rerenderRoot, rerenderParent } = useHocNode(() => {
       const newSchema = node ? exportSchema(node) : null;
       newSchema && updateSchema(newSchema);
     });
@@ -76,31 +74,47 @@ export const Hoc = defineComponent({
       })
     );
 
-    const { locked, node, buildSlots, getNode } = useLeaf(props, (schema, show) => {
-      const id = schema.id;
-      if (id) {
-        if (show && listenRecord[id]) {
-          listenRecord[id]();
-          delete listenRecord[id];
-        } else if (!show && !listenRecord[id]) {
-          const childNode = getNode(id);
-          if (childNode) {
-            listenRecord[id] = childNode.onVisibleChange(() => rerender());
+    const { locked, node, buildSlots, getNode, isRootNode } = useLeaf(
+      props,
+      (schema, show) => {
+        const id = schema.id;
+        if (id) {
+          if (show && listenRecord[id]) {
+            listenRecord[id]();
+            delete listenRecord[id];
+          } else if (!show && !listenRecord[id]) {
+            const childNode = getNode(id);
+            if (childNode) {
+              listenRecord[id] = childNode.onVisibleChange(() => rerender());
+            }
           }
         }
       }
-    });
+    );
 
     if (node) {
-      onUnmounted(node.onChildrenChange(() => rerender()));
+      onUnmounted(
+        node.onChildrenChange(() => {
+          // 默认插槽内容变更，无法确定变更的层级，所以只能全部更新
+          rerenderRoot();
+        })
+      );
       onUnmounted(
         node.onPropChange((info) => {
-          const { key, prop, newValue } = info;
+          const { key, prop, newValue, oldValue } = info;
           const isRootProp = prop.path.length === 1;
-          if (isRootProp && key === '___isLocked___') {
-            locked.value = newValue;
+          if (isRootProp) {
+            if (key === '___isLocked___') {
+              locked.value = newValue;
+            } else if (isJSSlot(newValue) || isJSSlot(oldValue)) {
+              // 插槽内容变更，无法确定变更的层级，所以只能全部更新
+              rerenderRoot();
+            } else {
+              // 普通属性更新，通知父级重新渲染
+              rerenderParent();
+            }
           } else {
-            // 当前节点组件参数发生改变，通知父级组件重新渲染子组件
+            // 普通属性更新，通知父级重新渲染
             rerenderParent();
           }
         })
@@ -114,6 +128,7 @@ export const Hoc = defineComponent({
               rerenderParent();
         })
       );
+      updateSchema(exportSchema(node));
     }
 
     watch(
@@ -121,24 +136,17 @@ export const Hoc = defineComponent({
       (newSchema) => updateSchema(newSchema)
     );
 
-    const { triggerCompGetCtx } = useRendererContext();
-
     return () => {
       const { __comp: comp, __vnodeProps: vnodeProps } = props;
       const compProps = splitLeafProps(attrs)[1];
       if (isRootNode && !showNode.value) return null;
 
+      const builtSlots = slotSchema.value ? buildSlots(slotSchema.value, node) : slots;
+
       return comp
-        ? h(
-            comp,
-            mergeProps(compProps, vnodeProps, {
-              onVnodeMounted(vnode) {
-                const instance = vnode.component?.proxy;
-                instance && triggerCompGetCtx(nodeSchmea.value, instance);
-              },
-            }),
-            slotSchema.value ? buildSlots(slotSchema.value) : slots
-          )
+        ? isFragment(comp)
+          ? h(Fragment, builtSlots.default?.())
+          : h(comp, mergeProps(compProps, vnodeProps), builtSlots)
         : h('div', 'component not found');
     };
   },

@@ -3,11 +3,10 @@ import type {
   InterpretDataSourceConfig,
 } from '@alilc/lowcode-types';
 import type { RequestParams } from './interface';
-import type { RuntimeScope } from '../utils';
+import { SchemaParser, type RuntimeScope } from '../utils';
 import { computed, reactive, ref, shallowRef } from 'vue';
 import { request, Response } from './request';
 import { DataSourceStatus } from './interface';
-import { parseSchema } from '../utils';
 import {
   isPlainObject,
   isUndefined,
@@ -38,21 +37,24 @@ export function createDataSourceItem(
   request: CallableFunction | null,
   scope: RuntimeScope
 ): DataSourceItem {
+  const parser = new SchemaParser({
+    thisRequired: scope.__thisRequired,
+  });
   const data = shallowRef<unknown>();
   const error = shallowRef<unknown>();
   const status = ref<DataSourceStatus>(DataSourceStatus.Initial);
   const loading = computed(() => status.value === DataSourceStatus.Loading);
-  const isInit = computed<boolean>(() => !!parseSchema(config.isInit, scope));
+  const isInit = computed<boolean>(() => !!parser.parseSchema(config.isInit, scope));
 
   const { willFetch, shouldFetch, dataHandler, errorHandler } = config;
 
   const hooks = {
-    willFetch: willFetch ? parseSchema(willFetch, scope) : same,
-    shouldFetch: shouldFetch ? parseSchema(shouldFetch, scope) : alwaysTrue,
+    willFetch: willFetch ? parser.parseSchema(willFetch, scope) : same,
+    shouldFetch: shouldFetch ? parser.parseSchema(shouldFetch, scope) : alwaysTrue,
     dataHandler: dataHandler
-      ? parseSchema(dataHandler, scope)
+      ? parser.parseSchema(dataHandler, scope)
       : (res: Response) => res.data,
-    errorHandler: errorHandler ? parseSchema(errorHandler, scope) : noop,
+    errorHandler: errorHandler ? parser.parseSchema(errorHandler, scope) : noop,
   };
 
   const load: ExecutionFunc = async (inputParams, otherOptions = {}) => {
@@ -82,7 +84,7 @@ export function createDataSourceItem(
         params: parsedParams,
         headers: parsedHeaders,
         ...parsedOptions
-      } = parseSchema(options ?? {}, scope);
+      } = parser.parseSchema<Record<string, unknown>>(options ?? {}, scope);
 
       status.value = DataSourceStatus.Loading;
       const res = await request(
@@ -174,5 +176,9 @@ export function createDataSourceManager(
     return Promise.all(promises);
   };
 
-  return { dataSource, dataSourceMap, reloadDataSource };
+  const hasInitDataSource = () => {
+    return Object.keys(dataSourceMap).some((id) => dataSourceMap[id].isInit);
+  };
+
+  return { dataSource, dataSourceMap, reloadDataSource, hasInitDataSource };
 }
