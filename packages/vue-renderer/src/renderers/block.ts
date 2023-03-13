@@ -7,8 +7,8 @@ export const BlockRenderer = defineComponent({
   name: 'BlockRenderer',
   props: rendererProps,
   __renderer__: true,
-  setup(props) {
-    const { scope, wrapRender } = useRootScope(props);
+  setup(props, context) {
+    const { scope, wrapRender } = useRootScope(props, context);
     const { triggerCompGetCtx } = useRendererContext();
     const { renderComp, schemaRef, componentsRef } = useRenderer(props, scope);
 

@@ -9,8 +9,8 @@ export const PageRenderer = defineComponent({
   name: 'PageRenderer',
   props: rendererProps,
   __renderer__: true,
-  setup(props) {
-    const { scope, wrapRender } = useRootScope(props);
+  setup(props, context) {
+    const { scope, wrapRender } = useRootScope(props, context);
     const { renderComp, componentsRef, schemaRef } = useRenderer(props, scope);
 
     return wrapRender(() => {

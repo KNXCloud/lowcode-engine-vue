@@ -3,7 +3,7 @@
   "main": "./dist/lowcode-utils.js",
   "module": "./dist/lowcode-utils.mjs",
   "typings": "./dist/lowcode-utils.d.ts",
-  "version": "1.6.0-beta.2",
+  "version": "1.6.0-beta.3",
   "keywords": [
     "vue",
     "lowcode",

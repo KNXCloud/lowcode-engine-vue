@@ -2,6 +2,7 @@ import type {
   IPublicTypeI18nData as I18nData,
   IPublicTypeJSFunction as JSFunction,
   IPublicTypeJSExpression as JSExpression,
+  IPublicTypeContainerSchema,
 } from '@alilc/lowcode-types';
 import type { BlockScope, RuntimeScope } from './scope';
 import {
@@ -23,13 +24,29 @@ export const EXPRESSION_TYPE = {
 } as const;
 
 export class SchemaParser {
+  static cacheModules: Record<string, object> = {};
   private createFunction: (code: string) => CallableFunction;
+  private exports = {};
 
   constructor(options?: { thisRequired: boolean }) {
     this.createFunction =
       options && !options.thisRequired
-        ? (code) => new Function('$scope', `with($scope) { ${code} }`)
-        : (code) => new Function(code);
+        ? (code) =>
+            new Function(
+              '__exports__',
+              '__scope__',
+              `with(__exports__) { with(__scope__ || {}) { ${code} } }`
+            )
+        : (code) => new Function('__exports__', `with(__exports__) { ${code} }`);
+  }
+
+  initModule(schema: IPublicTypeContainerSchema) {
+    const initModuleSchema = schema.lifeCycles?.initModule;
+    const res = initModuleSchema
+      ? this.parseSchema(initModuleSchema, false)
+      : initModuleSchema;
+    this.exports = isFunction(res) ? res(SchemaParser.cacheModules, window) : {};
+    return this;
   }
 
   parseSlotScope(args: unknown[], params: string[]): BlockScope {
@@ -119,18 +136,18 @@ export class SchemaParser {
     scope?: RuntimeScope | boolean
   ): CallableFunction | unknown {
     try {
-      const contextArr = ['"use strict";', 'var __self = arguments[0];'];
+      const contextArr = ['"use strict";', 'var __self = arguments[1];'];
       contextArr.push('return ');
       let tarStr: string;
 
       tarStr = (str.value || '').trim();
 
-      if (scope !== false) {
+      if (scope !== false && !tarStr.match(/^\([^)]*\)\s*=>/)) {
         tarStr = tarStr.replace(/this(\W|$)/g, (_a: string, b: string) => `__self${b}`);
       }
       tarStr = contextArr.join('\n') + tarStr;
       const fn = this.createFunction(tarStr);
-      return scope === false ? fn() : fn(scope ?? {});
+      return scope === false ? fn(this.exports) : fn(this.exports, scope ?? {});
     } catch (err) {
       console.warn('parseExpression.error', err, str, self);
       return undefined;

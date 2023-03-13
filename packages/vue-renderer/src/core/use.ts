@@ -55,15 +55,14 @@ import {
   isJSSlot,
   isJSFunction,
   isSlotSchema,
-  isBoolean,
-  isUndefined,
   fromPairs,
+  isPromise,
 } from '@knxcloud/lowcode-utils';
 import { Hoc } from './hoc';
 import { Live } from './live';
-import { ensureArray, getI18n, mergeScope } from '../utils';
+import { ensureArray, getI18n, mergeScope, AccessTypes, addToScope } from '../utils';
 import { createDataSourceManager } from '../data-source';
-import { AccessTypes, getAccessTarget } from '../utils/scope';
+import { createHookCaller } from './lifecycles';
 
 const currentNodeKey = getCurrentNodeKey();
 
@@ -630,7 +629,7 @@ export function useRenderer(rendererProps: RendererProps, scope: RuntimeScope) {
   return { scope, schemaRef, designModeRef, componentsRef, ...useLeaf(leafProps) };
 }
 
-export function useRootScope(rendererProps: RendererProps) {
+export function useRootScope(rendererProps: RendererProps, setupConext: object) {
   const { __schema: schema, __scope: extraScope, __parser: parser } = rendererProps;
 
   const {
@@ -644,13 +643,19 @@ export function useRootScope(rendererProps: RendererProps) {
   const instance = getCurrentInstance()!;
   const scope = instance.proxy! as RuntimeScope;
 
+  const callHook = createHookCaller(schema, scope, parser);
+
   // 处理 props
+  callHook('initProps');
   if (propsSchema) {
     const props = parser.parseOnlyJsValue<object>(propsSchema);
     addToScope(scope, AccessTypes.PROPS, props);
   }
 
+  const setupResult = callHook('setup', instance.props, setupConext);
+
   // 处理 state
+  callHook('initData');
   if (stateSchema) {
     const states = parser.parseSchema<object>(stateSchema);
     addToScope(scope, AccessTypes.DATA, states);
@@ -661,6 +666,9 @@ export function useRootScope(rendererProps: RendererProps) {
     const methods = parser.parseSchema(methodsSchema, scope);
     addToScope(scope, AccessTypes.CONTEXT, methods);
   }
+
+  callHook('initComputed');
+  callHook('initWatch');
 
   // 处理 lifecycle
   const lifeCycles = parser.parseSchema(lifeCyclesSchema, scope);
@@ -710,7 +718,10 @@ export function useRootScope(rendererProps: RendererProps) {
   }
 
   const wrapRender = (render: () => VNodeChild | null) => {
-    return hasInitDataSource() ? reloadDataSource().then(() => render) : render;
+    const promises: Promise<unknown>[] = [];
+    isPromise(setupResult) && promises.push(setupResult);
+    hasInitDataSource() && promises.push(reloadDataSource());
+    return promises.length > 0 ? Promise.all(promises).then(() => render) : render;
   };
 
   return { scope, wrapRender };
@@ -738,54 +749,6 @@ export function handleStyle(css: string | undefined, id: string | undefined) {
     style.parentElement?.removeChild(style);
   }
 }
-
-export function addToScope(
-  scope: RuntimeScope,
-  accessType: AccessTypes,
-  source: object
-): void {
-  const instance = scope.$;
-  const target = getAccessTarget(scope, accessType);
-  for (const key in source) {
-    target[key] = Reflect.get(source, key);
-    instance.accessCache[key] = accessType;
-  }
-  if (accessType === AccessTypes.PROPS) {
-    const {
-      propsOptions: [propsOptions, needCastKeys],
-    } = instance;
-    for (const key in source) {
-      const val = Reflect.get(source, key);
-      if (isBoolean(val)) {
-        propsOptions[key] = {
-          // 不传入值时默认为 val
-          0: true,
-          // passVal === '' || passVal === key 时需要转化为 true
-          1: true,
-          type: Boolean,
-          default: val,
-        };
-        needCastKeys.push(key);
-      } else if (!isUndefined(val)) {
-        propsOptions[key] = {
-          // 不传入值时默认为 val
-          0: true,
-          1: false,
-          type: null,
-          default: val,
-        };
-        needCastKeys.push(key);
-      } else {
-        propsOptions[key] = {
-          0: false,
-          1: false,
-          type: null,
-        };
-      }
-    }
-  }
-}
-
 /**
  * 构建当前节点的 schema，获取 schema 的属性及插槽
  *

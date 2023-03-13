@@ -13,7 +13,7 @@ import {
   markRaw,
   onUnmounted,
 } from 'vue';
-import { createMemoryHistory, createRouter } from 'vue-router';
+import * as VueRouter from 'vue-router';
 import type {
   ComponentInstance,
   ComponentRecord,
@@ -22,7 +22,7 @@ import type {
   SimulatorViewLayout,
   VueSimulatorRenderer,
 } from './interface';
-import VueRenderer, { config } from '@knxcloud/lowcode-vue-renderer';
+import VueRenderer, { config, cleanCacledModules } from '@knxcloud/lowcode-vue-renderer';
 import {
   AssetLoader,
   buildUtils,
@@ -46,6 +46,8 @@ import {
   setNativeSelection,
   createComponentRecord,
 } from './utils';
+
+Object.assign(window, { VueRouter });
 
 const loader = new AssetLoader();
 
@@ -202,7 +204,10 @@ function createDocumentInstance(
     mountInstance,
     unmountIntance,
     getComponentInstance,
-    rerender: () => void (timestamp.value = Date.now()),
+    rerender: () => {
+      timestamp.value = Date.now();
+      cleanCacledModules();
+    },
   }) as DocumentInstance;
 }
 
@@ -259,8 +264,8 @@ function createSimulatorRenderer() {
 
   simulator.app = markRaw(createApp(SimulatorRendererView, { simulator }));
   simulator.router = markRaw(
-    createRouter({
-      history: createMemoryHistory('/'),
+    VueRouter.createRouter({
+      history: VueRouter.createMemoryHistory('/'),
       routes: [],
     })
   );
