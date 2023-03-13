@@ -6,6 +6,7 @@ import pkg from './package.json';
 export default defineConfig({
   plugins: [LibTypes()],
   build: {
+    target: 'ES2018',
     lib: {
       entry: 'src/index.ts',
       formats: ['cjs', 'es'],

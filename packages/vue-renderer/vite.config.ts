@@ -6,6 +6,7 @@ import pkg from './package.json';
 export default defineConfig({
   plugins: [VueJsx(), LibTypes({ fileName: 'vue-renderer.d.ts' })],
   build: {
+    target: 'ES2018',
     lib: {
       entry: 'src/index.ts',
       fileName: () => 'vue-renderer.mjs',
