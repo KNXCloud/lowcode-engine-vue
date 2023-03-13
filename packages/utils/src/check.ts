@@ -36,6 +36,10 @@ export function isFunction(val: unknown): val is (...args: any[]) => any {
   return typeof val === 'function';
 }
 
+export function isPromise(val: unknown): val is Promise<unknown> {
+  return isObject(val) && isFunction(val.then) && isFunction(val.catch);
+}
+
 export function isPlainObject(val: unknown): val is Record<string, unknown> {
   return !isNil(val) && Object.prototype.toString.call(val) === '[object Object]';
 }

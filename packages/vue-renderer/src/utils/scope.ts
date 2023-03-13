@@ -2,7 +2,7 @@ import { isReactive, proxyRefs, type ComponentPublicInstance } from 'vue';
 import type { MaybeArray } from './array';
 import type { DataSourceItem } from '../data-source';
 import { isProxy, reactive } from 'vue';
-import { isObject } from '@knxcloud/lowcode-utils';
+import { isBoolean, isObject, isUndefined } from '@knxcloud/lowcode-utils';
 
 export interface BlockScope {
   [x: string]: unknown;
@@ -59,6 +59,64 @@ export function getAccessTarget(
       return scope.$.props;
     default:
       return scope.$.ctx;
+  }
+}
+
+export function addToScope(
+  scope: RuntimeScope,
+  accessType: AccessTypes,
+  source: object,
+  useDefineProperty?: boolean
+): void {
+  const instance = scope.$;
+  const target = getAccessTarget(scope, accessType);
+  if (useDefineProperty) {
+    const descriptors = Object.getOwnPropertyDescriptors(source);
+    for (const key in descriptors) {
+      Object.defineProperty(target, key, descriptors[key]);
+      instance.accessCache[key] = accessType;
+    }
+  } else {
+    for (const key in source) {
+      target[key] = Reflect.get(source, key);
+      instance.accessCache[key] = accessType;
+    }
+  }
+  if (accessType === AccessTypes.PROPS) {
+    const {
+      propsOptions: [propsOptions, needCastKeys],
+    } = instance;
+    for (const key in source) {
+      if (propsOptions[key]) continue;
+
+      const val = Reflect.get(source, key);
+      if (isBoolean(val)) {
+        propsOptions[key] = {
+          // 不传入值时默认为 val
+          0: true,
+          // passVal === '' || passVal === key 时需要转化为 true
+          1: true,
+          type: Boolean,
+          default: val,
+        };
+        needCastKeys.push(key);
+      } else if (!isUndefined(val)) {
+        propsOptions[key] = {
+          // 不传入值时默认为 val
+          0: true,
+          1: false,
+          type: null,
+          default: val,
+        };
+        needCastKeys.push(key);
+      } else {
+        propsOptions[key] = {
+          0: false,
+          1: false,
+          type: null,
+        };
+      }
+    }
   }
 }
 

@@ -68,10 +68,13 @@ type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
 const VueRenderer = defineComponent({
   props: vueRendererProps,
   setup(props, { slots }) {
+    const parser = new SchemaParser({
+      thisRequired: props.thisRequiredInJSE,
+    }).initModule(props.schema);
+
     const triggerCompGetCtx = (schema: NodeSchema, val: ComponentPublicInstance) => {
       val && props.onCompGetCtx?.(schema, val);
     };
-    const parser = new SchemaParser({ thisRequired: props.thisRequiredInJSE });
     const getNode = (id: string) => props.getNode?.(id) ?? null;
 
     const schemaRef = shallowRef(props.schema);
@@ -152,6 +155,10 @@ const VueRenderer = defineComponent({
     };
   },
 });
+
+export const cleanCacledModules = () => {
+  SchemaParser.cacheModules = {};
+};
 
 export { VueRenderer, vueRendererProps };
 export type { VueRendererProps, I18nMessages, BlockScope };
