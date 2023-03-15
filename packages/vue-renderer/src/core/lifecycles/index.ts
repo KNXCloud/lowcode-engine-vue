@@ -39,3 +39,5 @@ export function createHookCaller(
 
   return callHook;
 }
+
+export { setupLowCodeRouteGuard, LOWCODE_ROUTE_GUARD_META } from './vue-router';

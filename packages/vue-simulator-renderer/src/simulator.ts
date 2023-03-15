@@ -22,7 +22,12 @@ import type {
   SimulatorViewLayout,
   VueSimulatorRenderer,
 } from './interface';
-import VueRenderer, { config, cleanCacledModules } from '@knxcloud/lowcode-vue-renderer';
+import VueRenderer, {
+  config,
+  LOWCODE_ROUTE_GUARD_META,
+  SchemaParser,
+  setupLowCodeRouteGuard,
+} from '@knxcloud/lowcode-vue-renderer';
 import {
   AssetLoader,
   buildUtils,
@@ -206,7 +211,7 @@ function createDocumentInstance(
     getComponentInstance,
     rerender: () => {
       timestamp.value = Date.now();
-      cleanCacledModules();
+      SchemaParser.cleanCacheModules();
     },
   }) as DocumentInstance;
 }
@@ -414,6 +419,11 @@ function createSimulatorRenderer() {
       thisRequiredInJSE.value = host.thisRequiredInJSE ?? true;
 
       documentInstances.value.forEach((doc) => doc.rerender());
+
+      setupLowCodeRouteGuard(simulator.router, {
+        thisRequired: thisRequiredInJSE.value,
+        scopePath: 'renderer.runtimeScope',
+      });
     })
   );
 
@@ -423,23 +433,18 @@ function createSimulatorRenderer() {
       documentInstances.value = host.project.documents.map((doc) => {
         let documentInstance = documentInstanceMap.get(doc.id);
         if (!documentInstance) {
-          // @ts-ignore ts check IDocumentModel to DocumentModel
-          documentInstance = createDocumentInstance(doc, context);
+          // TODO: 类型不兼容 IDocumentModel to DocumentModel，暂时用类型强转处理
+          documentInstance = createDocumentInstance(doc as any, context);
           documentInstanceMap.set(doc.id, documentInstance);
-        } else {
-          const route = router.resolve({ name: documentInstance.id });
-          if (route) {
-            if (route.path === documentInstance.path) {
-              documentInstance.rerender();
-              return documentInstance;
-            } else {
-              router.removeRoute(documentInstance.id);
-            }
-          }
+        } else if (router.hasRoute(documentInstance.id)) {
+          router.removeRoute(documentInstance.id);
         }
         router.addRoute({
           name: documentInstance.id,
           path: documentInstance.path,
+          meta: {
+            [LOWCODE_ROUTE_GUARD_META]: documentInstance.schema,
+          },
           component: Renderer,
           props: () => ({
             key: documentInstance?.key,
@@ -458,9 +463,7 @@ function createSimulatorRenderer() {
         }
       });
       const inst = simulator.getCurrentDocument();
-      if (inst && inst.id !== router.currentRoute.value.name) {
-        router.replace({ name: inst.id });
-      }
+      inst && router.replace({ name: inst.id, force: true });
     })
   );
 

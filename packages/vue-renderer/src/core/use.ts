@@ -26,6 +26,8 @@ import {
   toRaw,
   toDisplayString,
   inject,
+  isVNode,
+  mergeProps,
 } from 'vue';
 import type { Node, Prop } from '@alilc/lowcode-designer';
 import type {
@@ -41,6 +43,8 @@ import {
   type BlockScope,
   type RuntimeScope,
   SchemaParser,
+  warnOnce,
+  warn,
 } from '../utils';
 import { getCurrentNodeKey, useRendererContext } from '@knxcloud/lowcode-hooks';
 import {
@@ -57,6 +61,8 @@ import {
   isSlotSchema,
   fromPairs,
   isPromise,
+  toString,
+  createObjectSpliter,
 } from '@knxcloud/lowcode-utils';
 import { Hoc } from './hoc';
 import { Live } from './live';
@@ -111,7 +117,7 @@ export type RenderComponent = (
   nodeSchema: NodeData,
   blockScope?: MaybeArray<BlockScope | undefined | null>,
   comp?: Component | typeof Fragment
-) => VNode | null;
+) => VNode | VNode[] | null;
 
 export type SlotSchemaMap = {
   [x: string]: SlotSchema | NodeData | NodeData[] | undefined;
@@ -173,7 +179,7 @@ export function useLeaf(
   onChildShowChange: (schema: NodeSchema, show: boolean) => void = () => void 0
 ) {
   const renderContext = useRendererContext();
-  const { getNode, designMode, thisRequiredInJSE } = renderContext;
+  const { getNode, wrapLeafComp, designMode, thisRequiredInJSE } = renderContext;
   const parser = new SchemaParser({
     thisRequired: thisRequiredInJSE,
   });
@@ -202,7 +208,7 @@ export function useLeaf(
     base: Component,
     blockScope?: MaybeArray<BlockScope | undefined | null>,
     comp?: Component | typeof Fragment
-  ) => {
+  ): VNode | VNode[] | null => {
     const scope = mergeScope(leafProps.__scope, blockScope);
 
     // 若 schema 不为 NodeSchema，则直接渲染
@@ -213,28 +219,44 @@ export function useLeaf(
       return createTextVNode(toDisplayString(result));
     }
 
-    // 若不传入 comp，则根据节点的 componentName 推断
-    if (!comp) {
-      const { componentName } = schema;
-      comp = renderContext.components[componentName];
-
-      if (!comp && componentName !== 'Slot') {
-        return h('div', 'component not found');
-      }
-    }
-
-    const node = schema.id ? getNode(schema.id) : null;
-
-    // 应用节点组件的私有属性，适配 naive-ui 的 grid,popover 等组件
-    const [privateOptions, _, privateOptionsCount] = splitOptions(comp);
-    if (privateOptionsCount) {
-      base = Object.create(base, Object.getOwnPropertyDescriptors(privateOptions));
-    }
-
     const { show, scence } = buildShow(schema, scope, isDesignMode);
     if (!show) {
       return createCommentVNode(`${scence} ${show}`);
     }
+
+    const node = schema.id ? getNode(schema.id) : null;
+
+    // 若不传入 comp，则根据节点的 componentName 推断
+    const { componentName } = schema;
+    if (!comp) {
+      comp = renderContext.components[componentName];
+
+      if (!comp) {
+        if (componentName === 'Slot') {
+          return ensureArray(schema.children)
+            .flatMap((item) => render(item, base, blockScope))
+            .filter((item): item is VNode => !isNil(item));
+        }
+
+        if (isDesignMode) {
+          return h('div', `component[${componentName}] not found`);
+        }
+
+        comp = {
+          setup(props, { slots }) {
+            warnOnce('组件未找到, 组件名：' + componentName);
+            return h(
+              'div',
+              mergeProps(props, { class: 'lc-component-not-found' }),
+              slots
+            );
+          },
+        };
+      }
+    }
+
+    // 应用节点组件的私有属性，适配 naive-ui 的 grid,popover 等组件
+    base = wrapLeafComp(componentName, comp, base);
 
     const ref = (inst: ComponentPublicInstance) => {
       renderContext.triggerCompGetCtx(schema, inst);
@@ -260,30 +282,27 @@ export function useLeaf(
     }
 
     if (!Array.isArray(loop)) {
-      console.warn('[vue-renderer]: loop must be array', loop);
-      return h(Fragment, []);
+      warn('循环对象必须是数组, type: ' + toString(loop));
+      return null;
     }
 
-    return h(
-      Fragment,
-      loop.map((item, index, arr) => {
-        const blockScope = buildLoopScope(item, index, arr.length);
-        const props = buildProps(rawProps, scope, node, blockScope, { ref });
-        const [vnodeProps, compProps] = splitProps(props);
-        return h(
-          base,
-          {
-            key: vnodeProps.key ?? `${schema.id}--${index}`,
-            __comp: comp,
-            __scope: scope,
-            __schema: schema,
-            __vnodeProps: vnodeProps,
-            ...compProps,
-          },
-          buildSlots(rawSlots, node)
-        );
-      })
-    );
+    return loop.map((item, index, arr) => {
+      const blockScope = buildLoopScope(item, index, arr.length);
+      const props = buildProps(rawProps, scope, node, blockScope, { ref });
+      const [vnodeProps, compProps] = splitProps(props);
+      return h(
+        base,
+        {
+          key: vnodeProps.key ?? `${schema.id}--${index}`,
+          __comp: comp,
+          __scope: scope,
+          __schema: schema,
+          __vnodeProps: vnodeProps,
+          ...compProps,
+        },
+        buildSlots(rawSlots, node)
+      );
+    });
   };
 
   /**
@@ -292,10 +311,10 @@ export function useLeaf(
    * @param blockScope - 节点块级作用域
    * @param comp - 节点渲染的组件，若不传入，则根据节点的 componentName 推断
    */
-  const renderHoc: RenderComponent = (nodeSchema, blockScope, comp): VNode | null => {
+  const renderHoc: RenderComponent = (nodeSchema, blockScope, comp) => {
     const vnode = render(nodeSchema, Hoc, blockScope, comp);
 
-    if (isNodeSchema(nodeSchema)) {
+    if (isNodeSchema(nodeSchema) && isVNode(vnode)) {
       if (vnode.type === Comment) {
         onChildShowChange(nodeSchema, false);
       } else {
@@ -312,7 +331,7 @@ export function useLeaf(
    * @param blockScope - 节点块级作用域
    * @param comp - 节点渲染的组件，若不传入，则根据节点的 componentName 推断
    */
-  const renderLive: RenderComponent = (nodeSchema, blockScope, comp): VNode | null => {
+  const renderLive: RenderComponent = (nodeSchema, blockScope, comp) => {
     return render(nodeSchema, Live, blockScope, comp);
   };
 
@@ -364,7 +383,7 @@ export function useLeaf(
               blockScope,
               parser.parseSlotScope(args, slotSchema.params ?? []),
             ]);
-            return isNil(vnode) ? [] : [vnode];
+            return ensureArray(vnode);
           };
         } else {
           // 不存在 slot id，插槽不可拖拽编辑，直接渲染插槽内容
@@ -376,10 +395,7 @@ export function useLeaf(
           };
         }
       } else {
-        renderSlot = () => {
-          const vnode = renderComp(slotSchema, blockScope);
-          return vnode ? [vnode] : [];
-        };
+        renderSlot = () => ensureArray(renderComp(slotSchema, blockScope));
       }
 
       prev[next] =
@@ -428,7 +444,7 @@ export function useLeaf(
         const vnodes: VNode[] = [];
         ensureArray(slotSchema).forEach((item) => {
           const vnode = renderComp(item, [blockScope, slotScope]);
-          vnode && vnodes.push(vnode);
+          ensureArray(vnode).forEach((item) => vnodes.push(item));
         });
         return vnodes;
       };
@@ -879,49 +895,11 @@ const decorateDefaultSlot = (slot: Slot, locked: Ref<boolean>): Slot => {
   };
 };
 
-const createObjectSpliter = (
-  speicalProps: string | string[] | ((prop: string) => boolean)
-) => {
-  const propsSet = new Set(
-    isString(speicalProps)
-      ? speicalProps.split(',')
-      : Array.isArray(speicalProps)
-      ? speicalProps
-      : []
-  );
-
-  const has = isFunction(speicalProps)
-    ? speicalProps
-    : (prop: string) => propsSet.has(prop);
-
-  return <T>(o: Record<string, T>): [Record<string, T>, Record<string, T>, number] => {
-    const keys = Object.keys(o);
-    if (keys.every((k) => !has(k))) return [{}, o, 0];
-
-    let count = 0;
-    const left: Record<string, T> = {};
-    const right: Record<string, T> = {};
-
-    for (const key of keys) {
-      if (has(key)) {
-        left[key] = o[key];
-        count++;
-      } else {
-        right[key] = o[key];
-      }
-    }
-
-    return [left, right, count];
-  };
-};
-
-export const splitProps = createObjectSpliter(
+const splitProps = createObjectSpliter(
   'key,ref,ref_for,ref_key,' +
     'onVnodeBeforeMount,onVnodeMounted,' +
     'onVnodeBeforeUpdate,onVnodeUpdated,' +
     'onVnodeBeforeUnmount,onVnodeUnmounted'
 );
-export const splitOptions = createObjectSpliter(
-  (prop) => !prop.match(/^[a-z]+([A-Z][a-z]+)*$/)
-);
+
 export const splitLeafProps = createObjectSpliter(leafPropKeys);

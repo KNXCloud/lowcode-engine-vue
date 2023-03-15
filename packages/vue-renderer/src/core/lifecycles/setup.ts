@@ -1,4 +1,10 @@
-import { isFunction, isObject, isPromise } from '@knxcloud/lowcode-utils';
+import {
+  isFunction,
+  isNil,
+  isObject,
+  isPromise,
+  toString,
+} from '@knxcloud/lowcode-utils';
 import { toRaw } from 'vue';
 import {
   AccessTypes,
@@ -26,8 +32,9 @@ export function setup(
 }
 
 function handleResult(result: unknown, scope: RuntimeScope) {
+  if (isNil(result)) return;
   if (!isObject(result)) {
-    warn('不支持的 setup 返回值类型, type: ' + Object.prototype.toString.call(result));
+    warn('不支持的 setup 返回值类型, type: ' + toString(result));
     return;
   }
   addToScope(scope, AccessTypes.SETUP, toRaw(result));
