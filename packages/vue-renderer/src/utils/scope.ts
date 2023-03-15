@@ -3,6 +3,7 @@ import type { MaybeArray } from './array';
 import type { DataSourceItem } from '../data-source';
 import { isProxy, reactive } from 'vue';
 import { isBoolean, isObject, isUndefined } from '@knxcloud/lowcode-utils';
+import { warn } from './warn';
 
 export interface BlockScope {
   [x: string]: unknown;
@@ -12,6 +13,7 @@ declare module 'vue' {
   export interface ComponentInternalInstance {
     ctx: Record<string, unknown>;
     setupState: Record<string, unknown>;
+    emitsOptions: Record<string, ((...args: any[]) => unknown) | null>;
     propsOptions: [Record<string, object>, string[]];
     accessCache: Record<string, AccessTypes>;
   }
@@ -73,21 +75,31 @@ export function addToScope(
   if (useDefineProperty) {
     const descriptors = Object.getOwnPropertyDescriptors(source);
     for (const key in descriptors) {
+      if (key in target) {
+        warn('重复定义 key: ' + key);
+        continue;
+      }
       Object.defineProperty(target, key, descriptors[key]);
       instance.accessCache[key] = accessType;
     }
   } else {
     for (const key in source) {
+      if (key in target) {
+        warn('重复定义 key: ' + key);
+        continue;
+      }
       target[key] = Reflect.get(source, key);
       instance.accessCache[key] = accessType;
     }
   }
-  if (accessType === AccessTypes.PROPS) {
+  if (accessType === AccessTypes.PROPS && Object.keys(source).length > 0) {
     const {
-      propsOptions: [propsOptions, needCastKeys],
+      propsOptions: [rawPropsOptions, rawNeedCastKeys],
     } = instance;
+    const propsOptions: Record<string, object> = {};
+    const needCastKeys: string[] = [];
     for (const key in source) {
-      if (propsOptions[key]) continue;
+      if (rawPropsOptions[key]) continue;
 
       const val = Reflect.get(source, key);
       if (isBoolean(val)) {
@@ -116,6 +128,13 @@ export function addToScope(
           type: null,
         };
       }
+    }
+
+    if (Object.keys(propsOptions).length > 0) {
+      instance.propsOptions = [
+        { ...rawPropsOptions, ...propsOptions },
+        [...rawNeedCastKeys, ...needCastKeys],
+      ];
     }
   }
 }

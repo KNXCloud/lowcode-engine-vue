@@ -36,6 +36,10 @@ export function isBoolean(value: unknown): value is boolean {
   return typeof value === 'boolean';
 }
 
+export function isArray(val: any): val is any[] {
+  return Array.isArray(val);
+}
+
 export function isFunction(val: unknown): val is (...args: any[]) => any {
   return typeof val === 'function';
 }

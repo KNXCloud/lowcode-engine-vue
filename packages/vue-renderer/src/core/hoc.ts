@@ -93,12 +93,11 @@ export const Hoc = defineComponent({
     );
 
     if (node) {
-      onUnmounted(
-        node.onChildrenChange(() => {
-          // 默认插槽内容变更，无法确定变更的层级，所以只能全部更新
-          rerenderRoot();
-        })
-      );
+      const cancel = node.onChildrenChange(() => {
+        // 默认插槽内容变更，无法确定变更的层级，所以只能全部更新
+        rerenderRoot();
+      });
+      cancel && onUnmounted(cancel);
       onUnmounted(
         node.onPropChange((info) => {
           const { key, prop, newValue, oldValue } = info;

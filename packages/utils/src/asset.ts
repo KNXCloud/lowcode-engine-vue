@@ -3,7 +3,7 @@
  */
 import type { Asset, AssetBundle, AssetItem, AssetList } from '@alilc/lowcode-types';
 import { AssetLevel, AssetLevels, AssetType } from '@alilc/lowcode-types/es/assets';
-import { isCSSUrl } from './check';
+import { isArray, isCSSUrl } from './check';
 import { createDefer } from './create-defer';
 import { evaluate, load } from './script';
 
@@ -44,13 +44,13 @@ function parseAsset(
   if (!asset) {
     return;
   }
-  if (Array.isArray(asset)) {
+  if (isArray(asset)) {
     return parseAssetList(scripts, styles, asset, level);
   }
 
   if (isAssetBundle(asset)) {
     if (asset.assets) {
-      if (Array.isArray(asset.assets)) {
+      if (isArray(asset.assets)) {
         parseAssetList(scripts, styles, asset.assets, asset.level || level);
       } else {
         parseAsset(scripts, styles, asset.assets, asset.level || level);

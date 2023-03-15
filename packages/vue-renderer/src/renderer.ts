@@ -17,6 +17,7 @@ import {
   watch,
   triggerRef,
   ref,
+  watchEffect,
 } from 'vue';
 import {
   type I18nMessages,
@@ -27,7 +28,12 @@ import {
 } from './utils';
 import config from './config';
 import { RENDERER_COMPS } from './renderers';
-import { createObjectSpliter, debounce, exportSchema } from '@knxcloud/lowcode-utils';
+import {
+  createObjectSpliter,
+  debounce,
+  exportSchema,
+  isBoolean,
+} from '@knxcloud/lowcode-utils';
 
 const vueRendererProps = {
   scope: Object as PropType<BlockScope>,
@@ -62,7 +68,10 @@ const vueRendererProps = {
     type: Boolean,
     default: true,
   },
-  disabledMockComps: Array as PropType<string[]>,
+  disableCompMock: {
+    type: [Array, Boolean] as PropType<string[] | boolean>,
+    default: false,
+  },
 } as const;
 
 type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
@@ -86,6 +95,17 @@ const VueRenderer = defineComponent({
       () => props.schema,
       () => (schemaRef.value = props.schema)
     );
+
+    let needWrapComp: (name: string) => boolean = () => true;
+
+    watchEffect(() => {
+      const disableCompMock = props.disableCompMock;
+      if (isBoolean(disableCompMock)) {
+        needWrapComp = disableCompMock ? () => false : () => true;
+      } else if (disableCompMock) {
+        needWrapComp = (name) => !disableCompMock.includes(name);
+      }
+    });
 
     const wrapCached: Map<object, Map<object, any>> = new Map();
 
@@ -123,7 +143,7 @@ const VueRenderer = defineComponent({
           record = new Map();
         }
 
-        if (!props.disabledMockComps || !props.disabledMockComps.includes(name)) {
+        if (needWrapComp(name)) {
           const [privateOptions, _, privateOptionsCount] = splitOptions(comp as any);
           if (privateOptionsCount) {
             leaf = Object.create(leaf, Object.getOwnPropertyDescriptors(privateOptions));

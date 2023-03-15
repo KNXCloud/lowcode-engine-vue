@@ -108,7 +108,10 @@ export function setupLowCodeRouteGuard(
       ? async (vm: ComponentPublicInstance) => {
           let scope: unknown;
           const now = Date.now();
-          while (!(scope = get(vm)) && Date.now() - now < timeout) {
+          while (!(scope = get(vm))) {
+            if (Date.now() - now >= timeout) {
+              throw new Error('lowcode guard wait timeout');
+            }
             await sleep();
           }
           return result(scope);

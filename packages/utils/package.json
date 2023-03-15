@@ -3,7 +3,7 @@
   "main": "./dist/lowcode-utils.js",
   "module": "./dist/lowcode-utils.mjs",
   "typings": "./dist/lowcode-utils.d.ts",
-  "version": "1.6.0-beta.4",
+  "version": "1.6.0-beta.5",
   "keywords": [
     "vue",
     "lowcode",
@@ -17,20 +17,27 @@
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
     "prepack": "pnpm build"
   },
-  "dependencies": {
-    "@alilc/lowcode-designer": "^1.1.2",
-    "@alilc/lowcode-types": "^1.1.2"
-  },
+  "dependencies": {},
   "devDependencies": {
+    "@alilc/lowcode-designer": "^1.1.3",
+    "@alilc/lowcode-types": "^1.1.3",
     "vite": "^4.1.4",
-    "vite-plugin-lib-types": "^0.1.0",
+    "vite-plugin-lib-types": "^0.1.2",
     "vue": "^3.2.47"
   },
   "peerDependencies": {
+    "@alilc/lowcode-designer": ">= 1.1.x < 2",
+    "@alilc/lowcode-types": ">= 1.1.x < 2",
     "vue": ">=3.2"
   },
   "peerDependenciesMeta": {
     "vue": {
+      "optional": true
+    },
+    "@alilc/lowcode-designer": {
+      "optional": true
+    },
+    "@alilc/lowcode-types": {
       "optional": true
     }
   },

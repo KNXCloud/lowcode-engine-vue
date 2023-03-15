@@ -1,4 +1,4 @@
-import { isFunction, isString } from './check';
+import { isArray, isFunction, isString } from './check';
 
 export const noop: (...args: any[]) => any = () => void 0;
 
@@ -13,7 +13,7 @@ export function fromPairs<E extends Iterable<unknown>>(
   : Record<string, unknown> {
   const result: any = {};
   for (const val of entries) {
-    if (Array.isArray(val) && val.length >= 2) {
+    if (isArray(val) && val.length >= 2) {
       result[val[0]] = val[1];
     }
   }
@@ -59,7 +59,7 @@ export const createObjectSpliter = (
   const propsSet = new Set(
     isString(speicalProps)
       ? speicalProps.split(',')
-      : Array.isArray(speicalProps)
+      : isArray(speicalProps)
       ? speicalProps
       : []
   );

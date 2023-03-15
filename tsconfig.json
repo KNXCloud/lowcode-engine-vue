@@ -8,6 +8,7 @@
     "useDefineForClassFields": true,
     "jsx": "preserve",
     "noImplicitThis": true,
+    "noImplicitAny": false,
     "strict": true,
     "preserveValueImports": true,
     "isolatedModules": true,
