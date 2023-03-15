@@ -39,7 +39,7 @@ export interface SetupLowCodeRouteGuardOptions extends SchemaParserOptions {
   timeout?: number;
 }
 
-export const LOWCODE_ROUTE_GUARD_META = Symbol('LOWCODE_ROUTE_GUARD_META');
+export const LOWCODE_ROUTE_META = Symbol('LOWCODE_ROUTE_META');
 
 function createPathGetter(path: string) {
   const segments = path.split('.');
@@ -128,7 +128,7 @@ export function setupLowCodeRouteGuard(
 
         const components = route.components ?? {};
         const defaultView = components.default;
-        const schema = route.meta[LOWCODE_ROUTE_GUARD_META];
+        const schema = route.meta[LOWCODE_ROUTE_META];
         if (defaultView && isContainerSchema(schema)) {
           let addedView: RouteComponent;
           if (isLazyComponent(defaultView)) {

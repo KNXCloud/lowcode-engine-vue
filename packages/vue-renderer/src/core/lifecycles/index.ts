@@ -40,4 +40,4 @@ export function createHookCaller(
   return callHook;
 }
 
-export { setupLowCodeRouteGuard, LOWCODE_ROUTE_GUARD_META } from './vue-router';
+export { setupLowCodeRouteGuard, LOWCODE_ROUTE_META } from './vue-router';

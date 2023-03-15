@@ -24,7 +24,7 @@ import type {
 } from './interface';
 import VueRenderer, {
   config,
-  LOWCODE_ROUTE_GUARD_META,
+  LOWCODE_ROUTE_META,
   SchemaParser,
   setupLowCodeRouteGuard,
 } from '@knxcloud/lowcode-vue-renderer';
@@ -443,7 +443,7 @@ function createSimulatorRenderer() {
           name: documentInstance.id,
           path: documentInstance.path,
           meta: {
-            [LOWCODE_ROUTE_GUARD_META]: documentInstance.schema,
+            [LOWCODE_ROUTE_META]: documentInstance.schema,
           },
           component: Renderer,
           props: () => ({
