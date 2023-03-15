@@ -4,19 +4,7 @@ import type {
   IPublicTypeComponentSchema,
 } from '@alilc/lowcode-types';
 import { defineComponent, h } from 'vue';
-import { isESModule, isFunction, isObject } from './check';
-
-export function isVueComponent(val: unknown): val is Component {
-  if (isFunction(val)) return true;
-  if (isObject(val) && ('render' in val || 'setup' in val || 'template' in val)) {
-    return true;
-  }
-  return false;
-}
-
-export function isComponentSchema(val: unknown): val is IPublicTypeComponentSchema {
-  return isObject(val) && val.componentName === 'Component';
-}
+import { isComponentSchema, isESModule, isVueComponent } from './check';
 
 export function accessLibrary(library: string | Record<string, unknown>) {
   if (typeof library !== 'string') {

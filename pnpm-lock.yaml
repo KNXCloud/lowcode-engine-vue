@@ -99,6 +99,7 @@ importers:
       vite: ^4.1.4
       vite-plugin-lib-types: ^0.1.0
       vue: ^3.2.47
+      vue-router: ^4.1.6
     dependencies:
       '@alilc/lowcode-types': 1.1.2
       '@knxcloud/lowcode-hooks': link:../hooks
@@ -112,6 +113,7 @@ importers:
       vite: 4.1.4
       vite-plugin-lib-types: 0.1.0_vite@4.1.4+vue@3.2.47
       vue: 3.2.47
+      vue-router: 4.1.6_vue@3.2.47
 
   packages/vue-simulator-renderer:
     specifiers:
@@ -2946,7 +2948,6 @@ packages:
 
   /@vue/devtools-api/6.5.0:
     resolution: {integrity: sha512-o9KfBeaBmCKl10usN4crU53fYtC1r7jJwdGKjPT24t348rHxgfpZ0xL3Xm/gLUYnc0oTp8LAmrxOeLyu6tbk2Q==}
-    dev: false
 
   /@vue/eslint-config-prettier/7.1.0_yrlhudqyxg2l7qvwle5bdpmrli:
     resolution: {integrity: sha512-Pv/lVr0bAzSIHLd9iz0KnvAr4GKyCEl+h52bc4e5yWuDVtLgFwycF7nrbWTAQAS+FU6q1geVd07lc6EWfJiWKQ==}
@@ -10496,7 +10497,6 @@ packages:
     dependencies:
       '@vue/devtools-api': 6.5.0
       vue: 3.2.47
-    dev: false
 
   /vue-style-loader/4.1.3:
     resolution: {integrity: sha512-sFuh0xfbtpRlKfm39ss/ikqs9AbKCoXZBpHeVZ8Tx650o0k0q/YCM7FRvigtxpACezfq6af+a7JeqVTWvncqDg==}

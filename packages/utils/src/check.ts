@@ -5,7 +5,11 @@ import type {
   IPublicTypeI18nData,
   IPublicTypeNodeSchema,
   IPublicTypeSlotSchema,
+  IPublicTypeComponentSchema,
+  IPublicTypeContainerSchema,
 } from '@alilc/lowcode-types';
+import type { Component, DefineComponent } from 'vue';
+import { toString } from './misc';
 
 export type ESModule = {
   __esModule: true;
@@ -41,11 +45,14 @@ export function isPromise(val: unknown): val is Promise<unknown> {
 }
 
 export function isPlainObject(val: unknown): val is Record<string, unknown> {
-  return !isNil(val) && Object.prototype.toString.call(val) === '[object Object]';
+  return !isNil(val) && toString(val) === '[object Object]';
 }
 
-export function isESModule(obj: unknown): obj is ESModule {
-  return isObject(obj) && !!obj.__esModule;
+export function isESModule<T>(obj: T | { default: T }): obj is ESModule {
+  return (
+    obj &&
+    (Reflect.get(obj, '__esModule') || Reflect.get(obj, Symbol.toStringTag) === 'Module')
+  );
 }
 
 export function isCSSUrl(url: string): boolean {
@@ -78,10 +85,31 @@ export function isDOMText(val: unknown): val is string {
   return isString(val);
 }
 
+export function isVueComponent(val: unknown): val is Component | DefineComponent {
+  if (isFunction(val)) return true;
+  if (isObject(val) && ('render' in val || 'setup' in val || 'template' in val)) {
+    return true;
+  }
+  return false;
+}
+
 export function isNodeSchema(data: any): data is IPublicTypeNodeSchema {
   return data && data.componentName;
 }
 
 export function isSlotSchema(data: any): data is IPublicTypeSlotSchema {
   return isNodeSchema(data) && data.componentName === 'Slot';
+}
+
+export function isComponentSchema(val: unknown): val is IPublicTypeComponentSchema {
+  return isObject(val) && val.componentName === 'Component';
+}
+
+export function isContainerSchema(val: unknown): val is IPublicTypeContainerSchema {
+  return (
+    isNodeSchema(val) &&
+    (val.componentName === 'Block' ||
+      val.componentName === 'Page' ||
+      val.componentName === 'Component')
+  );
 }

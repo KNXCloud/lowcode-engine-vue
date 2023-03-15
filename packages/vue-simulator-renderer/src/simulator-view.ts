@@ -1,4 +1,4 @@
-import type { PropType } from 'vue';
+import { ref, Suspense, type PropType } from 'vue';
 import type { DocumentInstance, VueSimulatorRenderer } from './interface';
 import { defineComponent, h, renderSlot } from 'vue';
 import LowCodeRenderer from '@knxcloud/lowcode-vue-renderer';
@@ -52,6 +52,7 @@ export const Renderer = defineComponent({
       required: true,
     },
   },
+  setup: () => ({ renderer: ref() }),
   render() {
     const { documentInstance, simulator } = this;
     const { schema, scope, messages } = documentInstance;
@@ -59,17 +60,21 @@ export const Renderer = defineComponent({
 
     if (!simulator.autoRender) return null;
 
-    return h(LowCodeRenderer, {
-      scope: scope,
-      schema: schema,
-      locale: locale,
-      device: device,
-      messages: messages,
-      components: components,
-      designMode: designMode,
-      thisRequiredInJSE: simulator.thisRequiredInJSE,
-      getNode: (id) => documentInstance.getNode(id) as any,
-      onCompGetCtx: (schema, ref) => documentInstance.mountInstance(schema.id!, ref),
+    return h(Suspense, null, {
+      default: () =>
+        h(LowCodeRenderer, {
+          ref: 'renderer',
+          scope: scope,
+          schema: schema,
+          locale: locale,
+          device: device,
+          messages: messages,
+          components: components,
+          designMode: designMode,
+          thisRequiredInJSE: simulator.thisRequiredInJSE,
+          getNode: (id) => documentInstance.getNode(id) as any,
+          onCompGetCtx: (schema, ref) => documentInstance.mountInstance(schema.id!, ref),
+        }),
     });
   },
 });

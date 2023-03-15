@@ -11,6 +11,7 @@ export interface RendererContext {
   readonly thisRequiredInJSE: boolean;
   getNode(id: string): Node | null;
   rerender(): void;
+  wrapLeafComp<C extends object, L extends object>(name: string, comp: C, leaf: L): L;
   triggerCompGetCtx(schema: IPublicTypeNodeSchema, val: ComponentPublicInstance): void;
 }
 
@@ -35,6 +36,8 @@ export function useRendererContext(): RendererContext {
         components: getPropValue(props, 'components', {}),
         designMode: getPropValue<DesignMode>(props, 'designMode', 'live'),
         getNode: getPropValue(props, 'getNode', () => null),
+        wrapLeafComp: <T extends object, L extends object>(_: string, __: T, leaf: L) =>
+          leaf,
         triggerCompGetCtx: getPropValue(props, 'triggerCompGetCtx', () => void 0),
       };
     },

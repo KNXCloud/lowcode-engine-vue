@@ -13,20 +13,21 @@ import {
   provide,
   computed,
   defineComponent,
-  Suspense,
   shallowRef,
   watch,
   triggerRef,
+  ref,
 } from 'vue';
 import {
   type I18nMessages,
   type BlockScope,
   type ExtractPublicPropTypes,
   SchemaParser,
+  type RuntimeScope,
 } from './utils';
 import config from './config';
 import { RENDERER_COMPS } from './renderers';
-import { debounce, exportSchema } from '@knxcloud/lowcode-utils';
+import { createObjectSpliter, debounce, exportSchema } from '@knxcloud/lowcode-utils';
 
 const vueRendererProps = {
   scope: Object as PropType<BlockScope>,
@@ -61,13 +62,16 @@ const vueRendererProps = {
     type: Boolean,
     default: true,
   },
+  disabledMockComps: Array as PropType<string[]>,
 } as const;
 
 type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
 
+const splitOptions = createObjectSpliter((prop) => !prop.match(/^[a-z]+([A-Z][a-z]+)*$/));
+
 const VueRenderer = defineComponent({
   props: vueRendererProps,
-  setup(props, { slots }) {
+  setup(props, { slots, expose }) {
     const parser = new SchemaParser({
       thisRequired: props.thisRequiredInJSE,
     }).initModule(props.schema);
@@ -82,6 +86,8 @@ const VueRenderer = defineComponent({
       () => props.schema,
       () => (schemaRef.value = props.schema)
     );
+
+    const wrapCached: Map<object, Map<object, any>> = new Map();
 
     const rendererContext = reactive({
       designMode: computed(() => props.designMode),
@@ -104,9 +110,35 @@ const VueRenderer = defineComponent({
         }
         triggerRef(schemaRef);
       }),
+      wrapLeafComp: <T extends object, L extends object>(
+        name: string,
+        comp: T,
+        leaf: L
+      ): L => {
+        let record = wrapCached.get(leaf);
+        if (record) {
+          const cachedComp = record.get(comp);
+          if (cachedComp) return cachedComp;
+        } else {
+          record = new Map();
+        }
+
+        if (!props.disabledMockComps || !props.disabledMockComps.includes(name)) {
+          const [privateOptions, _, privateOptionsCount] = splitOptions(comp as any);
+          if (privateOptionsCount) {
+            leaf = Object.create(leaf, Object.getOwnPropertyDescriptors(privateOptions));
+          }
+        }
+        record.set(comp, leaf);
+        return leaf;
+      },
     });
 
     provide(getRendererContextKey(), rendererContext);
+
+    const runtimeScope = ref<RuntimeScope>();
+
+    expose({ runtimeScope });
 
     const renderContent = () => {
       const { components } = rendererContext;
@@ -122,27 +154,28 @@ const VueRenderer = defineComponent({
       }
 
       return Comp
-        ? h(Suspense, null, {
-            ...slots,
-            default: () =>
-              h(Comp, {
-                key: schema.__ctx
-                  ? `${schema.__ctx.lceKey}_${schema.__ctx.idx || '0'}`
-                  : schema.id,
-                ...passProps,
-                ...parser.parseOnlyJsValue(schema.props),
-                __parser: parser,
-                __scope: scope,
-                __schema: schema,
-                __locale: locale,
-                __messages: messages,
-                __components: components,
-                __designMode: designMode,
-                __thisRequiredInJSE: thisRequiredInJSE,
-                __getNode: getNode,
-                __triggerCompGetCtx: triggerCompGetCtx,
-              } as any),
-          })
+        ? h(
+            Comp,
+            {
+              key: schema.__ctx
+                ? `${schema.__ctx.lceKey}_${schema.__ctx.idx || '0'}`
+                : schema.id,
+              ...passProps,
+              ...parser.parseOnlyJsValue(schema.props),
+              ref: runtimeScope,
+              __parser: parser,
+              __scope: scope,
+              __schema: schema,
+              __locale: locale,
+              __messages: messages,
+              __components: components,
+              __designMode: designMode,
+              __thisRequiredInJSE: thisRequiredInJSE,
+              __getNode: getNode,
+              __triggerCompGetCtx: triggerCompGetCtx,
+            } as any,
+            slots
+          )
         : null;
     };
 
@@ -157,7 +190,7 @@ const VueRenderer = defineComponent({
 });
 
 export const cleanCacledModules = () => {
-  SchemaParser.cacheModules = {};
+  SchemaParser.cleanCacheModules();
 };
 
 export { VueRenderer, vueRendererProps };

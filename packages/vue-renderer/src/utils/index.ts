@@ -10,6 +10,6 @@ export {
   type BlockScope,
 } from './scope';
 export { ensureArray, type MaybeArray } from './array';
-export { SchemaParser } from './parse';
+export { SchemaParser, type SchemaParserOptions } from './parse';
 export type { ExtractPublicPropTypes } from './types';
 export { warn, warnOnce } from './warn';

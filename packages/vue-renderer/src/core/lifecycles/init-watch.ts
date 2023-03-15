@@ -7,7 +7,7 @@ import {
   type SchemaParser,
 } from '../../utils';
 
-export function createPathGetter(ctx: any, path: string) {
+function createPathGetter(ctx: any, path: string) {
   const segments = path.split('.');
   return () => {
     let cur = ctx;

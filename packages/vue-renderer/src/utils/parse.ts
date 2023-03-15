@@ -23,12 +23,19 @@ export const EXPRESSION_TYPE = {
   I18N: 'i18n',
 } as const;
 
+export interface SchemaParserOptions {
+  thisRequired?: boolean;
+}
+
 export class SchemaParser {
   static cacheModules: Record<string, object> = {};
+  static cleanCacheModules() {
+    this.cacheModules = {};
+  }
   private createFunction: (code: string) => CallableFunction;
   private exports = {};
 
-  constructor(options?: { thisRequired: boolean }) {
+  constructor(options?: SchemaParserOptions) {
     this.createFunction =
       options && !options.thisRequired
         ? (code) =>
