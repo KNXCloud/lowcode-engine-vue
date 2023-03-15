@@ -4,6 +4,7 @@ import { isVNode } from 'vue';
 import { isVNodeHTMLElement } from './comp-node';
 import { isDomNode, isEmptyNode } from './check-node';
 import { getClientRects } from './get-client-rects';
+import { isArray } from '@knxcloud/lowcode-utils';
 
 export function findDOMNodes(instance: ComponentInstance) {
   const els: (Element | Text)[] = [];
@@ -60,7 +61,7 @@ function appendDescendantComponent(
     target.push(current);
     return true;
   }
-  if (Array.isArray(subNode.children) && subNode.children.length > 0) {
+  if (isArray(subNode.children) && subNode.children.length > 0) {
     return appendDescendantChildren(target, subNode.children as VNode<Element | Text>[]);
   } else if (subNode.component) {
     return appendDescendantComponent(target, subNode.component);
@@ -80,7 +81,7 @@ function appendDescendantChildren(
     return (
       children.length > 0 &&
       children.some((item) => {
-        if (Array.isArray(item.children) && item.children.length > 0) {
+        if (isArray(item.children) && item.children.length > 0) {
           return appendDescendantChildren(
             target,
             item.children.filter((child): child is VNode<Element | Text> =>

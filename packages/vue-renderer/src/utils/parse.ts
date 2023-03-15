@@ -6,6 +6,7 @@ import type {
 } from '@alilc/lowcode-types';
 import type { BlockScope, RuntimeScope } from './scope';
 import {
+  isArray,
   isFunction,
   isI18nData,
   isJSExpression,
@@ -42,7 +43,7 @@ export class SchemaParser {
             new Function(
               '__exports__',
               '__scope__',
-              `with(__exports__) { with(__scope__ || {}) { ${code} } }`
+              `with(__exports__) { with(__scope__) { ${code} } }`
             )
         : (code) => new Function('__exports__', `with(__exports__) { ${code} }`);
   }
@@ -98,7 +99,7 @@ export class SchemaParser {
       return this.parseI18n(schema, scope);
     } else if (isString(schema)) {
       return schema.trim();
-    } else if (Array.isArray(schema)) {
+    } else if (isArray(schema)) {
       return schema.map((item) => this.parseSchema(item, scope));
     } else if (isFunction(schema)) {
       return schema.bind(scope);
@@ -119,7 +120,7 @@ export class SchemaParser {
   parseOnlyJsValue(schema: unknown): unknown {
     if (isJSExpression(schema) || isJSExpression(schema) || isI18nData(schema)) {
       return undefined;
-    } else if (Array.isArray(schema)) {
+    } else if (isArray(schema)) {
       return schema.map((item) => this.parseOnlyJsValue(item));
     } else if (isPlainObject(schema)) {
       const res: Record<string, unknown> = {};
@@ -154,7 +155,7 @@ export class SchemaParser {
       }
       tarStr = contextArr.join('\n') + tarStr;
       const fn = this.createFunction(tarStr);
-      return scope === false ? fn(this.exports) : fn(this.exports, scope ?? {});
+      return fn(this.exports, scope || {});
     } catch (err) {
       console.warn('parseExpression.error', err, str, self);
       return undefined;

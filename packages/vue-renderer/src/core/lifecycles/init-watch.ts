@@ -1,4 +1,4 @@
-import { isFunction, isObject, isString } from '@knxcloud/lowcode-utils';
+import { isArray, isFunction, isObject, isString } from '@knxcloud/lowcode-utils';
 import { warn, watch } from 'vue';
 import {
   AccessTypes,
@@ -35,7 +35,7 @@ export function createWatcher(
   } else if (isFunction(raw)) {
     watch(getter, raw);
   } else if (isObject(raw)) {
-    if (Array.isArray(raw)) {
+    if (isArray(raw)) {
       raw.forEach((r) => createWatcher(r, ctx, scope, key));
     } else {
       const handler = isFunction(raw.handler)

@@ -3,7 +3,7 @@
   "main": "./dist/vue-renderer.js",
   "module": "./dist/vue-renderer.mjs",
   "typings": "./dist/vue-renderer.d.ts",
-  "version": "1.6.0-beta.5",
+  "version": "1.6.0-beta.6",
   "keywords": [
     "vue",
     "lowcode",
@@ -20,27 +20,35 @@
     "prepack": "pnpm build"
   },
   "dependencies": {
-    "@alilc/lowcode-types": "^1.1.2",
     "@knxcloud/lowcode-hooks": "workspace:*",
     "@knxcloud/lowcode-utils": "workspace:*",
     "intl-messageformat": "^10.3.1"
   },
   "devDependencies": {
-    "@alilc/lowcode-designer": "^1.1.2",
+    "@alilc/lowcode-designer": "^1.1.3",
+    "@alilc/lowcode-types": "^1.1.3",
     "@vitejs/plugin-vue": "^4.0.0",
     "@vitejs/plugin-vue-jsx": "^3.0.0",
     "deepmerge": "^4.3.0",
     "vite": "^4.1.4",
-    "vite-plugin-lib-types": "^0.1.0",
+    "vite-plugin-lib-types": "^0.1.2",
     "vue": "^3.2.47",
     "vue-router": "^4.1.6"
   },
   "peerDependencies": {
+    "@alilc/lowcode-designer": ">= 1.1.x < 2",
+    "@alilc/lowcode-types": ">= 1.1.x < 2",
     "vue": ">= 3.x < 4",
     "vue-router": ">= 4.x < 5"
   },
   "peerDependenciesMeta": {
     "vue-router": {
+      "optional": true
+    },
+    "@alilc/lowcode-designer": {
+      "optional": true
+    },
+    "@alilc/lowcode-types": {
       "optional": true
     }
   },

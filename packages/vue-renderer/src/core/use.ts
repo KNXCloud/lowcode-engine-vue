@@ -28,6 +28,11 @@ import {
   inject,
   isVNode,
   mergeProps,
+  onActivated,
+  onDeactivated,
+  onRenderTracked,
+  onRenderTriggered,
+  onServerPrefetch,
 } from 'vue';
 import type { Node, Prop } from '@alilc/lowcode-designer';
 import type {
@@ -63,6 +68,7 @@ import {
   isPromise,
   toString,
   createObjectSpliter,
+  isArray,
 } from '@knxcloud/lowcode-utils';
 import { Hoc } from './hoc';
 import { Live } from './live';
@@ -77,17 +83,22 @@ const VUE_LIFTCYCLES_MAP = {
   mounted: onMounted,
   beforeUpdate: onBeforeUpdate,
   updated: onUpdated,
+  activated: onActivated,
+  deactivated: onDeactivated,
   beforeUnmount: onBeforeUnmount,
+  renderTracked: onRenderTracked,
+  renderTriggered: onRenderTriggered,
   unmounted: onUnmounted,
   errorCaptured: onErrorCaptured,
+  serverPrefetch: onServerPrefetch,
 };
 
 // 适配 react lifecycle
 const REACT_ADATPOR_LIFTCYCLES_MAP = {
-  componentDidMount: 'mounted',
-  componentDidCatch: 'errorCaptured',
-  shouldComponentUpdate: 'beforeUpdate',
-  componentWillUnmount: 'updated',
+  componentDidMount: onMounted,
+  componentDidCatch: onErrorCaptured,
+  shouldComponentUpdate: onBeforeUpdate,
+  componentWillUnmount: onBeforeUnmount,
 } as const;
 
 const LIFTCYCLES_MAP = {
@@ -113,6 +124,18 @@ export function isReactLifecycleKey(
   return key in REACT_ADATPOR_LIFTCYCLES_MAP;
 }
 
+export function pickLifeCycles(lifeCycles: unknown) {
+  const res: Record<string, unknown> = {};
+  if (isObject(lifeCycles)) {
+    for (const key in lifeCycles) {
+      if (key in LIFTCYCLES_MAP) {
+        res[key] = lifeCycles[key];
+      }
+    }
+  }
+  return res;
+}
+
 export type RenderComponent = (
   nodeSchema: NodeData,
   blockScope?: MaybeArray<BlockScope | undefined | null>,
@@ -128,7 +151,7 @@ export type PropSchemaMap = {
 };
 
 export function isNodeData(val: unknown): val is NodeData | NodeData[] {
-  if (Array.isArray(val)) {
+  if (isArray(val)) {
     return val.every((item) => isNodeData(item));
   }
   return isDOMText(val) || isNodeSchema(val) || isJSExpression(val);
@@ -281,7 +304,7 @@ export function useLeaf(
       );
     }
 
-    if (!Array.isArray(loop)) {
+    if (!isArray(loop)) {
       warn('循环对象必须是数组, type: ' + toString(loop));
       return null;
     }
@@ -361,14 +384,14 @@ export function useLeaf(
       if (
         isDefaultSlot &&
         !node?.isContainerNode &&
-        Array.isArray(slotSchema) &&
+        isArray(slotSchema) &&
         slotSchema.length === 0
       )
         return prev;
 
       let renderSlot: Slot;
 
-      if (Array.isArray(slotSchema)) {
+      if (isArray(slotSchema)) {
         // 插槽为数组，则当前插槽不可拖拽编辑，直接渲染插槽内容
         renderSlot = () => {
           return slotSchema
@@ -448,7 +471,7 @@ export function useLeaf(
         });
         return vnodes;
       };
-    } else if (Array.isArray(schema)) {
+    } else if (isArray(schema)) {
       // 属性值为 array，递归处理属性的每一项
       return schema.map((item, idx) =>
         buildNormalProp(item, scope, blockScope, prop?.get(idx))
@@ -496,14 +519,14 @@ export function useLeaf(
           }
         } else {
           let target = refs[field] as unknown[];
-          if (!Array.isArray(target)) {
+          if (!isArray(target)) {
             target = refs[field] = [];
             if (field in scope) {
               target = scope[field] = target;
             }
           } else if (field in scope) {
             const scopeTarget = scope[field];
-            if (!Array.isArray(scopeTarget) || toRaw(scopeTarget) !== target) {
+            if (!isArray(scopeTarget) || toRaw(scopeTarget) !== target) {
               target = scope[field] = target;
             } else {
               target = scopeTarget;
@@ -657,9 +680,12 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
 
   // 将全局属性配置应用到 scope 中
   const instance = getCurrentInstance()!;
-  const scope = instance.proxy! as RuntimeScope;
+  const scope = instance.proxy as RuntimeScope;
 
   const callHook = createHookCaller(schema, scope, parser);
+
+  callHook('initEmits');
+  callHook('beforeCreate');
 
   // 处理 props
   callHook('initProps');
@@ -670,34 +696,33 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
 
   const setupResult = callHook('setup', instance.props, setupConext);
 
-  // 处理 state
-  callHook('initData');
-  if (stateSchema) {
-    const states = parser.parseSchema<object>(stateSchema);
-    addToScope(scope, AccessTypes.DATA, states);
-  }
+  callHook('initInject');
 
   // 处理 methods
   if (methodsSchema) {
     const methods = parser.parseSchema(methodsSchema, scope);
-    addToScope(scope, AccessTypes.CONTEXT, methods);
+    methods && addToScope(scope, AccessTypes.CONTEXT, methods);
+  }
+
+  // 处理 state
+  callHook('initData');
+  if (stateSchema) {
+    const states = parser.parseSchema<object>(stateSchema);
+    states && addToScope(scope, AccessTypes.DATA, states);
   }
 
   callHook('initComputed');
   callHook('initWatch');
+  callHook('initProvide');
 
   // 处理 lifecycle
-  const lifeCycles = parser.parseSchema(lifeCyclesSchema, scope);
-  if (isObject(lifeCycles)) {
+  const lifeCycles = parser.parseSchema(pickLifeCycles(lifeCyclesSchema), scope);
+  if (Object.keys(lifeCycles).length > 0) {
     Object.keys(lifeCycles).forEach((lifeCycle) => {
       if (isLifecycleKey(lifeCycle)) {
         const callback = lifeCycles[lifeCycle];
         if (isFunction(callback)) {
-          let hook = LIFTCYCLES_MAP[lifeCycle];
-          if (isString(hook)) {
-            hook = VUE_LIFTCYCLES_MAP[hook];
-          }
-          hook(callback, instance);
+          LIFTCYCLES_MAP[lifeCycle](callback, instance);
         }
       }
     });
@@ -732,6 +757,8 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
   if (extraScope) {
     addToScope(scope, AccessTypes.SETUP, extraScope);
   }
+
+  callHook('created');
 
   const wrapRender = (render: () => VNodeChild | null) => {
     const promises: Promise<unknown>[] = [];

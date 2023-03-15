@@ -1,13 +1,23 @@
-import { initComputed } from './init-computed';
-import { initProps } from './init-props';
-import { initData } from './init-data';
-import { initWatch } from './init-watch';
 import type { IPublicTypeContainerSchema } from '@alilc/lowcode-types';
 import type { RuntimeScope, SchemaParser } from '../../utils';
+import { initComputed } from './init-computed';
+import { initProps } from './init-props';
+import { initEmits } from './init-emits';
+import { initData } from './init-data';
+import { initWatch } from './init-watch';
+import { initInject } from './init-inject';
+import { initProvide } from './init-provide';
 import { setup } from './setup';
+import { created } from './created';
+import { beforeCreate } from './beforeCreate';
 
 const VUE_LOWCODE_LIFTCYCLES_MAP = {
   setup: setup,
+  created: created,
+  beforeCreate: beforeCreate,
+  initInject: initInject,
+  initProvide: initProvide,
+  initEmits: initEmits,
   initProps: initProps,
   initData: initData,
   initWatch: initWatch,

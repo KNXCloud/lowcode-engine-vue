@@ -34,6 +34,7 @@ import {
   buildComponents,
   getSubComponent,
   exportSchema,
+  isArray,
 } from '@knxcloud/lowcode-utils';
 import { Renderer, SimulatorRendererView } from './simulator-view';
 import { Slot, Leaf, Page } from './buildin-components';
@@ -478,7 +479,7 @@ function createSimulatorRenderer() {
     if (data.appHelper) {
       const { utils, constants, ...others } = data.appHelper;
       Object.assign(context.appHelper, {
-        utils: Array.isArray(utils) ? buildUtils(host.libraryMap, utils) : utils ?? {},
+        utils: isArray(utils) ? buildUtils(host.libraryMap, utils) : utils ?? {},
         constants: constants ?? {},
         ...others,
       });
