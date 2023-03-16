@@ -51,6 +51,7 @@ import {
   getClosestNodeInstanceByComponent,
   setNativeSelection,
   createComponentRecord,
+  parseFileNameToPath,
 } from './utils';
 
 Object.assign(window, { VueRouter });
@@ -176,10 +177,7 @@ function createDocumentInstance(
 
   return reactive({
     id: computed(() => document.id),
-    path: computed(() => {
-      const fileName = schema.value.fileName;
-      return fileName.startsWith('/') ? fileName : `/${fileName}`;
-    }),
+    path: computed(() => parseFileNameToPath(schema.value.fileName ?? '')),
     key: computed(() => `${document.id}:${timestamp.value}`),
     scope: computed(() => {
       const _schema = schema.value;
