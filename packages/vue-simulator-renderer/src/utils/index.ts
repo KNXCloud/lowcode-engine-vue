@@ -7,3 +7,4 @@ export * from './logger';
 export * from './cursor';
 export * from './navtive-selection';
 export * from './deep-merge';
+export * from './path';
