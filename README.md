@@ -30,7 +30,7 @@ const editorInit = (ctx: ILowCodePluginContext) => {
 - `this.props.xxx` -> `this.xxx`
 - `this.state.xxx` -> `this.xxx`
 
-现阶段 vue 代码编辑器还未适配，可以直接使用 react 代码编辑器编辑代码，渲染器已做适配：
+若直接使用 react 代码编辑器编辑代码，渲染器已做适配：
 
 - state 内容会自动转化为 vue data
 - lifecycle 自动适配为 vue lifecycle
@@ -40,36 +40,101 @@ const editorInit = (ctx: ILowCodePluginContext) => {
   - `componentWillUnmount` -> `onBeforeUnmount`
 - 其余方法自动转化为 vue methods
 
-支持的 vue 生命周期函数：
+## Vue 代码编辑器
 
-- `beforeMount`
-- `mounted`
-- `beforeUpdate`
-- `updated`
-- `beforeUnmount`
-- `unmounted`
-- `errorCaptured`
+现已支持 [Vue 代码编辑器 @knxcloud/lowcode-plugin-vue-code-editor](https://github.com/KNXCloud/lowcode-engine-plugins/tree/main/packages/plugin-vue-code-editor)，支持情况如下
+
+- [x] ESModule
+  - [x] import (assets 加载的包，可以使用 `import` 语法导入)
+  - [x] export default (必须导出一个组件)
+  - [ ] export
+- [x] data
+- [x] props
+- [x] emits
+- [x] computed
+- [x] watch
+- [x] provide
+- [x] inject
+- [x] setup
+  - [x] async setup
+  - [x] return void
+  - [x] return object
+  - [ ] ~~return functiom~~
+- [x] beforeCreate
+- [x] created
+- [x] beforeMount
+- [x] mounted
+- [x] beforeUpdate
+- [x] updated
+- [x] beforeUnmount
+- [x] unmounted
+- [x] activated
+- [x] deactivated
+- [x] errorCaptured
+- [x] renderTracked
+- [x] renderTriggered
+- [x] beforeRouteEnter
+- [x] beforeRouteUpdate
+- [x] beforeRouteLeave
 
 对于 v-model 的适配：
 
-在 assets 中使用 name 为 v-model 的属性会被作为双向绑定特性编译，编译的逻辑为
+在 assets 中使用 name 为 `v-model` 或 `v-model:xxx` 的属性会被作为双向绑定特性编译，编译的逻辑为
 
 ```
 v-model -> modelValue prop + onUpdate:modelValue event
-v-model:value -> value prop + onUpdate:value event
+v-model:xxx -> xxx prop + onUpdate:xxx event
 ```
 
-并且，渲染器支持 `onUpdate:value` 和 `onUpdateValue` 两种事件处理方式，即在使用事件时，可以使用 `onUpdateXxx` 代替 `onUpdate:xxx`
+### VueRouter
 
-## 使用示例
+若使用了 `beforeRouteEnter`、`beforeRouteUpdate`、`beforeRouteLeave` 钩子，则渲染器在使用时，必须作为 VueRouter 页面使用，使用示例
 
-### 直接使用 cdn 渲染器及适配器
+```ts
+// router.ts
+import { createRouter, createWebHistory } from 'vue-router'
+import VueRenderer, {
+  LOWCODE_ROUTE_META,
+  setupLowCodeRouteGuard,
+} from '@knxcloud/lowcode-vue-renderer'
+
+const schema = {} // 低代码设计器导出的页面 schema
+const components = {} // 组件映射关系对象
+
+const router = createRouter({
+  history: createWebHistory('/'),
+  routes: [
+    {
+      name: 'lowcode-page'
+      path: '/lowcode-page-path',
+      component: VueRenderer,
+      meta: {
+        [LOWCODE_ROUTE_META]: schema,
+      },
+      props: {
+        schema: schema，
+        components: components,
+      }
+    }
+  ]
+})
+
+setupLowCodeRouteGuard(router)
+
+export default router;
+```
+
+### async setup & init dataSource
+
+若使用了 `async setup` 或者 `init dataSource`，则需要在渲染器组件外部包裹 `Suspense` 组件，使用方式参考 [Suspense](https://vuejs.org/guide/built-ins/suspense.html#suspense)
+
+## 画布使用示例
 
 ```ts
 import { init, project } from '@alilc/lowcode-engine';
 import { setupHostEnvironment } from '@knxcloud/lowcode-utils';
 
-setupHostEnvironment(project);
+setupHostEnvironment(project, 'https://unpkg.com/vue@3.2.47/dist/vue.runtime.global.js');
 
 init(document.getElementById('lce'), {
   // ...
@@ -81,39 +146,6 @@ init(document.getElementById('lce'), {
 ```
 
 > 当不指定版本号时，默认使用最新版，推荐在 cdn 链接上添加适配器具体版本号
-
-### 定制渲染器
-
-```bash
-npm install @knxcloud/lowcode-vue-simulator-renderer @knxcloud/lowcode-vue-renderer --save-dev
-```
-
-> TIPS：仅支持 cdn 方式引入，npm 包用于提供 typings 等代码提示能力
-
-工程化配置：
-
-```json
-{
-  "externals": {
-    "@knxcloud/lowcode-vue-simulator-renderer": "var window.LCVueSimulatorRenderer",
-    "vue": "var window.Vue"
-  }
-}
-```
-
-```ts
-import { vueRendererConfig } from '@knx/lowcode-vue-simulator-renderer';
-import { NConfigProvider, zhCN, dateZhCN } from 'naive-ui';
-import { defineComponent, h } from 'vue';
-
-const ConfigProvider = defineComponent((_, { slots }) => {
-  return () => h(NConfigProvider, { locale: zhCN, dateLocale: dateZhCN }, slots);
-});
-
-vueRendererConfig.setConfigProvider(ConfigProvider);
-```
-
-更多详细配置请查看 [DEMO](https://github.com/KNXCloud/lowcode-engine-demo)
 
 ## 本地调试
 
