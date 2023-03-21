@@ -68,7 +68,7 @@ export class SchemaParser {
     return this.parseExpression(
       {
         type: EXPRESSION_TYPE.JSEXPRESSION,
-        value: `this.$t('${i18nInfo.key}')`,
+        value: `this.$t(${JSON.stringify(i18nInfo.key)})`,
       },
       scope
     ) as string | undefined;

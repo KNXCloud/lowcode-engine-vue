@@ -69,6 +69,7 @@ import {
   toString,
   createObjectSpliter,
   isArray,
+  isI18nData,
 } from '@knxcloud/lowcode-utils';
 import { Hoc } from './hoc';
 import { Live } from './live';
@@ -239,6 +240,9 @@ export function useLeaf(
       return createTextVNode(schema);
     } else if (isJSExpression(schema)) {
       const result = parser.parseExpression(schema, scope);
+      return createTextVNode(toDisplayString(result));
+    } else if (isI18nData(schema)) {
+      const result = parser.parseI18n(schema, scope);
       return createTextVNode(toDisplayString(result));
     }
 
