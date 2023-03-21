@@ -257,6 +257,7 @@ function createSimulatorRenderer() {
     config: markRaw(config),
     layout,
     device,
+    locale,
     designMode,
     libraryMap,
     components,
