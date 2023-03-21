@@ -5,3 +5,8 @@ export function parseFileNameToPath(fileName: string): string {
 
   return '/' + path.replace(/^\//, '');
 }
+
+export function parseFileNameToCompName(fileName: string): string {
+  const path = parseFileNameToPath(fileName);
+  return path.replace(/[/-_][\w]/, (s) => s[1].toUpperCase());
+}

@@ -52,6 +52,7 @@ import {
   setNativeSelection,
   createComponentRecord,
   parseFileNameToPath,
+  parseFileNameToCompName,
 } from './utils';
 
 Object.assign(window, { VueRouter });
@@ -224,6 +225,7 @@ function createSimulatorRenderer() {
   const libraryMap: Ref<Record<string, string>> = shallowRef({});
   const components: Ref<Record<string, Component>> = shallowRef({});
   const componentsMap: Ref<Record<string, MinxedComponent>> = shallowRef({});
+  const disableCompMock: Ref<boolean | string[]> = shallowRef(true);
   const requestHandlersMap: Ref<Record<string, CallableFunction>> = shallowRef({});
   const documentInstances: Ref<DocumentInstance[]> = shallowRef([]);
   const thisRequiredInJSE: Ref<boolean> = shallowRef(true);
@@ -260,6 +262,7 @@ function createSimulatorRenderer() {
     components,
     autoRender,
     componentsMap,
+    disableCompMock,
     documentInstances,
     requestHandlersMap,
     thisRequiredInJSE,
@@ -331,9 +334,9 @@ function createSimulatorRenderer() {
             VueRenderer,
             {
               schema,
-              passProps: props,
               locale: simulator.locale,
               device: simulator.device,
+              passProps: props,
               components: components.value,
             },
             slots
@@ -342,7 +345,7 @@ function createSimulatorRenderer() {
       },
     });
     if (schema.fileName) {
-      CreatedComponent.name = schema.fileName;
+      CreatedComponent.name = parseFileNameToCompName(schema.fileName);
     }
     if (schema.props) {
       CreatedComponent.props = Object.keys(schema.props);
@@ -391,8 +394,12 @@ function createSimulatorRenderer() {
 
   disposeFunctions.push(
     host.connect(simulator, () => {
+      const config = host.project.get('config');
+
       // sync layout config
-      layout.value = host.project.get('config').layout;
+      layout.value = config.layout ?? {};
+      // sync disableCompMock
+      disableCompMock.value = config.disableCompMock ?? false;
 
       // todo: split with others, not all should recompute
       if (
@@ -445,11 +452,11 @@ function createSimulatorRenderer() {
             [LOWCODE_ROUTE_META]: documentInstance.schema,
           },
           component: Renderer,
-          props: () => ({
-            key: documentInstance?.key,
-            documentInstance,
-            simulator,
-          }),
+          props: ((doc, sim) => () => ({
+            key: doc.key,
+            simulator: sim,
+            documentInstance: doc,
+          }))(documentInstance, simulator),
         });
         return documentInstance;
       });

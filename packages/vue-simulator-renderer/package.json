@@ -21,6 +21,7 @@
     "prepack": "pnpm build"
   },
   "dependencies": {
+    "@knxcloud/lowcode-hooks": "workspace:*",
     "@knxcloud/lowcode-utils": "workspace:*",
     "@knxcloud/lowcode-vue-renderer": "workspace:*"
   },

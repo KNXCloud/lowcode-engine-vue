@@ -1,5 +1,6 @@
 import type { Router } from 'vue-router';
 import type { Config, I18nMessages } from '@knxcloud/lowcode-vue-renderer';
+import type { DesignMode } from '@knxcloud/lowcode-hooks';
 import type { Component, ComponentPublicInstance, App } from 'vue';
 import type {
   AssetList,
@@ -55,12 +56,13 @@ export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
   layout: SimulatorViewLayout;
   device: string;
   locale: string;
-  designMode: 'design';
+  designMode: DesignMode;
   libraryMap: Record<string, string>;
   thisRequiredInJSE: boolean;
   components: Record<string, Component>;
   autoRender: boolean;
   componentsMap: Record<string, MinxedComponent>;
+  disableCompMock: boolean | string[];
   documentInstances: DocumentInstance[];
   requestHandlersMap: Record<string, CallableFunction>;
   load(assets: AssetList): Promise<void>;

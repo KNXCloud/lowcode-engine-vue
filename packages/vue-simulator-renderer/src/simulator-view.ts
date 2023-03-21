@@ -71,6 +71,7 @@ export const Renderer = defineComponent({
           messages: messages,
           components: components,
           designMode: designMode,
+          disableCompMock: simulator.disableCompMock,
           thisRequiredInJSE: simulator.thisRequiredInJSE,
           getNode: (id) => documentInstance.getNode(id) as any,
           onCompGetCtx: (schema, ref) => documentInstance.mountInstance(schema.id!, ref),
