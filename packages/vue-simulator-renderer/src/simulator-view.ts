@@ -58,8 +58,6 @@ export const Renderer = defineComponent({
     const { schema, scope, messages } = documentInstance;
     const { designMode, device, locale, components } = simulator;
 
-    if (!simulator.autoRender) return null;
-
     return h(Suspense, null, {
       default: () =>
         h(LowCodeRenderer, {

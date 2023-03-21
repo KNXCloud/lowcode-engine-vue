@@ -57,7 +57,6 @@ import {
   isNil,
   isString,
   isFunction,
-  isDOMText,
   isJSExpression,
   isNodeSchema,
   isObject,
@@ -144,19 +143,12 @@ export type RenderComponent = (
 ) => VNode | VNode[] | null;
 
 export type SlotSchemaMap = {
-  [x: string]: SlotSchema | NodeData | NodeData[] | undefined;
+  [x: string]: unknown;
 };
 
 export type PropSchemaMap = {
   [x: string]: unknown;
 };
-
-export function isNodeData(val: unknown): val is NodeData | NodeData[] {
-  if (isArray(val)) {
-    return val.every((item) => isNodeData(item));
-  }
-  return isDOMText(val) || isNodeSchema(val) || isJSExpression(val);
-}
 
 export function isVueComponent(val: unknown): val is Component {
   if (isFunction(val)) return true;
@@ -238,11 +230,8 @@ export function useLeaf(
     // 若 schema 不为 NodeSchema，则直接渲染
     if (isString(schema)) {
       return createTextVNode(schema);
-    } else if (isJSExpression(schema)) {
-      const result = parser.parseExpression(schema, scope);
-      return createTextVNode(toDisplayString(result));
-    } else if (isI18nData(schema)) {
-      const result = parser.parseI18n(schema, scope);
+    } else if (!isNodeSchema(schema)) {
+      const result = parser.parseSchema(schema, scope);
       return createTextVNode(toDisplayString(result));
     }
 
@@ -422,7 +411,7 @@ export function useLeaf(
           };
         }
       } else {
-        renderSlot = () => ensureArray(renderComp(slotSchema, blockScope));
+        renderSlot = () => ensureArray(renderComp(slotSchema as NodeData, blockScope));
       }
 
       prev[next] =
@@ -451,6 +440,8 @@ export function useLeaf(
     if (isJSExpression(schema) || isJSFunction(schema)) {
       // 处理表达式和函数
       return parser.parseExpression(schema, scope);
+    } else if (isI18nData(schema)) {
+      return parser.parseI18n(schema, scope);
     } else if (isJSSlot(schema)) {
       // 处理属性插槽
       let slotParams: string[];
@@ -832,9 +823,9 @@ export const buildSchema = (schema: NodeSchema, node?: Node | null) => {
     } else if (key === 'className') {
       // 适配 react className
       normalProps.class = val;
-    } else if (key === 'children' && isNodeData(val)) {
+    } else if (key === 'children') {
       // 处理属性中的默认插槽，属性的重默认插槽会覆盖节点 chilren 插槽
-      slotProps.default = ensureArray(val);
+      slotProps.default = val;
     } else {
       // 处理普通属性
       normalProps[key] = val;
