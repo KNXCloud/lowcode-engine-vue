@@ -149,6 +149,11 @@ export class SchemaParser {
       let tarStr: string;
 
       tarStr = (str.value || '').trim();
+      /**
+       * 处理变量绑定问题
+       * result: this.state.xxx => this.xxx
+       */
+      tarStr = tarStr.replace(/this.state*\.(?=\S)/g, 'this.');
 
       if (scope !== false && !tarStr.match(/^\([^)]*\)\s*=>/)) {
         tarStr = tarStr.replace(/this(\W|$)/g, (_a: string, b: string) => `__self${b}`);
