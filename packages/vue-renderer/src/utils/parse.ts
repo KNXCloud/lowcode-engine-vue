@@ -149,11 +149,20 @@ export class SchemaParser {
       let tarStr: string;
 
       tarStr = (str.value || '').trim();
+
       /**
-       * 处理变量绑定问题
-       * result: this.state.xxx => this.xxx
+       * 判断 tarStr 是否以为 'this.state.' 开头
+       * 避免其他影响. 如:
+       *  1. 他在data里面自己定义了一个state
+       *  2. 他在setup函数里面返回了state
        */
-      tarStr = tarStr.replace(/this.state*\.(?=\S)/g, 'this.');
+      if (tarStr.startsWith('this.state.')) {
+        /**
+         * 处理变量绑定问题
+         * result: this.state.xxx => this.xxx
+         */
+        tarStr = tarStr.replace(/this.state\.(?=\S)/g, 'this.');
+      }
 
       if (scope !== false && !tarStr.match(/^\([^)]*\)\s*=>/)) {
         tarStr = tarStr.replace(/this(\W|$)/g, (_a: string, b: string) => `__self${b}`);
