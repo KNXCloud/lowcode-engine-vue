@@ -161,7 +161,7 @@ export class SchemaParser {
          * 处理变量绑定问题
          * result: this.state.xxx => this.xxx
          */
-        tarStr = tarStr.replace(/this.state\.(?=\S)/g, 'this.');
+        tarStr = tarStr.replace(/this\.state\.(?=\S)/g, 'this.');
       }
 
       if (scope !== false && !tarStr.match(/^\([^)]*\)\s*=>/)) {
