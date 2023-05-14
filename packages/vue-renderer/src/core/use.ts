@@ -311,7 +311,7 @@ export function useLeaf(
         {
           key: vnodeProps.key ?? `${schema.id}--${index}`,
           __comp: comp,
-          __scope: scope,
+          __scope: blockScope,
           __schema: schema,
           __vnodeProps: vnodeProps,
           ...compProps,
