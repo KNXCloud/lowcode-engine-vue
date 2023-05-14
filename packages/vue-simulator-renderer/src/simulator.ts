@@ -353,13 +353,11 @@ function createSimulatorRenderer() {
     }
     return CreatedComponent;
   };
-
   simulator.getClientRects = (element) => getClientRects(element);
   simulator.setNativeSelection = (enable) => setNativeSelection(enable);
   simulator.setDraggingState = (state) => cursor.setDragging(state);
   simulator.setCopyState = (state) => cursor.setCopy(state);
   simulator.clearState = () => cursor.release();
-  simulator.createComponent = () => null;
   simulator.rerender = () => documentInstances.value.forEach((doc) => doc.rerender());
   simulator.dispose = () => {
     simulator.app.unmount();

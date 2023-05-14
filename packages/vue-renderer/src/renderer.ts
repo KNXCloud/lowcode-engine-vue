@@ -137,10 +137,12 @@ const VueRenderer = defineComponent({
       ): L => {
         let record = wrapCached.get(leaf);
         if (record) {
-          const cachedComp = record.get(comp);
-          if (cachedComp) return cachedComp;
+          if (record.has(comp)) {
+            return record.get(comp);
+          }
         } else {
           record = new Map();
+          wrapCached.set(leaf, record);
         }
 
         if (needWrapComp(name)) {
