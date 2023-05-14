@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [VueJsx(), LibTypes({ fileName: 'vue-renderer.d.ts' })],
   build: {
     target: 'ES2018',
+    sourcemap: true,
     lib: {
       entry: 'src/index.ts',
       fileName: () => 'vue-renderer.mjs',
