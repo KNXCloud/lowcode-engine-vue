@@ -3,7 +3,7 @@
   "main": "./dist/vue-simulator-renderer.js",
   "module": "./dist/vue-simulator-renderer.mjs",
   "typings": "./dist/vue-simulator-renderer.d.ts",
-  "version": "1.6.0-beta.7",
+  "version": "1.6.0-beta.8",
   "keywords": [
     "vue",
     "lowcode",
