@@ -22,18 +22,17 @@
   "dependencies": {
     "@knxcloud/lowcode-hooks": "workspace:*",
     "@knxcloud/lowcode-utils": "workspace:*",
-    "intl-messageformat": "^10.3.1"
+    "intl-messageformat": "^10.3.5"
   },
   "devDependencies": {
-    "@alilc/lowcode-designer": "^1.1.3",
-    "@alilc/lowcode-types": "^1.1.3",
-    "@vitejs/plugin-vue": "^4.0.0",
-    "@vitejs/plugin-vue-jsx": "^3.0.0",
-    "deepmerge": "^4.3.0",
-    "vite": "^4.1.4",
+    "@alilc/lowcode-designer": "^1.1.6",
+    "@alilc/lowcode-types": "^1.1.6",
+    "@vitejs/plugin-vue": "^4.2.1",
+    "@vitejs/plugin-vue-jsx": "^3.0.1",
+    "vite": "^4.3.5",
     "vite-plugin-lib-types": "^0.1.2",
-    "vue": "^3.2.47",
-    "vue-router": "^4.1.6"
+    "vue": "~3.2.47",
+    "vue-router": "~4.1.6"
   },
   "peerDependencies": {
     "@alilc/lowcode-designer": ">= 1.1.x < 2",

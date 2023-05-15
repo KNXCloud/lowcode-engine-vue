@@ -34,7 +34,7 @@ import {
   onRenderTriggered,
   onServerPrefetch,
 } from 'vue';
-import type { Node, Prop } from '@alilc/lowcode-designer';
+import type { Node } from '@alilc/lowcode-designer';
 import type {
   IPublicTypeNodeData as NodeData,
   IPublicTypeSlotSchema as SlotSchema,
@@ -435,8 +435,10 @@ export function useLeaf(
     schema: unknown,
     scope: RuntimeScope,
     blockScope?: BlockScope | null,
-    prop?: Prop | null
+    path?: string | null,
+    node?: Node | null
   ): any => {
+    const prop = path ? node?.getProp(path, false) : null;
     if (isJSExpression(schema) || isJSFunction(schema)) {
       // 处理表达式和函数
       return parser.parseExpression(schema, scope);
@@ -469,7 +471,7 @@ export function useLeaf(
     } else if (isArray(schema)) {
       // 属性值为 array，递归处理属性的每一项
       return schema.map((item, idx) =>
-        buildNormalProp(item, scope, blockScope, prop?.get(idx))
+        buildNormalProp(item, scope, blockScope, `${path}[${idx}]`, node)
       );
     } else if (schema && isObject(schema)) {
       // 属性值为 object，递归处理属性的每一项
@@ -477,8 +479,7 @@ export function useLeaf(
       Object.keys(schema).forEach((key) => {
         if (key.startsWith('__')) return;
         const val = schema[key];
-        const childProp = prop?.get(key);
-        res[key] = buildNormalProp(val, scope, blockScope, childProp);
+        res[key] = buildNormalProp(val, scope, blockScope, `${path}.${key}`, node);
       });
       return res;
     }
@@ -497,7 +498,8 @@ export function useLeaf(
     schema: unknown,
     scope: RuntimeScope,
     blockScope?: BlockScope | null,
-    prop?: Prop | null
+    path?: string | null,
+    node?: Node | null
   ): any => {
     if (isString(schema)) {
       const field = schema;
@@ -537,9 +539,9 @@ export function useLeaf(
         lastInst = inst;
       };
     } else {
-      const propValue = buildNormalProp(schema, scope, blockScope, prop);
+      const propValue = buildNormalProp(schema, scope, blockScope, path, node);
       return isString(propValue)
-        ? buildRefProp(propValue, scope, blockScope, prop)
+        ? buildRefProp(propValue, scope, blockScope, path, node)
         : propValue;
     }
   };
@@ -570,13 +572,8 @@ export function useLeaf(
       const schema = processed[propName];
       parsedProps[propName] =
         propName === 'ref'
-          ? buildRefProp(schema, mergedScope, blockScope, node?.getProp(propName) as Prop)
-          : buildNormalProp(
-              schema,
-              mergedScope,
-              blockScope,
-              node?.getProp(propName) as Prop
-            );
+          ? buildRefProp(schema, mergedScope, blockScope, propName, node)
+          : buildNormalProp(schema, mergedScope, blockScope, propName, node);
     });
 
     // 应用运行时附加的属性值

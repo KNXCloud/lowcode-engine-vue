@@ -3,8 +3,6 @@ import type { IPublicTypeContainerSchema } from '@alilc/lowcode-types';
 import {
   type Ref,
   type Component,
-  defineComponent,
-  h,
   createApp,
   ref,
   shallowRef,
@@ -22,7 +20,7 @@ import type {
   SimulatorViewLayout,
   VueSimulatorRenderer,
 } from './interface';
-import VueRenderer, {
+import {
   config,
   LOWCODE_ROUTE_META,
   SchemaParser,
@@ -52,7 +50,6 @@ import {
   setNativeSelection,
   createComponentRecord,
   parseFileNameToPath,
-  parseFileNameToCompName,
   isVNodeHTMLElement,
   CompRootHTMLElement,
 } from './utils';
@@ -259,11 +256,7 @@ function createSimulatorRenderer() {
   function _buildComponents() {
     components.value = {
       ...builtinComponents,
-      ...buildComponents(
-        libraryMap.value,
-        componentsMap.value,
-        simulator.createComponent
-      ),
+      ...buildComponents(libraryMap.value, componentsMap.value),
     };
   }
 
@@ -329,44 +322,6 @@ function createSimulatorRenderer() {
   };
   simulator.getComponent = (componentName) => components.value[componentName];
 
-  let createdCount = 0;
-  simulator.createComponent = ({ css, ...schema }) => {
-    const compId = `Component-${schema.id || createdCount++}`;
-    const CreatedComponent = defineComponent({
-      props: VueRenderer.props,
-      setup: (props, { slots }) => {
-        let styleEl = document.getElementById(compId);
-        if (css && !styleEl) {
-          const doc = window.document;
-          styleEl = doc.createElement('style');
-          styleEl.setAttribute('type', 'text/css');
-          styleEl.setAttribute('id', compId);
-          styleEl.appendChild(doc.createTextNode(css));
-          doc.head.appendChild(styleEl);
-        }
-        return () => {
-          return h(
-            VueRenderer,
-            {
-              schema,
-              locale: simulator.locale,
-              device: simulator.device,
-              passProps: props,
-              components: components.value,
-            },
-            slots
-          );
-        };
-      },
-    });
-    if (schema.fileName) {
-      CreatedComponent.name = parseFileNameToCompName(schema.fileName);
-    }
-    if (schema.props) {
-      CreatedComponent.props = Object.keys(schema.props);
-    }
-    return CreatedComponent;
-  };
   simulator.getClientRects = (element) => getClientRects(element);
   simulator.setNativeSelection = (enable) => setNativeSelection(enable);
   simulator.setDraggingState = (state) => cursor.setDragging(state);
@@ -402,17 +357,20 @@ function createSimulatorRenderer() {
     document.documentElement.classList.add('engine-page');
     document.body.classList.add('engine-document');
     simulator.app.use(simulator.router).mount(container);
+    // @ts-expect-error
     host.project.setRendererReady(simulator);
   };
 
   disposeFunctions.push(
     host.connect(simulator, () => {
-      const config = host.project.get('config');
+      const config = host.project.get('config') || {};
 
       // sync layout config
       layout.value = config.layout ?? {};
       // sync disableCompMock
-      disableCompMock.value = config.disableCompMock ?? false;
+      disableCompMock.value = isArray(config.disableCompMock)
+        ? config.disableCompMock
+        : Boolean(config.disableCompMock);
 
       // todo: split with others, not all should recompute
       if (

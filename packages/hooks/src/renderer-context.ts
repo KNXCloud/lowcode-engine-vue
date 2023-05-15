@@ -6,7 +6,7 @@ import { inject, getCurrentInstance } from 'vue';
 export type DesignMode = 'live' | 'design';
 
 export interface RendererContext {
-  readonly components: Record<string, Component>;
+  readonly components: Record<string, Component<any, any, any>>;
   readonly designMode: DesignMode;
   readonly thisRequiredInJSE: boolean;
   getNode(id: string): Node | null;
