@@ -53,6 +53,8 @@ import {
   createComponentRecord,
   parseFileNameToPath,
   parseFileNameToCompName,
+  isVNodeHTMLElement,
+  CompRootHTMLElement,
 } from './utils';
 
 Object.assign(window, { VueRouter });
@@ -91,8 +93,8 @@ function createDocumentInstance(
     );
   });
 
-  const checkInstanceMounted = (instance: ComponentInstance): boolean => {
-    return instance.$.isMounted;
+  const checkInstanceMounted = (instance: ComponentInstance | HTMLElement): boolean => {
+    return '$' in instance ? instance.$.isMounted : !!instance;
   };
 
   const setHostInstance = (
@@ -110,9 +112,9 @@ function createDocumentInstance(
     return vueInstanceMap.get(id);
   };
 
-  const mountInstance = (id: string, instance: ComponentInstance) => {
+  const mountInstance = (id: string, instanceOrEl: ComponentInstance | HTMLElement) => {
     const docId = document.id;
-    if (instance == null) {
+    if (instanceOrEl == null) {
       let instances = instancesMap.get(id);
       if (instances) {
         instances = instances.filter(checkInstanceMounted);
@@ -127,7 +129,19 @@ function createDocumentInstance(
       return;
     }
 
-    const el = instance.$el;
+    let el: CompRootHTMLElement;
+    let instance: ComponentInstance;
+
+    if ('$' in instanceOrEl) {
+      instance = instanceOrEl;
+      el = instance.$el;
+    } else if (isVNodeHTMLElement(instanceOrEl)) {
+      instance = instanceOrEl.__vueParentComponent.proxy!;
+      // @ts-expect-error
+      el = instanceOrEl;
+    } else {
+      return;
+    }
 
     const origId = getCompRootData(el).nodeId;
     if (origId && origId !== id) {

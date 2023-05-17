@@ -42,7 +42,10 @@ export interface DocumentInstance {
   readonly schema: RootSchema;
   readonly messages: I18nMessages;
   getComponentInstance(id: number): ComponentInstance | null;
-  mountInstance(id: string, instance: ComponentInstance): (() => void) | void;
+  mountInstance(
+    id: string,
+    instance: ComponentInstance | HTMLElement
+  ): (() => void) | void;
   unmountIntance(id: string, instance: ComponentInstance): void;
   rerender(): void;
   getNode(id: string): INode | null;
