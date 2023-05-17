@@ -10,7 +10,7 @@ import type {
   ExtractPropTypes,
   PropType,
 } from 'vue';
-import type { BlockScope, I18nMessages, RuntimeScope, SchemaParser } from '../utils';
+import type { BlockScope, I18nMessages, SchemaParser } from '../utils';
 
 export const rendererProps = {
   __scope: {
@@ -69,13 +69,10 @@ export type RendererComponent = DefineComponent<RendererProps, any, any>;
 
 export const leafProps = {
   __comp: {
-    type: Object as PropType<Component | null>,
+    type: [Object, Function] as PropType<Component | null>,
     required: true,
   },
-  __scope: {
-    type: Object as PropType<RuntimeScope>,
-    default: () => ({}),
-  },
+  __scope: null,
   __schema: {
     type: Object as PropType<NodeSchema>,
     default: () => ({}),
