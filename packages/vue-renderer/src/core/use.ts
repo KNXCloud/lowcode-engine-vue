@@ -293,7 +293,7 @@ export function useLeaf(
           __vnodeProps: vnodeProps,
           ...compProps,
         },
-        buildSlots(rawSlots, node)
+        buildSlots(rawSlots, node, scope)
       );
     }
 
@@ -311,12 +311,12 @@ export function useLeaf(
         {
           key: vnodeProps.key ?? `${schema.id}--${index}`,
           __comp: comp,
-          __scope: blockScope,
+          __scope: mergeScope(scope, blockScope),
           __schema: schema,
           __vnodeProps: vnodeProps,
           ...compProps,
         },
-        buildSlots(rawSlots, node)
+        buildSlots(rawSlots, node, blockScope)
       );
     });
   };
