@@ -114,7 +114,7 @@ export function createDataSourceItem(
       status.value = DataSourceStatus.Error;
       error.value = err;
       hooks.errorHandler(err);
-      throw err;
+      // throw err;
     }
   };
 
