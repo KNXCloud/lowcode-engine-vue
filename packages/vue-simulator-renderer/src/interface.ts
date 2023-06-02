@@ -4,16 +4,14 @@ import type { DesignMode } from '@knxcloud/lowcode-hooks';
 import type { Component, ComponentPublicInstance, App } from 'vue';
 import type {
   AssetList,
+  IPublicModelNode as INode,
+  IPublicModelDocumentModel as IDocumentModel,
   IPublicTypeNpmInfo as NpmInfo,
   IPublicTypeRootSchema as RootSchema,
   IPublicTypeComponentSchema as ComponentSchema,
-  IPublicTypeNodeInstance,
+  IPublicTypeNodeInstance as NodeInstance,
 } from '@alilc/lowcode-types';
-import type {
-  INode,
-  DocumentModel,
-  BuiltinSimulatorRenderer,
-} from '@alilc/lowcode-designer';
+import type { BuiltinSimulatorRenderer } from '@alilc/lowcode-designer';
 
 export type MinxedComponent = NpmInfo | Component | ComponentSchema;
 
@@ -36,7 +34,7 @@ export interface DocumentInstance {
   readonly key: string;
   readonly path: string;
   readonly scope: Record<string, unknown>;
-  readonly document: DocumentModel;
+  readonly document: IDocumentModel;
   readonly instancesMap: Map<string, ComponentInstance[]>;
   readonly schema: RootSchema;
   readonly messages: I18nMessages;
@@ -76,6 +74,6 @@ export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
   getClosestNodeInstance(
     from: ComponentRecord | Element,
     nodeId?: string
-  ): IPublicTypeNodeInstance<ComponentRecord> | null;
+  ): NodeInstance<ComponentRecord> | null;
   findDOMNodes(instance: ComponentRecord): Array<Element | Text> | null;
 }

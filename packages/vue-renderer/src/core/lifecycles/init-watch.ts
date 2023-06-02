@@ -33,13 +33,13 @@ export function createWatcher(
       warn(`Invalid watch handler specified by key "${raw}"`, handler);
     }
   } else if (isFunction(raw)) {
-    watch(getter, raw);
+    watch(getter, raw.bind(scope));
   } else if (isObject(raw)) {
     if (isArray(raw)) {
       raw.forEach((r) => createWatcher(r, ctx, scope, key));
     } else {
       const handler = isFunction(raw.handler)
-        ? raw.handler
+        ? raw.handler.bind(scope)
         : isString(raw.handler)
         ? ctx[raw.handler]
         : null;
@@ -59,7 +59,7 @@ export function initWatch(
   schema: unknown,
   scope: RuntimeScope
 ): void {
-  const watchConfigs = parser.parseSchema(schema, scope);
+  const watchConfigs = parser.parseSchema(schema, false);
   if (!watchConfigs || !isObject(watchConfigs) || Object.keys(watchConfigs).length === 0)
     return;
 

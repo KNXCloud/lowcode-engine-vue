@@ -16,8 +16,10 @@
   ],
   "scripts": {
     "build": "vite build && vite build -c vite.config.umd.ts",
-    "lint:type": "tsc -p ./tsconfig.json --noEmit",
-    "prepack": "pnpm build"
+    "test": "vitest --run",
+    "test:coverage": "pnpm run test --coverage",
+    "lint:type": "tsc -p ./tsconfig.build.json --noEmit",
+    "prepack": "pnpm test && pnpm build"
   },
   "dependencies": {
     "@knxcloud/lowcode-hooks": "workspace:*",
@@ -25,7 +27,6 @@
     "intl-messageformat": "^10.3.5"
   },
   "devDependencies": {
-    "@alilc/lowcode-designer": "^1.1.6",
     "@alilc/lowcode-types": "^1.1.6",
     "@vitejs/plugin-vue": "^4.2.1",
     "@vitejs/plugin-vue-jsx": "^3.0.1",

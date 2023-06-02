@@ -22,7 +22,7 @@ export const BlockRenderer = defineComponent({
     }
 
     return wrapRender(() => {
-      return renderComp(schemaRef.value, null, componentsRef.value.Block || Fragment);
+      return renderComp(schemaRef.value, scope, componentsRef.value.Block || Fragment);
     });
   },
 });

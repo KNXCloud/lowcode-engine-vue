@@ -1,5 +1,7 @@
-import type { DocumentModel } from '@alilc/lowcode-designer';
-import type { IPublicTypeContainerSchema } from '@alilc/lowcode-types';
+import type {
+  IPublicTypeContainerSchema,
+  IPublicModelDocumentModel,
+} from '@alilc/lowcode-types';
 import {
   type Ref,
   type Component,
@@ -70,7 +72,7 @@ export interface ProjectContext {
 }
 
 function createDocumentInstance(
-  document: DocumentModel,
+  document: IPublicModelDocumentModel,
   context: ProjectContext
 ): DocumentInstance {
   /** 记录单个节点的组件实例列表 */
@@ -184,6 +186,7 @@ function createDocumentInstance(
   };
 
   const getNode: DocumentInstance['getNode'] = (id) => {
+    // @ts-expect-error getNodeById 不存在，使用 getNode 代替，这里的 ts 类型声明不正确
     return id ? document.getNode(id) : null;
   };
 
@@ -222,7 +225,7 @@ function createDocumentInstance(
     getComponentInstance,
     rerender: () => {
       timestamp.value = Date.now();
-      SchemaParser.cleanCacheModules();
+      SchemaParser.cleanCachedModules();
     },
   }) as DocumentInstance;
 }

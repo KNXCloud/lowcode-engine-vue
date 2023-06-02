@@ -30,7 +30,7 @@ export interface SchemaParserOptions {
 
 export class SchemaParser {
   static cacheModules: Record<string, object> = {};
-  static cleanCacheModules() {
+  static cleanCachedModules() {
     this.cacheModules = {};
   }
   private createFunction: (code: string) => CallableFunction;
@@ -118,17 +118,18 @@ export class SchemaParser {
   parseOnlyJsValue<T>(schema: unknown): T;
   parseOnlyJsValue(schema: unknown): unknown;
   parseOnlyJsValue(schema: unknown): unknown {
-    if (isJSExpression(schema) || isJSExpression(schema) || isI18nData(schema)) {
+    if (isJSExpression(schema) || isI18nData(schema)) {
       return undefined;
+    } else if (isJSFunction(schema)) {
+      return this.parseExpression(schema, false);
     } else if (isArray(schema)) {
       return schema.map((item) => this.parseOnlyJsValue(item));
     } else if (isPlainObject(schema)) {
-      const res: Record<string, unknown> = {};
-      Object.keys(schema).forEach((key) => {
-        if (key.startsWith('__')) return;
+      return Object.keys(schema).reduce((res, key) => {
+        if (key.startsWith('__')) return res;
         res[key] = this.parseOnlyJsValue(schema[key]);
-      });
-      return res;
+        return res;
+      }, {} as Record<string, unknown>);
     }
     return schema;
   }
@@ -144,15 +145,16 @@ export class SchemaParser {
     scope?: RuntimeScope | boolean
   ): CallableFunction | unknown {
     try {
-      const contextArr = ['"use strict";', 'var __self = arguments[1];'];
-      contextArr.push('return ');
+      const contextArr = ['"use strict";'];
       let tarStr: string;
 
       tarStr = (str.value || '').trim();
 
       if (scope !== false && !tarStr.match(/^\([^)]*\)\s*=>/)) {
         tarStr = tarStr.replace(/this(\W|$)/g, (_a: string, b: string) => `__self${b}`);
+        contextArr.push('var __self = arguments[1];');
       }
+      contextArr.push('return ');
       tarStr = contextArr.join('\n') + tarStr;
       const fn = this.createFunction(tarStr);
       return fn(this.exports, scope || {});

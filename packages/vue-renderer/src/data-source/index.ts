@@ -15,8 +15,10 @@ import {
 } from '@knxcloud/lowcode-utils';
 
 const same = <T>(v: T) => v;
-const noop = () => void 0;
 const alwaysTrue = () => true;
+const alwaysThrow = (e: unknown) => {
+  throw e;
+};
 
 export type ExecutionFunc<T = unknown> = (
   params?: RequestParams,
@@ -54,7 +56,7 @@ export function createDataSourceItem(
     dataHandler: dataHandler
       ? parser.parseSchema(dataHandler, scope)
       : (res: Response) => res.data,
-    errorHandler: errorHandler ? parser.parseSchema(errorHandler, scope) : noop,
+    errorHandler: errorHandler ? parser.parseSchema(errorHandler, scope) : alwaysThrow,
   };
 
   const load: ExecutionFunc = async (inputParams, otherOptions = {}) => {
@@ -114,7 +116,6 @@ export function createDataSourceItem(
       status.value = DataSourceStatus.Error;
       error.value = err;
       hooks.errorHandler(err);
-      throw err;
     }
   };
 

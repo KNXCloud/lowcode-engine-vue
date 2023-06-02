@@ -1,9 +1,8 @@
 import type {
-  IPublicModelNode as Node,
   IPublicTypeNodeSchema as NodeSchema,
   IPublicTypeContainerSchema as ContainerSchema,
 } from '@alilc/lowcode-types';
-import { getRendererContextKey, type DesignMode } from '@knxcloud/lowcode-hooks';
+import { getRendererContextKey, type DesignMode, INode } from '@knxcloud/lowcode-hooks';
 import {
   type PropType,
   type Component,
@@ -59,7 +58,7 @@ const vueRendererProps = {
     type: Object as PropType<I18nMessages>,
     default: () => ({}),
   },
-  getNode: Function as PropType<(id: string) => Node | null>,
+  getNode: Function as PropType<(id: string) => INode | null>,
   /** 组件获取 ref 时触发的钩子 */
   onCompGetCtx: Function as PropType<
     (schema: NodeSchema, ref: ComponentPublicInstance) => void
@@ -211,8 +210,8 @@ const VueRenderer = defineComponent({
   },
 });
 
-export const cleanCacledModules = () => {
-  SchemaParser.cleanCacheModules();
+export const cleanCachedModules = () => {
+  SchemaParser.cleanCachedModules();
 };
 
 export { VueRenderer, vueRendererProps };

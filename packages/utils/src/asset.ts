@@ -8,7 +8,7 @@ import { createDefer } from './create-defer';
 import { evaluate, load } from './script';
 
 export function isAssetItem(obj: any): obj is AssetItem {
-  return obj && obj.type;
+  return obj && !!obj.type;
 }
 
 export function isAssetBundle(obj: any): obj is AssetBundle {

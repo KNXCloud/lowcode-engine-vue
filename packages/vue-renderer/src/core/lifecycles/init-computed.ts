@@ -12,20 +12,20 @@ export function initComputed(
   schema: unknown,
   scope: RuntimeScope
 ): void {
-  const options = parser.parseSchema(schema, scope);
+  const options = parser.parseSchema(schema, false);
   if (!isPlainObject(options)) return;
 
   const computedValues: object = {};
   for (const key in options) {
     const computedOptions = options[key] as ComputedOptions;
     const get = isFunction(computedOptions)
-      ? computedOptions
+      ? computedOptions.bind(scope)
       : isFunction(computedOptions.get)
-      ? computedOptions.get
+      ? computedOptions.get.bind(scope)
       : noop;
     const set =
       !isFunction(computedOptions) && isFunction(computedOptions.set)
-        ? computedOptions.set
+        ? computedOptions.set.bind(scope)
         : noop;
     const computedValue = computed({
       get,

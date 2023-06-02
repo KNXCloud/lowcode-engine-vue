@@ -11,10 +11,10 @@ export function initData(
   schema: unknown,
   scope: RuntimeScope
 ): void {
-  const dataOptions = parser.parseSchema(schema, scope);
+  const dataOptions = parser.parseSchema(schema, false);
 
   const dataResult = isFunction(dataOptions)
-    ? dataOptions()
+    ? dataOptions.call(scope)
     : isObject(dataOptions)
     ? dataOptions
     : null;

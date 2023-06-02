@@ -1,8 +1,10 @@
-import { defineComponent, h } from 'vue';
+import { defineComponent, h, renderSlot } from 'vue';
 
 const Slot = defineComponent({
   render() {
-    return h('div', { class: 'lc-container' }, this.$slots);
+    return renderSlot(this.$slots, 'default', this.$props, () => {
+      return [h('div', { class: 'lc-container' })];
+    });
   },
 });
 

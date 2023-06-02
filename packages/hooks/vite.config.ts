@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [LibTypes()],
   build: {
     target: 'ES2018',
+    sourcemap: true,
     lib: {
       entry: 'src/index.ts',
       formats: ['cjs', 'es'],

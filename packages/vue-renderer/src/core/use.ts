@@ -34,7 +34,6 @@ import {
   onRenderTriggered,
   onServerPrefetch,
 } from 'vue';
-import type { Node } from '@alilc/lowcode-designer';
 import type {
   IPublicTypeNodeData as NodeData,
   IPublicTypeSlotSchema as SlotSchema,
@@ -44,14 +43,13 @@ import type {
 } from '@alilc/lowcode-types';
 import { leafPropKeys, type LeafProps, type RendererProps } from './base';
 import {
-  type MaybeArray,
   type BlockScope,
   type RuntimeScope,
   SchemaParser,
   warnOnce,
   warn,
 } from '../utils';
-import { getCurrentNodeKey, useRendererContext } from '@knxcloud/lowcode-hooks';
+import { INode, getCurrentNodeKey, useRendererContext } from '@knxcloud/lowcode-hooks';
 import {
   camelCase,
   isNil,
@@ -138,7 +136,7 @@ export function pickLifeCycles(lifeCycles: unknown) {
 
 export type RenderComponent = (
   nodeSchema: NodeData,
-  blockScope?: MaybeArray<BlockScope | undefined | null>,
+  scope: RuntimeScope,
   comp?: Component | typeof Fragment
 ) => VNode | VNode[] | null;
 
@@ -222,14 +220,14 @@ export function useLeaf(
   const render = (
     schema: NodeData,
     base: Component,
-    blockScope?: MaybeArray<BlockScope | undefined | null>,
+    scope: RuntimeScope,
     comp?: Component | typeof Fragment
   ): VNode | VNode[] | null => {
-    const scope = mergeScope(leafProps.__scope, blockScope);
-
     // 若 schema 不为 NodeSchema，则直接渲染
     if (isString(schema)) {
       return createTextVNode(schema);
+    } else if (isNil(schema)) {
+      return null;
     } else if (!isNodeSchema(schema)) {
       const result = parser.parseSchema(schema, scope);
       return createTextVNode(toDisplayString(result));
@@ -250,7 +248,7 @@ export function useLeaf(
       if (!comp) {
         if (componentName === 'Slot') {
           return ensureArray(schema.children)
-            .flatMap((item) => render(item, base, blockScope))
+            .flatMap((item) => render(item, base, scope))
             .filter((item): item is VNode => !isNil(item));
         }
 
@@ -293,7 +291,7 @@ export function useLeaf(
           __vnodeProps: vnodeProps,
           ...compProps,
         },
-        buildSlots(rawSlots, node, scope)
+        buildSlots(rawSlots, scope, node)
       );
     }
 
@@ -306,17 +304,18 @@ export function useLeaf(
       const blockScope = buildLoopScope(item, index, arr.length);
       const props = buildProps(rawProps, scope, node, blockScope, { ref });
       const [vnodeProps, compProps] = splitProps(props);
+      const mergedScope = mergeScope(scope, blockScope);
       return h(
         base,
         {
           key: vnodeProps.key ?? `${schema.id}--${index}`,
           __comp: comp,
-          __scope: mergeScope(scope, blockScope),
+          __scope: mergedScope,
           __schema: schema,
           __vnodeProps: vnodeProps,
           ...compProps,
         },
-        buildSlots(rawSlots, node, blockScope)
+        buildSlots(rawSlots, mergedScope, node)
       );
     });
   };
@@ -363,55 +362,50 @@ export function useLeaf(
    */
   const buildSlots = (
     slots: SlotSchemaMap,
-    node?: Node | null,
-    blockScope?: BlockScope | null
+    scope: RuntimeScope,
+    node?: INode | null
   ): Slots => {
     return Object.keys(slots).reduce((prev, next) => {
-      const slotSchema = slots[next];
+      let slotSchema = slots[next];
       const isDefaultSlot = next === 'default';
 
       // 插槽数据为 null 或 undefined 时不渲染插槽
-      if (isNil(slotSchema)) return prev;
+      if (isNil(slotSchema) && !isDefaultSlot) return prev;
 
       // 默认插槽内容为空，且当前节点不是容器节点时，不渲染默认插槽
       if (
         isDefaultSlot &&
         !node?.isContainerNode &&
-        isArray(slotSchema) &&
-        slotSchema.length === 0
+        ((isArray(slotSchema) && slotSchema.length === 0) || isNil(slotSchema))
       )
         return prev;
 
       let renderSlot: Slot;
 
+      if (isArray(slotSchema) && slotSchema.length === 0) {
+        slotSchema = slotSchema[0];
+      }
+
       if (isArray(slotSchema)) {
         // 插槽为数组，则当前插槽不可拖拽编辑，直接渲染插槽内容
-        renderSlot = () => {
-          return slotSchema
-            .map((item) => renderComp(item, blockScope))
+        renderSlot = keepParam(slotSchema, (schema) => () => {
+          return schema
+            .map((item) => renderComp(item, scope))
             .filter((vnode): vnode is VNode => !isNil(vnode));
-        };
+        });
       } else if (isSlotSchema(slotSchema)) {
-        if (slotSchema.id) {
-          // 存在 slot id，则当前插槽可拖拽编辑，渲染 Hoc
-          renderSlot = (...args: unknown[]) => {
-            const vnode = renderComp(slotSchema, [
-              blockScope,
-              parser.parseSlotScope(args, slotSchema.params ?? []),
-            ]);
-            return ensureArray(vnode);
-          };
-        } else {
-          // 不存在 slot id，插槽不可拖拽编辑，直接渲染插槽内容
-          renderSlot = (...args: unknown[]) => {
-            const slotScope = parser.parseSlotScope(args, slotSchema.params ?? []);
-            return ensureArray(slotSchema.children)
-              .map((item) => renderComp(item, [blockScope, slotScope]))
-              .filter((vnode): vnode is VNode => !isNil(vnode));
-          };
-        }
+        renderSlot = keepParam(slotSchema, (schema) => (...args: unknown[]) => {
+          const vnode = renderComp(
+            schema,
+            mergeScope(scope, parser.parseSlotScope(args, schema.params ?? []))
+          );
+          return ensureArray(vnode);
+        });
       } else {
-        renderSlot = () => ensureArray(renderComp(slotSchema as NodeData, blockScope));
+        renderSlot = keepParam(
+          slotSchema as NodeData,
+          (schema) => () => ensureArray(renderComp(schema, scope))
+        );
       }
 
       prev[next] =
@@ -436,7 +430,7 @@ export function useLeaf(
     scope: RuntimeScope,
     blockScope?: BlockScope | null,
     path?: string | null,
-    node?: Node | null
+    node?: INode | null
   ): any => {
     const prop = path ? node?.getProp(path, false) : null;
     if (isJSExpression(schema) || isJSFunction(schema)) {
@@ -463,7 +457,7 @@ export function useLeaf(
         const slotScope = parser.parseSlotScope(args, slotParams);
         const vnodes: VNode[] = [];
         ensureArray(slotSchema).forEach((item) => {
-          const vnode = renderComp(item, [blockScope, slotScope]);
+          const vnode = renderComp(item, mergeScope(scope, blockScope, slotScope));
           ensureArray(vnode).forEach((item) => vnodes.push(item));
         });
         return vnodes;
@@ -471,7 +465,7 @@ export function useLeaf(
     } else if (isArray(schema)) {
       // 属性值为 array，递归处理属性的每一项
       return schema.map((item, idx) =>
-        buildNormalProp(item, scope, blockScope, `${path}[${idx}]`, node)
+        buildNormalProp(item, scope, blockScope, `${path}.${idx}`, node)
       );
     } else if (schema && isObject(schema)) {
       // 属性值为 object，递归处理属性的每一项
@@ -499,7 +493,7 @@ export function useLeaf(
     scope: RuntimeScope,
     blockScope?: BlockScope | null,
     path?: string | null,
-    node?: Node | null
+    node?: INode | null
   ): any => {
     if (isString(schema)) {
       const field = schema;
@@ -555,7 +549,7 @@ export function useLeaf(
   const buildProps = (
     propsSchema: Record<string, unknown>,
     scope: RuntimeScope,
-    node?: Node | null,
+    node?: INode | null,
     blockScope?: BlockScope | null,
     extraProps?: Record<string, unknown>
   ): any => {
@@ -759,7 +753,43 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
     return promises.length > 0 ? Promise.all(promises).then(() => render) : render;
   };
 
-  return { scope, wrapRender };
+  // 初始化 loop ref states
+  addToScope(scope, AccessTypes.CONTEXT, {
+    __loopScope: false,
+    __loopRefIndex: null,
+    __loopRefOffset: 0,
+  });
+
+  return {
+    scope: new Proxy({} as RuntimeScope, {
+      get(_, p) {
+        if (p === Symbol.toStringTag) {
+          return '[object RuntimeScope]';
+        }
+        return Reflect.get(scope, p, scope);
+      },
+      set(_, p, newValue) {
+        return Reflect.set(scope, p, newValue, scope);
+      },
+      has(_, p) {
+        return Reflect.has(scope, p);
+      },
+      defineProperty(_, property, attributes) {
+        return Reflect.defineProperty(scope, property, attributes);
+      },
+      ownKeys: () => {
+        return Array.from(
+          new Set([
+            ...Reflect.ownKeys(scope.$.props),
+            ...Reflect.ownKeys(scope.$.data),
+            ...Reflect.ownKeys(scope.$.setupState),
+            ...Reflect.ownKeys(scope.$.ctx),
+          ])
+        );
+      },
+    }),
+    wrapRender,
+  };
 }
 
 export function handleStyle(css: string | undefined, id: string | undefined) {
@@ -784,6 +814,7 @@ export function handleStyle(css: string | undefined, id: string | undefined) {
     style.parentElement?.removeChild(style);
   }
 }
+
 /**
  * 构建当前节点的 schema，获取 schema 的属性及插槽
  *
@@ -792,12 +823,19 @@ export function handleStyle(css: string | undefined, id: string | undefined) {
  * - prop 和 node 中同时存在 children 时，prop children 会覆盖 node children
  * - className prop 会被处理为 class prop
  */
-export const buildSchema = (schema: NodeSchema, node?: Node | null) => {
+export const buildSchema = (schema: NodeSchema, node?: INode | null) => {
   const slotProps: SlotSchemaMap = {};
   const normalProps: PropSchemaMap = {};
 
   // 处理节点默认插槽，可能会被属性插槽覆盖
-  slotProps.default = ensureArray(schema.children);
+  slotProps.default =
+    isArray(schema.children) && schema.children.length === 1
+      ? schema.children[0]
+      : schema.children;
+
+  const normalizeSlotKey = (key: string) => {
+    return key === 'children' ? 'default' : key;
+  };
 
   Object.entries(schema.props ?? {}).forEach(([key, val]) => {
     if (isJSSlot(val)) {
@@ -807,14 +845,14 @@ export const buildSchema = (schema: NodeSchema, node?: Node | null) => {
         // design 模式，从 prop 对象到处 schema
         const slotSchema = prop.slotNode.schema;
         if (isSlotSchema(slotSchema)) {
-          slotProps[key] = slotSchema;
+          slotProps[normalizeSlotKey(key)] = slotSchema;
         }
       } else if (val.value) {
         // live 模式，直接获取 schema 值，若值为空则不渲染插槽
-        slotProps[key] = {
+        slotProps[normalizeSlotKey(key)] = {
           componentName: 'Slot',
           params: val.params,
-          children: ensureArray(val.value),
+          children: val.value,
         };
       }
     } else if (key === 'className') {
@@ -830,6 +868,10 @@ export const buildSchema = (schema: NodeSchema, node?: Node | null) => {
   });
 
   return { props: normalProps, slots: slotProps };
+};
+
+const keepParam = <T, R>(param: T, cb: (param: T) => R) => {
+  return cb(param);
 };
 
 /**
@@ -863,9 +905,9 @@ const processProp = (target: Record<string, unknown>, key: string, val: unknown)
           : updateEventFn;
     }
     target[valueProp] = val;
-  } else if (key.startsWith('v-') && isJSExpression(val)) {
+  } else if (key.startsWith('v-')) {
     // TODO: 指令绑定逻辑
-  } else if (key.match(/^on[A-Z]/) && isJSFunction(val)) {
+  } else if (key.match(/^on[A-Z]/)) {
     // 事件绑定逻辑
 
     // normalize: onUpdateXxx => onUpdate:xxx
@@ -900,7 +942,7 @@ const processProp = (target: Record<string, unknown>, key: string, val: unknown)
  */
 const decorateDefaultSlot = (slot: Slot, locked: Ref<boolean>): Slot => {
   return (...args: unknown[]) => {
-    const vnodes = slot(...args);
+    const vnodes = slot(...args).filter(Boolean);
     if (!vnodes.length) {
       const isLocked = locked.value;
       const className = {

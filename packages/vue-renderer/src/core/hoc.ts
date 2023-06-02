@@ -7,6 +7,7 @@ import {
   provide,
   watch,
   Fragment,
+  toRaw,
 } from 'vue';
 
 import { onUnmounted, defineComponent } from 'vue';
@@ -54,11 +55,11 @@ export const Hoc = defineComponent({
   props: leafProps,
   setup(props, { slots, attrs }) {
     const showNode = shallowRef(true);
-    const nodeSchmea = shallowRef(props.__schema);
+    const nodeSchema = shallowRef(props.__schema);
     const slotSchema = shallowRef<SlotSchemaMap>();
 
     const updateSchema = (newSchema: IPublicTypeNodeSchema) => {
-      nodeSchmea.value = newSchema;
+      nodeSchema.value = newSchema;
       slotSchema.value = buildSchema(newSchema, node).slots;
     };
     const { rerender, rerenderRoot, rerenderParent } = useHocNode(() => {
@@ -119,7 +120,7 @@ export const Hoc = defineComponent({
         })
       );
       onUnmounted(
-        node.onVisibleChange((visible) => {
+        node.onVisibleChange((visible: boolean) => {
           isRootNode
             ? // 当前节点为根节点（Page），直接隐藏
               (showNode.value = visible)
@@ -136,11 +137,15 @@ export const Hoc = defineComponent({
     );
 
     return () => {
-      const { __comp: comp, __vnodeProps: vnodeProps } = props;
+      const comp = toRaw(props.__comp);
+      const scope = toRaw(props.__scope);
+      const vnodeProps = { ...props.__vnodeProps };
       const compProps = splitLeafProps(attrs)[1];
       if (isRootNode && !showNode.value) return null;
 
-      const builtSlots = slotSchema.value ? buildSlots(slotSchema.value, node) : slots;
+      const builtSlots = slotSchema.value
+        ? buildSlots(slotSchema.value, scope, node)
+        : slots;
 
       return comp
         ? isFragment(comp)
