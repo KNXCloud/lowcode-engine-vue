@@ -22,6 +22,7 @@
     "prepack": "pnpm test && pnpm build"
   },
   "dependencies": {
+    "@knxcloud/lowcode-data-source": "workspace:*",
     "@knxcloud/lowcode-hooks": "workspace:*",
     "@knxcloud/lowcode-utils": "workspace:*",
     "intl-messageformat": "^10.3.5"
@@ -43,9 +44,6 @@
   },
   "peerDependenciesMeta": {
     "vue-router": {
-      "optional": true
-    },
-    "@alilc/lowcode-designer": {
       "optional": true
     },
     "@alilc/lowcode-types": {

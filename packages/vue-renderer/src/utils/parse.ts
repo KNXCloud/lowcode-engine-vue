@@ -91,7 +91,7 @@ export class SchemaParser {
       ? CallableFunction | unknown
       : T[K];
   };
-  parseSchema<T>(schema: T, scope?: RuntimeScope | boolean): T;
+  parseSchema<T>(schema: unknown, scope?: RuntimeScope | boolean): T;
   parseSchema(schema: unknown, scope?: RuntimeScope | boolean): unknown {
     if (isJSExpression(schema) || isJSFunction(schema)) {
       return this.parseExpression(schema, scope);

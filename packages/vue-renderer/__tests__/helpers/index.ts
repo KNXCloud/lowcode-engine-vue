@@ -1,3 +1,3 @@
-export * from './async';
+export * from './mixed';
 export * from './document';
 export * from './node';

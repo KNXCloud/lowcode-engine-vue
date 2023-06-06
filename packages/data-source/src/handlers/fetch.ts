@@ -1,5 +1,5 @@
-import { isPlainObject } from '@knxcloud/lowcode-utils';
-import type { RequestOptions, ResponseType } from './interface';
+import { RuntimeOptionsConfig } from '@alilc/lowcode-types';
+import { isPlainObject, isString } from '@knxcloud/lowcode-utils';
 
 function serializeParams(obj: Record<string, unknown>) {
   const result: string[] = [];
@@ -35,8 +35,10 @@ function find(o: Record<string, string>, k: string): [string, string] | [] {
   return [];
 }
 
-function isValidResponseType(type: string): type is ResponseType {
-  return ['arrayBuffer', 'blob', 'formData', 'json', 'text'].includes(type);
+function isValidResponseType(type: unknown): type is ResponseType {
+  return (
+    isString(type) && ['arrayBuffer', 'blob', 'formData', 'json', 'text'].includes(type)
+  );
 }
 
 function createFormData(data: Record<string, unknown>): FormData {
@@ -65,6 +67,12 @@ function parseRequestBody(contentType: string, data: Record<string, unknown>): B
   return parser ? bodyParseStrategies[parser](data) : (data as unknown as BodyInit);
 }
 
+export type ResponseType = 'blob' | 'arrayBuffer' | 'formData' | 'text' | 'json';
+
+export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
+
+export type RequestParams = Record<string, unknown>;
+
 export class RequestError<T = unknown> extends Error {
   constructor(message: string, public code: number, public data?: T) {
     super(message);
@@ -75,14 +83,16 @@ export class Response<T = unknown> {
   constructor(public code: number, public data: T) {}
 }
 
-export async function request(options: RequestOptions): Promise<Response> {
+export async function request(options: RuntimeOptionsConfig): Promise<Response> {
   const {
     uri,
     method,
     timeout,
     params = {},
     headers = {},
+    isCors,
     responseType = 'json',
+    ...restOptions
   } = options;
 
   let url: string;
@@ -94,7 +104,15 @@ export async function request(options: RequestOptions): Promise<Response> {
   const fetchOptions: RequestInit = {
     method,
     headers: requestHeaders,
+    credentials: 'same-origin',
+    ...restOptions,
   };
+
+  if (isCors) {
+    fetchOptions.mode = 'cors';
+    fetchOptions.credentials = 'include';
+  }
+  isCors && (fetchOptions.mode = 'cors');
 
   if (method === 'GET' || method === 'DELETE' || method === 'OPTIONS') {
     url = buildUrl(uri, params);

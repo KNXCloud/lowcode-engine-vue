@@ -71,6 +71,7 @@ const vueRendererProps = {
     type: [Array, Boolean] as PropType<string[] | boolean>,
     default: false,
   },
+  requestHandlersMap: Object,
 } as const;
 
 type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
@@ -114,6 +115,8 @@ const VueRenderer = defineComponent({
         ...config.getRenderers(),
         ...props.components,
       })),
+      thisRequiredInJSE: computed(() => props.thisRequiredInJSE),
+      requestHandlersMap: computed(() => props.requestHandlersMap ?? {}),
       getNode: (id: string) => (props.getNode?.(id) as any) ?? null,
       triggerCompGetCtx: (schema: NodeSchema, inst: ComponentPublicInstance) => {
         props.onCompGetCtx?.(schema, inst);

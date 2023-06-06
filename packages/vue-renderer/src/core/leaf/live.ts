@@ -1,6 +1,6 @@
 import { defineComponent, h, mergeProps, renderSlot, toRaw } from 'vue';
-import { isFragment, splitLeafProps } from './use';
-import { leafProps } from './base';
+import { isFragment, splitLeafProps } from '../use';
+import { leafProps } from '../base';
 
 export const Live = defineComponent({
   inheritAttrs: false,

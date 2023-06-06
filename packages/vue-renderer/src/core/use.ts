@@ -68,10 +68,10 @@ import {
   isArray,
   isI18nData,
 } from '@knxcloud/lowcode-utils';
-import { Hoc } from './hoc';
-import { Live } from './live';
+import { Hoc } from './leaf/hoc';
+import { Live } from './leaf/live';
 import { ensureArray, getI18n, mergeScope, AccessTypes, addToScope } from '../utils';
-import { createDataSourceManager } from '../data-source';
+import { create as createDataSourceEngine } from '../data-source';
 import { createHookCaller } from './lifecycles';
 
 const currentNodeKey = getCurrentNodeKey();
@@ -728,8 +728,8 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
   addToScope(scope, AccessTypes.DATA, { currentLocale });
 
   // 处理 dataSource
-  const { dataSource, dataSourceMap, reloadDataSource, hasInitDataSource } =
-    createDataSourceManager(
+  const { dataSource, dataSourceMap, reloadDataSource, shouldInit } =
+    createDataSourceEngine(
       schema.dataSource ?? { list: [], dataHandler: undefined },
       scope
     );
@@ -749,7 +749,7 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
   const wrapRender = (render: () => VNodeChild | null) => {
     const promises: Promise<unknown>[] = [];
     isPromise(setupResult) && promises.push(setupResult);
-    hasInitDataSource() && promises.push(reloadDataSource());
+    shouldInit() && promises.push(reloadDataSource());
     return promises.length > 0 ? Promise.all(promises).then(() => render) : render;
   };
 

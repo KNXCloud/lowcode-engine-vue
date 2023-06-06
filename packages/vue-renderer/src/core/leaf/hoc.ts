@@ -11,14 +11,14 @@ import {
 } from 'vue';
 
 import { onUnmounted, defineComponent } from 'vue';
-import { leafProps } from './base';
+import { leafProps } from '../base';
 import {
   buildSchema,
   isFragment,
   splitLeafProps,
   useLeaf,
   type SlotSchemaMap,
-} from './use';
+} from '../use';
 import { useRendererContext } from '@knxcloud/lowcode-hooks';
 import type { IPublicTypeNodeSchema } from '@alilc/lowcode-types';
 import { debounce, exportSchema, isJSSlot } from '@knxcloud/lowcode-utils';

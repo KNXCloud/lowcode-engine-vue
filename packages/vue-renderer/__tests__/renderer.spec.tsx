@@ -1,10 +1,11 @@
-import type { Component } from 'vue';
+import { Component, Suspense, ref } from 'vue';
 import type { IPublicTypeRootSchema } from '@alilc/lowcode-types';
 import { mount, flushPromises } from '@vue/test-utils';
 import { defineComponent, renderSlot, computed } from 'vue';
 import VueRenderer from '../src';
+import { $$, sleep } from './helpers';
 
-describe('test for renderer type', () => {
+describe('renderer type', () => {
   test('normal page renderer', () => {
     const wrapper = mount(VueRenderer, {
       props: {
@@ -63,7 +64,7 @@ describe('test for renderer type', () => {
   });
 });
 
-describe('test for props', () => {
+describe('props', () => {
   const TButton = defineComponent({
     name: 'TButton',
     props: {
@@ -247,10 +248,8 @@ describe('test for props', () => {
         components,
       },
     });
-    expect(inst1.vm['runtimeScope'].btnInst).toBeDefined();
-    expect(inst1.vm['runtimeScope'].$refs['btnInst']).toBe(
-      inst1.vm['runtimeScope'].btnInst
-    );
+    expect($$(inst1.vm).btnInst).toBeDefined();
+    expect($$(inst1.vm).$refs['btnInst']).toBe($$(inst1.vm).btnInst);
 
     const inst2 = mount(VueRenderer, {
       props: {
@@ -276,8 +275,10 @@ describe('test for props', () => {
         components,
       },
     });
-    expect(inst2.vm['runtimeScope'].btnInst).toBeDefined();
-    expect(inst2.vm['runtimeScope'].$refs['btnInst']).toBeUndefined();
+
+    const scope = $$(inst2.vm);
+    expect(scope.btnInst).toBeDefined();
+    expect(scope.$refs.btnInst).toBeUndefined();
   });
 
   test('js function', async () => {
@@ -353,7 +354,7 @@ describe('test for props', () => {
   });
 });
 
-describe('test for slots', () => {
+describe('slots', () => {
   const TButton = defineComponent({
     props: {
       iconSize: {
@@ -533,7 +534,7 @@ describe('test for slots', () => {
   });
 });
 
-describe('test for loop and condition', () => {
+describe('loop and condition', () => {
   const components = {
     TText: defineComponent({
       name: 'TText',
@@ -808,7 +809,7 @@ describe('test for loop and condition', () => {
   });
 });
 
-describe('test for i18n', () => {
+describe('i18n', () => {
   const messages = {
     'zh-CN': {
       'user.message': '你好',
@@ -916,12 +917,15 @@ describe('test for i18n', () => {
   });
 });
 
-describe('test for lifecycles', () => {
+describe('lifecycles', () => {
   const components = {
     TText: defineComponent({
       name: 'TText',
+      inject: ['message'],
       render() {
-        const vnode = renderSlot(this.$slots, 'default', this.$props);
+        const vnode = renderSlot(this.$slots, 'default', this.$props, () => {
+          return [<>{this.message}</>];
+        });
         return <span class="t-text">{vnode}</span>;
       },
     }),
@@ -1131,10 +1135,10 @@ describe('test for lifecycles', () => {
 
     await inst.find('button').trigger('click');
 
-    const runtimeScope = inst.vm['runtimeScope'];
-    expect(runtimeScope.changeCount1).eq(1);
-    expect(runtimeScope.changeCount2).eq(1);
-    expect(runtimeScope.changeCount3).eq(1);
+    const scope = $$(inst.vm);
+    expect(scope.changeCount1).eq(1);
+    expect(scope.changeCount2).eq(1);
+    expect(scope.changeCount3).eq(1);
   });
 
   test('data', async () => {
@@ -1208,7 +1212,7 @@ describe('test for lifecycles', () => {
       },
     });
 
-    expect(inst3.vm['runtimeScope']).toBeDefined();
+    expect($$(inst3.vm)).toBeDefined();
   });
 
   test('emits', async () => {
@@ -1248,7 +1252,7 @@ describe('test for lifecycles', () => {
   });
 
   test('props', async () => {
-    const inst = mount(VueRenderer, {
+    const inst1 = mount(VueRenderer, {
       props: {
         components,
         schema: {
@@ -1260,15 +1264,6 @@ describe('test for lifecycles', () => {
               value: `['name']`,
             },
           },
-          children: {
-            componentName: 'TButton',
-            props: {
-              content: {
-                type: 'JSExpression',
-                value: `this.name`,
-              },
-            },
-          },
         },
         passProps: {
           name: 'Tom',
@@ -1276,6 +1271,245 @@ describe('test for lifecycles', () => {
       },
     });
 
-    expect(inst.find('button').text()).contain('Tom');
+    expect($$(inst1.vm).name).eq('Tom');
+
+    const inst2 = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          lifeCycles: {
+            initProps: {
+              type: 'JSExpression',
+              value: `{ boolValue: Boolean }`,
+            },
+          },
+        },
+      },
+    });
+
+    expect($$(inst2.vm).boolValue).eq(false);
+
+    const inst3 = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          lifeCycles: {
+            initProps: {
+              type: 'JSExpression',
+              value: `{ boolValue: { type: Boolean, default: true } }`,
+            },
+          },
+        },
+      },
+    });
+
+    expect($$(inst3.vm).boolValue).eq(true);
+
+    const inst4 = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          lifeCycles: {
+            initProps: {
+              type: 'JSExpression',
+              value: `{ strValue: String }`,
+            },
+          },
+        },
+      },
+    });
+
+    expect($$(inst4.vm).strValue).toBeUndefined();
+
+    const inst5 = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          lifeCycles: {
+            initProps: {
+              type: 'JSExpression',
+              value: `{ objValue: { type: Object, default: () => ({ a:5 }) } }`,
+            },
+          },
+        },
+      },
+    });
+
+    expect($$(inst5.vm).objValue).toMatchObject({ a: 5 });
+  });
+
+  test('inject', async () => {
+    const inst1 = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          lifeCycles: {
+            initInject: {
+              type: 'JSExpression',
+              value: `['name', 'noExist']`,
+            },
+          },
+        },
+      },
+      global: {
+        provide: {
+          name: 'Tom',
+        },
+      },
+    });
+
+    expect($$(inst1.vm).name).eq('Tom');
+    expect($$(inst1.vm).noExist).toBeUndefined();
+
+    const inst2 = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          lifeCycles: {
+            initInject: {
+              type: 'JSExpression',
+              value: `{
+                replaced: 'name',
+                onExist: {
+                  from: 'onExist',
+                  default: 0
+                },
+                noExist2: {
+                  from: 'onExist',
+                  default: () => ({ a: 5 })
+                },
+                refValue: {},
+              }`,
+            },
+          },
+        },
+      },
+      global: {
+        provide: {
+          name: 'Tom',
+          refValue: ref(0),
+        },
+      },
+    });
+
+    expect($$(inst2.vm).replaced).eq('Tom');
+    expect($$(inst2.vm).refValue).eq(0);
+    expect($$(inst2.vm).onExist).eq(0);
+    expect($$(inst2.vm).noExist2).toMatchObject({ a: 5 });
+  });
+
+  test('provide', async () => {
+    const inst = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          lifeCycles: {
+            initProvide: {
+              type: 'JSExpression',
+              value: `{ message: 'hello' }`,
+            },
+          },
+          children: {
+            componentName: 'TText',
+          },
+        },
+      },
+    });
+
+    expect(inst.find('.t-text').text()).contain('hello');
+  });
+
+  test('setup', async () => {
+    const inst = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          lifeCycles: {
+            setup: {
+              type: 'JSFunction',
+              value: `function() { return { name: 'Tom' } }`,
+            },
+          },
+        },
+      },
+    });
+
+    expect($$(inst.vm).name).contain('Tom');
+
+    const inst2 = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          lifeCycles: {
+            setup: {
+              type: 'JSFunction',
+              value: `function() { return 1 }`,
+            },
+          },
+        },
+      },
+    });
+
+    expect($$(inst2.vm).name).toBeUndefined();
+
+    const inst3 = mount(
+      (_, { attrs }) => {
+        return (
+          <Suspense>
+            {/* @ts-ignore */}
+            <VueRenderer {...attrs} />
+          </Suspense>
+        );
+      },
+      {
+        props: {
+          components,
+          schema: {
+            fileName: '/',
+            componentName: 'Page',
+            lifeCycles: {
+              setup: {
+                type: 'JSFunction',
+                value: `async function() {
+                await Promise.resolve();
+                return { name: 'Tom' }
+              }`,
+              },
+            },
+            children: {
+              componentName: 'TButton',
+              props: {
+                content: {
+                  type: 'JSExpression',
+                  value: 'this.name',
+                },
+              },
+            },
+          },
+        },
+      }
+    );
+
+    await sleep(500);
+
+    expect(inst3.find('button').text()).contain('Tom');
   });
 });

@@ -1,9 +1,9 @@
 {
-  "name": "@knxcloud/lowcode-hooks",
-  "version": "1.6.0-beta.4",
-  "main": "dist/lowcode-hooks.js",
-  "module": "dist/lowcode-hooks.mjs",
-  "typings": "dist/lowcode-hooks.d.ts",
+  "name": "@knxcloud/lowcode-data-source",
+  "version": "1.0.0",
+  "main": "dist/lowcode-data-source.js",
+  "module": "dist/lowcode-data-source.mjs",
+  "typings": "dist/lowcode-data-source.d.ts",
   "keywords": [
     "vue",
     "lowcode",
@@ -17,7 +17,9 @@
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
     "prepack": "pnpm build"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@knxcloud/lowcode-utils": "workspace:*"
+  },
   "devDependencies": {
     "@alilc/lowcode-types": "^1.1.6",
     "vite": "^4.3.5",
@@ -28,17 +30,12 @@
     "@alilc/lowcode-types": ">= 1.1.x < 2",
     "vue": ">= 3.x < 4"
   },
-  "peerDependenciesMeta": {
-    "@alilc/lowcode-types": {
-      "optional": true
-    }
-  },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
   },
   "repository": {
     "type": "http",
-    "url": "https://github.com/KNXCloud/lowcode-engine-vue/tree/main/packages/hooks"
+    "url": "https://github.com/KNXCloud/lowcode-engine-vue/tree/main/packages/data-source"
   }
 }
