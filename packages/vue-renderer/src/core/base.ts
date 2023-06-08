@@ -59,6 +59,11 @@ export const rendererProps = {
     type: Object as PropType<SchemaParser>,
     required: true,
   },
+  /** 主要用于设置渲染模块的全局上下文，里面定义的内容可以在低代码中通过 this 来访问，比如 this.utils */
+  appHelper: {
+    type: Object as PropType<any>,
+    required: false,
+  },
 } as const;
 
 export type RendererProps = ExtractPropTypes<typeof rendererProps>;

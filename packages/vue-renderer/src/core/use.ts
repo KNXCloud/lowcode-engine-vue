@@ -655,7 +655,12 @@ export function useRenderer(rendererProps: RendererProps, scope: RuntimeScope) {
 }
 
 export function useRootScope(rendererProps: RendererProps, setupConext: object) {
-  const { __schema: schema, __scope: extraScope, __parser: parser } = rendererProps;
+  const {
+    __schema: schema,
+    __scope: extraScope,
+    __parser: parser,
+    appHelper,
+  } = rendererProps;
 
   const {
     props: propsSchema,
@@ -688,6 +693,12 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
   if (methodsSchema) {
     const methods = parser.parseSchema(methodsSchema, scope);
     methods && addToScope(scope, AccessTypes.CONTEXT, methods);
+  }
+
+  // 处理appHelper中的utils
+  const utils = appHelper?.utils;
+  if (utils) {
+    addToScope(scope, AccessTypes.CONTEXT, { utils });
   }
 
   // 处理 state

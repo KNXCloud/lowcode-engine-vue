@@ -33,7 +33,10 @@ import {
   exportSchema,
   isBoolean,
 } from '@knxcloud/lowcode-utils';
-
+export type IRendererAppHelper = Partial<{
+  /** 全局公共函数 */
+  utils: Record<string, any>;
+}>;
 const vueRendererProps = {
   scope: Object as PropType<BlockScope>,
   schema: {
@@ -72,6 +75,11 @@ const vueRendererProps = {
     default: false,
   },
   requestHandlersMap: Object,
+  /** 主要用于设置渲染模块的全局上下文，里面定义的内容可以在低代码中通过 this 来访问，比如 this.utils */
+  appHelper: {
+    type: Object as PropType<IRendererAppHelper>,
+    required: false,
+  },
 } as const;
 
 type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
@@ -197,6 +205,7 @@ const VueRenderer = defineComponent({
               __thisRequiredInJSE: thisRequiredInJSE,
               __getNode: getNode,
               __triggerCompGetCtx: triggerCompGetCtx,
+              appHelper: props.appHelper,
             } as any,
             slots
           )
