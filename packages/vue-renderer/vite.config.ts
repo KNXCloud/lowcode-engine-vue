@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vite';
 import LibTypes from 'vite-plugin-lib-types';
 import VueJsx from '@vitejs/plugin-vue-jsx';
 import pkg from './package.json';

@@ -3,7 +3,7 @@
   "main": "./dist/vue-simulator-renderer.js",
   "module": "./dist/vue-simulator-renderer.mjs",
   "typings": "./dist/vue-simulator-renderer.d.ts",
-  "version": "1.6.0-beta.8",
+  "version": "1.6.0-beta.9",
   "keywords": [
     "vue",
     "lowcode",
@@ -26,8 +26,8 @@
     "@knxcloud/lowcode-vue-renderer": "workspace:*"
   },
   "devDependencies": {
-    "@alilc/lowcode-designer": "^1.1.6",
-    "@alilc/lowcode-types": "^1.1.6",
+    "@alilc/lowcode-designer": "^1.1.7",
+    "@alilc/lowcode-types": "^1.1.7",
     "@vitejs/plugin-vue": "^4.2.1",
     "@vitejs/plugin-vue-jsx": "^3.0.1",
     "@vue/cli-plugin-babel": "^5.0.8",
