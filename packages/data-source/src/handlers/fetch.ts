@@ -104,14 +104,10 @@ export async function request(options: RuntimeOptionsConfig): Promise<Response> 
   const fetchOptions: RequestInit = {
     method,
     headers: requestHeaders,
-    credentials: 'same-origin',
+    credentials: 'include',
     ...restOptions,
   };
 
-  if (isCors) {
-    fetchOptions.mode = 'cors';
-    fetchOptions.credentials = 'include';
-  }
   isCors && (fetchOptions.mode = 'cors');
 
   if (method === 'GET' || method === 'DELETE' || method === 'OPTIONS') {
@@ -157,4 +153,8 @@ export async function request(options: RuntimeOptionsConfig): Promise<Response> 
     }
   }
   throw new RequestError(res.statusText, code);
+}
+
+export function createFetchRequest(defaultOptions: Partial<RuntimeOptionsConfig>) {
+  return (options: RuntimeOptionsConfig) => request({ ...defaultOptions, ...options });
 }

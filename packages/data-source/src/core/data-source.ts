@@ -16,8 +16,6 @@ export function createDataSource(
   { state, setState }: DataSourceContext,
   requestHandlersMap: RequestHandlersMap
 ): DataSource {
-  requestHandlersMap = { fetch: fetchRequest, ...requestHandlersMap };
-
   const data = shallowRef<unknown>();
   const error = shallowRef<unknown>();
   const status = ref<DataSourceStatus>('init');
@@ -121,7 +119,9 @@ function getRequestHandler(
     if (type === 'custom' && requestHandler) {
       return requestHandler;
     } else {
-      return requestHandlersMap[type];
+      return type === 'fetch'
+        ? requestHandlersMap[type] ?? fetchRequest
+        : requestHandlersMap[type] ?? null;
     }
   }
   return fetchRequest;

@@ -3,8 +3,21 @@ import LibTypes from 'vite-plugin-lib-types';
 
 import pkg from './package.json';
 
-export default defineConfig({
-  plugins: [LibTypes()],
+export default defineConfig(({ command }) => ({
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      provider: 'istanbul',
+      reporter: ['text', 'html'],
+    },
+  },
+  plugins: [
+    LibTypes({
+      enable: command === 'build',
+      tsconfigPath: './tsconfig.build.json',
+    }),
+  ],
   build: {
     target: 'ES2018',
     sourcemap: true,
@@ -17,4 +30,4 @@ export default defineConfig({
       external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)],
     },
   },
-});
+}));

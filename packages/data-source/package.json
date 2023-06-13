@@ -1,6 +1,6 @@
 {
   "name": "@knxcloud/lowcode-data-source",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.0",
   "main": "dist/lowcode-data-source.js",
   "module": "dist/lowcode-data-source.mjs",
   "typings": "dist/lowcode-data-source.d.ts",
@@ -14,6 +14,7 @@
   ],
   "scripts": {
     "build": "vite build",
+    "test": "vitest --run",
     "lint:type": "tsc -p ./tsconfig.json --noEmit",
     "prepack": "pnpm build"
   },
@@ -27,8 +28,8 @@
     "vue": "~3.2.47"
   },
   "peerDependencies": {
-    "@alilc/lowcode-types": ">= 1.1.x < 2",
-    "vue": ">= 3.x < 4"
+    "@alilc/lowcode-types": ">= 1.1.x",
+    "vue": ">= 3.x"
   },
   "publishConfig": {
     "access": "public",

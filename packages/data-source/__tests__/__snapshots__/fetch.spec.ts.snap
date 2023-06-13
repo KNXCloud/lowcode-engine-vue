@@ -1,0 +1,149 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`fetch request > responseType 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      "https://127.0.0.1/info.json",
+      {
+        "credentials": "include",
+        "headers": {
+          "Accept": "application/json",
+        },
+        "method": "GET",
+      },
+    ],
+    [
+      "https://127.0.0.1/info.json",
+      {
+        "credentials": "include",
+        "headers": {
+          "Accept": "application/json",
+        },
+        "method": "GET",
+      },
+    ],
+    [
+      "https://127.0.0.1/info.json?a=5&c=%7B%22d%22%3A5%7D",
+      {
+        "credentials": "include",
+        "headers": {
+          "Accept": "application/json",
+        },
+        "method": "GET",
+      },
+    ],
+    [
+      "https://127.0.0.1/info.json",
+      {
+        "body": {
+          "a": 5,
+        },
+        "credentials": "include",
+        "headers": {
+          "Accept": "application/json",
+          "content-type": "json",
+        },
+        "method": "POST",
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "json": [Function],
+        "status": 200,
+        "statusText": "OK",
+      },
+    },
+    {
+      "type": "return",
+      "value": {
+        "json": [Function],
+        "status": 500,
+        "statusText": "Server internal error",
+      },
+    },
+    {
+      "type": "return",
+      "value": {
+        "json": [Function],
+        "status": 200,
+        "statusText": "OK",
+      },
+    },
+    {
+      "type": "return",
+      "value": {
+        "blob": [Function],
+        "status": 200,
+        "statusText": "OK",
+      },
+    },
+  ],
+}
+`;
+
+exports[`fetch request > with params 1`] = `
+[MockFunction spy] {
+  "calls": [
+    [
+      "https://127.0.0.1/info.json",
+      {
+        "credentials": "include",
+        "headers": {
+          "Accept": "application/json",
+        },
+        "method": "GET",
+      },
+    ],
+    [
+      "https://127.0.0.1/info.json",
+      {
+        "credentials": "include",
+        "headers": {
+          "Accept": "application/json",
+        },
+        "method": "GET",
+      },
+    ],
+    [
+      "https://127.0.0.1/info.json?a=5&c=%7B%22d%22%3A5%7D",
+      {
+        "credentials": "include",
+        "headers": {
+          "Accept": "application/json",
+        },
+        "method": "GET",
+      },
+    ],
+  ],
+  "results": [
+    {
+      "type": "return",
+      "value": {
+        "json": [Function],
+        "status": 200,
+        "statusText": "OK",
+      },
+    },
+    {
+      "type": "return",
+      "value": {
+        "json": [Function],
+        "status": 500,
+        "statusText": "Server internal error",
+      },
+    },
+    {
+      "type": "return",
+      "value": {
+        "json": [Function],
+        "status": 200,
+        "statusText": "OK",
+      },
+    },
+  ],
+}
+`;
