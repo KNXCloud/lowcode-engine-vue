@@ -78,6 +78,10 @@ type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
 
 const splitOptions = createObjectSpliter((prop) => !prop.match(/^[a-z]+([A-Z][a-z]+)*$/));
 
+const isAsyncComp = (comp: any) => {
+  return comp && comp.name === 'AsyncComponentWrapper';
+};
+
 const VueRenderer = defineComponent({
   props: vueRendererProps,
   setup(props, { slots, expose }) {
@@ -147,7 +151,7 @@ const VueRenderer = defineComponent({
           wrapCached.set(leaf, record);
         }
 
-        if (needWrapComp(name)) {
+        if (needWrapComp(name) && !isAsyncComp(comp)) {
           const [privateOptions, _, privateOptionsCount] = splitOptions(comp as any);
           if (privateOptionsCount) {
             leaf = Object.create(leaf, Object.getOwnPropertyDescriptors(privateOptions));
