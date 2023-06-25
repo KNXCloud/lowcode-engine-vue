@@ -71,6 +71,7 @@ const vueRendererProps = {
     type: [Array, Boolean] as PropType<string[] | boolean>,
     default: false,
   },
+  appHelper: Object,
   requestHandlersMap: Object,
 } as const;
 
@@ -170,7 +171,15 @@ const VueRenderer = defineComponent({
 
     const renderContent = () => {
       const { components } = rendererContext;
-      const { scope, locale, messages, designMode, thisRequiredInJSE, passProps } = props;
+      const {
+        scope,
+        locale,
+        messages,
+        designMode,
+        thisRequiredInJSE,
+        passProps,
+        appHelper,
+      } = props;
       const { value: schema } = schemaRef;
 
       if (!schema) return null;
@@ -196,6 +205,7 @@ const VueRenderer = defineComponent({
               __schema: schema,
               __locale: locale,
               __messages: messages,
+              __appHelper: appHelper,
               __components: components,
               __designMode: designMode,
               __thisRequiredInJSE: thisRequiredInJSE,

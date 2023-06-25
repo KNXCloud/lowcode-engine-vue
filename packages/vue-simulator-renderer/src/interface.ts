@@ -38,6 +38,7 @@ export interface DocumentInstance {
   readonly instancesMap: Map<string, ComponentInstance[]>;
   readonly schema: RootSchema;
   readonly messages: I18nMessages;
+  readonly appHelper: Record<string, unknown>;
   getComponentInstance(id: number): ComponentInstance | null;
   mountInstance(
     id: string,

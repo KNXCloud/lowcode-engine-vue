@@ -21,6 +21,10 @@ export const rendererProps = {
     type: Object as PropType<ContainerSchema>,
     required: true,
   },
+  __appHelper: {
+    type: Object as PropType<Record<string, unknown>>,
+    default: () => ({}),
+  },
   __designMode: {
     type: String as PropType<'live' | 'design'>,
     default: 'live',

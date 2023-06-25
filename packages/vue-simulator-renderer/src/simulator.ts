@@ -194,7 +194,9 @@ function createDocumentInstance(
     id: computed(() => document.id),
     path: computed(() => parseFileNameToPath(schema.value.fileName ?? '')),
     key: computed(() => `${document.id}:${timestamp.value}`),
-    scope: computed(() => {
+    scope: computed(() => ({})),
+    schema: schema,
+    appHelper: computed(() => {
       const _schema = schema.value;
 
       const {
@@ -215,7 +217,6 @@ function createDocumentInstance(
         ...otherHelpers,
       };
     }),
-    schema: schema,
     document: computed(() => document),
     messages: computed(() => deepMerge(context.i18n, Reflect.get(schema.value, 'i18n'))),
     instancesMap: computed(() => instancesMap),

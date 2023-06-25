@@ -655,7 +655,12 @@ export function useRenderer(rendererProps: RendererProps, scope: RuntimeScope) {
 }
 
 export function useRootScope(rendererProps: RendererProps, setupConext: object) {
-  const { __schema: schema, __scope: extraScope, __parser: parser } = rendererProps;
+  const {
+    __schema: schema,
+    __scope: extraScope,
+    __parser: parser,
+    __appHelper: appHelper,
+  } = rendererProps;
 
   const {
     props: propsSchema,
@@ -759,6 +764,17 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
     __loopRefIndex: null,
     __loopRefOffset: 0,
   });
+
+  // 初始化 appHelper
+  addToScope(
+    scope,
+    AccessTypes.CONTEXT,
+    Object.keys(appHelper).reduce((res, key) => {
+      const globalKey = key.startsWith('$') ? key : '$' + key;
+      res[globalKey] = appHelper[key];
+      return res;
+    }, {})
+  );
 
   return {
     scope: new Proxy({} as RuntimeScope, {

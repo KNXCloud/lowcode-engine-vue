@@ -1,5 +1,5 @@
 import { Component, Suspense, ref } from 'vue';
-import type { IPublicTypeRootSchema } from '@alilc/lowcode-types';
+import type { IPublicTypePageSchema, IPublicTypeRootSchema } from '@alilc/lowcode-types';
 import { mount, flushPromises } from '@vue/test-utils';
 import { defineComponent, renderSlot, computed } from 'vue';
 import VueRenderer from '../src';
@@ -146,31 +146,32 @@ describe('props', () => {
   });
 
   test('js expression props', () => {
+    const schema = {
+      fileName: '/',
+      state: {
+        btnType: 'warn',
+        message: 'hello lowcode',
+      },
+      componentName: 'Page',
+      children: [
+        {
+          componentName: 'TButton',
+          props: {
+            type: {
+              type: 'JSExpression',
+              value: 'this.btnType',
+            },
+            children: {
+              type: 'JSExpression',
+              value: 'this.message',
+            },
+          },
+        },
+      ],
+    } as IPublicTypePageSchema;
     const inst = mount(VueRenderer, {
       props: {
-        schema: {
-          fileName: '/',
-          state: {
-            btnType: 'warn',
-            message: 'hello lowcode',
-          },
-          componentName: 'Page',
-          children: [
-            {
-              componentName: 'TButton',
-              props: {
-                type: {
-                  type: 'JSExpression',
-                  value: 'this.btnType',
-                },
-                children: {
-                  type: 'JSExpression',
-                  value: 'this.message',
-                },
-              },
-            },
-          ],
-        },
+        schema: schema,
         components,
       },
     });
@@ -179,36 +180,37 @@ describe('props', () => {
   });
 
   test('v-model props', async () => {
+    const schema = {
+      fileName: '/',
+      state: {
+        btnType: 'warn',
+        message: 'hello lowcode',
+      },
+      componentName: 'Page',
+      children: [
+        {
+          componentName: 'TInput',
+          props: {
+            'v-model': {
+              type: 'JSExpression',
+              value: 'this.message',
+            },
+          },
+        },
+        {
+          componentName: 'TButton',
+          props: {
+            children: {
+              type: 'JSExpression',
+              value: 'this.message',
+            },
+          },
+        },
+      ],
+    } as IPublicTypePageSchema;
     const inst = mount(VueRenderer, {
       props: {
-        schema: {
-          fileName: '/',
-          state: {
-            btnType: 'warn',
-            message: 'hello lowcode',
-          },
-          componentName: 'Page',
-          children: [
-            {
-              componentName: 'TInput',
-              props: {
-                'v-model': {
-                  type: 'JSExpression',
-                  value: 'this.message',
-                },
-              },
-            },
-            {
-              componentName: 'TButton',
-              props: {
-                children: {
-                  type: 'JSExpression',
-                  value: 'this.message',
-                },
-              },
-            },
-          ],
-        },
+        schema: schema,
         components,
       },
     });
@@ -282,36 +284,37 @@ describe('props', () => {
   });
 
   test('js function', async () => {
+    const schema = {
+      fileName: '/',
+      state: {
+        message: 'hello lowcode',
+      },
+      methods: {
+        onClick: {
+          type: 'JSFunction',
+          value: 'function ($event) { this.message += "A" }',
+        },
+      },
+      componentName: 'Page',
+      children: [
+        {
+          componentName: 'TButton',
+          props: {
+            onClick: {
+              type: 'JSExpression',
+              value: 'this.onClick',
+            },
+            children: {
+              type: 'JSExpression',
+              value: 'this.message',
+            },
+          },
+        },
+      ],
+    } as IPublicTypePageSchema;
     const inst = mount(VueRenderer, {
       props: {
-        schema: {
-          fileName: '/',
-          state: {
-            message: 'hello lowcode',
-          },
-          methods: {
-            onClick: {
-              type: 'JSFunction',
-              value: 'function ($event) { this.message += "A" }',
-            },
-          },
-          componentName: 'Page',
-          children: [
-            {
-              componentName: 'TButton',
-              props: {
-                onClick: {
-                  type: 'JSExpression',
-                  value: 'this.onClick',
-                },
-                children: {
-                  type: 'JSExpression',
-                  value: 'this.message',
-                },
-              },
-            },
-          ],
-        },
+        schema: schema,
         components,
       },
     });
@@ -425,29 +428,30 @@ describe('slots', () => {
   });
 
   test('default slot with args', () => {
-    const inst = mount(VueRenderer, {
-      props: {
-        schema: {
-          fileName: '/',
-          componentName: 'Page',
+    const schema = {
+      fileName: '/',
+      componentName: 'Page',
+      children: {
+        componentName: 'TButton',
+        props: {
+          content: 'custom content',
+        },
+        children: {
+          componentName: 'Slot',
+          params: ['data'],
           children: {
-            componentName: 'TButton',
-            props: {
-              content: 'custom content',
-            },
+            componentName: 'TText',
             children: {
-              componentName: 'Slot',
-              params: ['data'],
-              children: {
-                componentName: 'TText',
-                children: {
-                  type: 'JSExpression',
-                  value: 'this.data.content + " A"',
-                },
-              },
+              type: 'JSExpression',
+              value: 'this.data.content + " A"',
             },
           },
         },
+      },
+    } as IPublicTypePageSchema;
+    const inst = mount(VueRenderer, {
+      props: {
+        schema,
         components,
       },
     });
@@ -487,44 +491,45 @@ describe('slots', () => {
   });
 
   test('named and default slot with args', () => {
-    const inst = mount(VueRenderer, {
-      props: {
-        schema: {
-          fileName: '/',
-          componentName: 'Page',
-          children: {
-            componentName: 'TButton',
-            props: {
-              iconSize: 20,
-              content: 'custom content',
-              icon: {
-                type: 'JSSlot',
-                params: ['data'],
-                value: {
-                  componentName: 'TText',
-                  children: {
-                    type: 'JSExpression',
-                    value: 'this.data.size + "px"',
-                  },
-                },
-              },
-            },
-            children: {
-              componentName: 'Slot',
-              params: ['data'],
+    const schema = {
+      fileName: '/',
+      componentName: 'Page',
+      children: {
+        componentName: 'TButton',
+        props: {
+          iconSize: 20,
+          content: 'custom content',
+          icon: {
+            type: 'JSSlot',
+            params: ['data'],
+            value: {
+              componentName: 'TText',
               children: {
-                componentName: 'TText',
-                props: {
-                  class: 'custom-content',
-                },
-                children: {
-                  type: 'JSExpression',
-                  value: 'this.data.content + " A"',
-                },
+                type: 'JSExpression',
+                value: 'this.data.size + "px"',
               },
             },
           },
         },
+        children: {
+          componentName: 'Slot',
+          params: ['data'],
+          children: {
+            componentName: 'TText',
+            props: {
+              class: 'custom-content',
+            },
+            children: {
+              type: 'JSExpression',
+              value: 'this.data.content + " A"',
+            },
+          },
+        },
+      },
+    } as IPublicTypePageSchema;
+    const inst = mount(VueRenderer, {
+      props: {
+        schema: schema,
         components,
       },
     });
@@ -589,7 +594,7 @@ describe('loop and condition', () => {
               },
             },
           },
-        },
+        } as IPublicTypePageSchema,
       },
     });
 
@@ -622,7 +627,7 @@ describe('loop and condition', () => {
               },
             },
           },
-        },
+        } as IPublicTypePageSchema,
       },
     });
 
@@ -1511,5 +1516,96 @@ describe('lifecycles', () => {
     await sleep(500);
 
     expect(inst3.find('button').text()).contain('Tom');
+  });
+});
+
+describe('appHelper', () => {
+  const components = {
+    TText: defineComponent({
+      name: 'TText',
+      inject: ['message'],
+      render() {
+        const vnode = renderSlot(this.$slots, 'default', this.$props, () => {
+          return [<>{this.message}</>];
+        });
+        return <span class="t-text">{vnode}</span>;
+      },
+    }),
+    TButton: defineComponent({
+      props: {
+        content: {
+          type: String,
+          default: 'default content',
+        },
+      },
+      emits: ['click'],
+      setup(props, { emit }) {
+        return () => {
+          return (
+            <button onClick={(e) => emit('click', e)} class="t-button">
+              {props.content}
+            </button>
+          );
+        };
+      },
+    }),
+  };
+
+  test('utils', async () => {
+    const testFn = vi.fn();
+    const inst = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          children: {
+            componentName: 'TButton',
+            props: {
+              onClick: {
+                type: 'JSFunction',
+                value: 'function () { this.$utils.test(1); }',
+              },
+            },
+          },
+        },
+        appHelper: {
+          utils: {
+            test: testFn,
+          },
+        },
+      },
+    });
+
+    await inst.find('button').trigger('click');
+    expect(testFn).toHaveBeenCalledWith(1);
+  });
+
+  test('constants', async () => {
+    const inst = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          children: {
+            componentName: 'TButton',
+            props: {
+              content: {
+                type: 'JSExpression',
+                value: 'this.$constants.A',
+              },
+            },
+          },
+        },
+        appHelper: {
+          constants: {
+            A: '1',
+          },
+        },
+      },
+    });
+
+    expect(inst.find('button').text()).eq('1');
   });
 });

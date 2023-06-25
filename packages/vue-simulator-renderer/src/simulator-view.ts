@@ -55,7 +55,7 @@ export const Renderer = defineComponent({
   setup: () => ({ renderer: ref() }),
   render() {
     const { documentInstance, simulator } = this;
-    const { schema, scope, messages } = documentInstance;
+    const { schema, scope, messages, appHelper } = documentInstance;
     const { designMode, device, locale, components } = simulator;
 
     return h(Suspense, null, {
@@ -67,6 +67,7 @@ export const Renderer = defineComponent({
           locale: locale,
           device: device,
           messages: messages,
+          appHelper: appHelper,
           components: components,
           designMode: designMode,
           disableCompMock: simulator.disableCompMock,
