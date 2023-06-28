@@ -7,7 +7,7 @@ import { SchemaParser } from './parse';
 import { DataSource } from '@knxcloud/lowcode-data-source';
 
 export interface BlockScope {
-  [x: string]: unknown;
+  [x: string | symbol]: unknown;
 }
 
 declare module 'vue' {

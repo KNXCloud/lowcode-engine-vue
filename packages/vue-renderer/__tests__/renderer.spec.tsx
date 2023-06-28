@@ -651,17 +651,17 @@ describe('loop and condition', () => {
               content: 'custom content',
             },
             children: {
-              componentName: 'Slot',
+              componentName: 'Slot' as const,
               params: ['data'],
               children: {
                 componentName: 'TText',
                 loop: {
-                  type: 'JSExpression',
+                  type: 'JSExpression' as const,
                   value: `['aaa', 'bbb', 'ccc']`,
                 },
-                loopArgs: ['content', 'idx'],
+                loopArgs: ['content', 'idx'] as [string, string],
                 children: {
-                  type: 'JSExpression',
+                  type: 'JSExpression' as const,
                   value: 'this.data.content + this.content + this.idx',
                 },
               },
@@ -717,9 +717,9 @@ describe('loop and condition', () => {
                   type: 'JSExpression',
                   value: `this.arr`,
                 },
-                loopArgs: ['content', 'idx'],
+                loopArgs: ['content', 'idx'] as [string, string],
                 children: {
-                  type: 'JSExpression',
+                  type: 'JSExpression' as const,
                   value: 'this.data.content + this.content + this.idx',
                 },
               },
@@ -784,7 +784,7 @@ describe('loop and condition', () => {
                     value: 'this.hiddenIndex !== this.index',
                   },
                   children: {
-                    type: 'JSExpression',
+                    type: 'JSExpression' as const,
                     value: 'this.item',
                   },
                 },
@@ -1607,5 +1607,90 @@ describe('appHelper', () => {
     });
 
     expect(inst.find('button').text()).eq('1');
+  });
+});
+
+describe('this do not require', () => {
+  const components = {
+    TText: defineComponent({
+      name: 'TText',
+      render() {
+        const vnode = renderSlot(this.$slots, 'default', this.$props);
+        return <span class="t-text">{vnode}</span>;
+      },
+    }),
+    TButton: defineComponent({
+      name: 'TButton',
+      props: {
+        content: {
+          type: String,
+          default: 'TButton',
+        },
+      },
+      render() {
+        return <button class="t-button">{this.content}</button>;
+      },
+    }),
+  };
+
+  test('normal state without this', async () => {
+    const inst = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          state: {
+            message: 'hello',
+          },
+          children: {
+            componentName: 'TButton',
+            props: {
+              content: {
+                type: 'JSExpression',
+                value: 'message',
+              },
+            },
+          },
+        },
+        thisRequiredInJSE: false,
+      },
+    });
+
+    expect(inst.find('button').text()).eq('hello');
+  });
+
+  test('custom loop arg name without this', () => {
+    const inst = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          children: {
+            componentName: 'Slot',
+            children: {
+              componentName: 'TText',
+              loop: {
+                type: 'JSExpression',
+                value: `['aaa', 'bbb', 'ccc']`,
+              },
+              loopArgs: ['content', 'idx'],
+              children: {
+                type: 'JSExpression',
+                value: 'content + idx',
+              },
+            },
+          },
+        } as IPublicTypePageSchema,
+        thisRequiredInJSE: false,
+      },
+    });
+
+    const textList = inst.findAll('.t-text');
+    expect(textList.length).toBe(3);
+    expect(textList[0].text()).toContain('aaa0');
+    expect(textList[1].text()).toContain('bbb1');
+    expect(textList[2].text()).toContain('ccc2');
   });
 });

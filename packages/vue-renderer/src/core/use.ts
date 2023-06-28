@@ -776,11 +776,19 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
     }, {})
   );
 
+  const unscopables = {
+    _: true,
+    $: true,
+  };
+
   return {
     scope: new Proxy({} as RuntimeScope, {
       get(_, p) {
         if (p === Symbol.toStringTag) {
           return '[object RuntimeScope]';
+        } else if (p === Symbol.unscopables) {
+          // with 语法会用到 unscopables 属性来确定哪些属性不会被 with 公开 https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Symbol/unscopables
+          return unscopables;
         }
         return Reflect.get(scope, p, scope);
       },
