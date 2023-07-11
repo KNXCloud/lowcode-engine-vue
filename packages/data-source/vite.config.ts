@@ -21,6 +21,7 @@ export default defineConfig(({ command }) => ({
   build: {
     target: 'ES2018',
     sourcemap: true,
+    minify: false,
     lib: {
       entry: 'src/index.ts',
       formats: ['cjs', 'es'],
