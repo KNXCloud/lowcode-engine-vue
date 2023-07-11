@@ -8,7 +8,6 @@ import type {
   IPublicTypeComponentSchema,
   IPublicTypeContainerSchema,
 } from '@alilc/lowcode-types';
-import type { Component, DefineComponent } from 'vue';
 import { toString } from './misc';
 
 export type ESModule = {
@@ -87,14 +86,6 @@ export function isI18nData(val: unknown): val is IPublicTypeI18nData {
 
 export function isDOMText(val: unknown): val is string {
   return isString(val);
-}
-
-export function isVueComponent(val: unknown): val is Component | DefineComponent {
-  if (isFunction(val)) return true;
-  if (isObject(val) && ('render' in val || 'setup' in val || 'template' in val)) {
-    return true;
-  }
-  return false;
 }
 
 export function isNodeSchema(data: any): data is IPublicTypeNodeSchema {

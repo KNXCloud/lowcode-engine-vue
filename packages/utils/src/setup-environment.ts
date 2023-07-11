@@ -1,6 +1,5 @@
 import type { IPublicApiProject } from '@alilc/lowcode-types';
-import { AssetType } from '@alilc/lowcode-types/es/assets';
-import { assetItem } from './asset';
+import { assetItem, AssetType } from './asset';
 
 export function setupHostEnvironment(
   project: IPublicApiProject,

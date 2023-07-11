@@ -1,10 +1,25 @@
-import type { Component } from 'vue';
 import type {
   IPublicTypeNpmInfo,
   IPublicTypeComponentSchema,
 } from '@alilc/lowcode-types';
-import { defineComponent, h } from 'vue';
-import { isComponentSchema, isESModule, isVueComponent } from './check';
+import { Component, DefineComponent, defineComponent, h } from 'vue';
+import { isComponentSchema, isESModule, isFunction, isObject } from './check';
+
+function isVueComponent(val: unknown): val is Component | DefineComponent {
+  if (isFunction(val)) return true;
+  if (isObject(val) && ('render' in val || 'setup' in val || 'template' in val)) {
+    return true;
+  }
+  return false;
+}
+
+function generateHtmlComp(library: string) {
+  if (/^[a-z-]+$/.test(library)) {
+    return defineComponent((_, { attrs, slots }) => {
+      return () => h(library, attrs, slots);
+    });
+  }
+}
 
 export function accessLibrary(library: string | Record<string, unknown>) {
   if (typeof library !== 'string') {
@@ -12,14 +27,6 @@ export function accessLibrary(library: string | Record<string, unknown>) {
   }
 
   return (window as any)[library] || generateHtmlComp(library);
-}
-
-export function generateHtmlComp(library: string) {
-  if (/^[a-z-]+$/.test(library)) {
-    return defineComponent((_, { attrs, slots }) => {
-      return () => h(library, attrs, slots);
-    });
-  }
 }
 
 export function getSubComponent(library: any, paths: string[]) {
@@ -76,9 +83,9 @@ export function buildComponents(
   libraryMap: Record<string, string>,
   componentsMap: Record<
     string,
-    IPublicTypeNpmInfo | Component | IPublicTypeComponentSchema
+    IPublicTypeNpmInfo | IPublicTypeComponentSchema | unknown
   >,
-  createComponent?: (schema: IPublicTypeComponentSchema) => Component | null
+  createComponent?: (schema: IPublicTypeComponentSchema) => any
 ) {
   const components: any = {};
   Object.keys(componentsMap).forEach((componentName) => {
@@ -92,7 +99,11 @@ export function buildComponents(
     } else if (isVueComponent(component)) {
       components[componentName] = component;
     } else {
-      component = findComponent(libraryMap, componentName, component);
+      component = findComponent(
+        libraryMap,
+        componentName,
+        component as IPublicTypeNpmInfo
+      );
       if (component) {
         components[componentName] = component;
       }

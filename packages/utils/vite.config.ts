@@ -8,16 +8,14 @@ export default defineConfig({
   build: {
     target: 'ES2018',
     sourcemap: true,
+    minify: false,
     lib: {
       entry: 'src/index.ts',
       formats: ['cjs', 'es'],
     },
     emptyOutDir: true,
     rollupOptions: {
-      external: [
-        ...Object.keys(pkg.dependencies),
-        ...Object.keys(pkg.peerDependencies),
-      ].filter((item) => !item.includes('@alilc')),
+      external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)],
     },
   },
 });

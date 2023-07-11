@@ -1,7 +1,5 @@
-import {
-  IPublicEnumTransformStage,
-  type IPublicTypeNodeSchema,
-} from '@alilc/lowcode-types';
+import type { IPublicTypeNodeSchema } from '@alilc/lowcode-types';
+import { IPublicEnumTransformStage } from '@alilc/lowcode-types/lib/shell/enum/transform-stage';
 import { isFunction, isObject } from './check';
 
 export function exportSchema<T extends IPublicTypeNodeSchema>(node: unknown): T {

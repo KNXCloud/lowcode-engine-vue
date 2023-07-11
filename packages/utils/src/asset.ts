@@ -7,6 +7,8 @@ import { isArray, isCSSUrl } from './check';
 import { createDefer } from './create-defer';
 import { evaluate, load } from './script';
 
+export { AssetLevel, AssetLevels, AssetType };
+
 export function isAssetItem(obj: any): obj is AssetItem {
   return obj && !!obj.type;
 }
