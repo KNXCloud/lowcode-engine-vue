@@ -243,7 +243,7 @@ function createSimulatorRenderer() {
   const disableCompMock: Ref<boolean | string[]> = shallowRef(true);
   const requestHandlersMap: Ref<Record<string, CallableFunction>> = shallowRef({});
   const documentInstances: Ref<DocumentInstance[]> = shallowRef([]);
-  const thisRequiredInJSE: Ref<boolean> = shallowRef(true);
+  const thisRequiredInJSE: Ref<boolean> = shallowRef(false);
 
   const context: ProjectContext = reactive({
     i18n: {},
@@ -397,7 +397,7 @@ function createSimulatorRenderer() {
       // sync requestHandlersMap
       requestHandlersMap.value = host.requestHandlersMap;
 
-      thisRequiredInJSE.value = host.thisRequiredInJSE ?? true;
+      thisRequiredInJSE.value = host.thisRequiredInJSE ?? false;
 
       documentInstances.value.forEach((doc) => doc.rerender());
 
