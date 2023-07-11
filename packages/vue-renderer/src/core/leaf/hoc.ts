@@ -86,7 +86,12 @@ export const Hoc = defineComponent({
           } else if (!show && !listenRecord[id]) {
             const childNode = getNode(id);
             if (childNode) {
-              listenRecord[id] = childNode.onVisibleChange(() => rerender());
+              const cancelVisibleChange = childNode.onVisibleChange(() => rerender());
+              const cancelPropsChange = childNode.onPropChange(() => rerender());
+              listenRecord[id] = () => {
+                cancelVisibleChange();
+                cancelPropsChange();
+              };
             }
           }
         }

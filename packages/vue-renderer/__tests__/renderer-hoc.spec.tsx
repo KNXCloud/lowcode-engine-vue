@@ -96,6 +96,41 @@ describe('test for props update', () => {
     await sleep();
     expect(inst.html()).contain('t-error');
   });
+
+  test('condition prop update', async () => {
+    const doc = createDocument({
+      id: '0',
+      fileName: '/',
+      componentName: 'Page',
+      children: [
+        {
+          id: '1',
+          componentName: 'TButton',
+          props: {
+            type: 'warning',
+          },
+        },
+      ],
+    });
+
+    const inst = mount(VueRenderer, {
+      props: {
+        key: 0,
+        components,
+        designMode: 'design',
+        schema: doc.getNodeById('0')!.schema as IPublicTypeContainerSchema,
+        getNode: (id: string) => doc.getNodeById(id) as INode,
+      },
+    });
+    expect(inst.html()).contain('t-warning');
+    doc.getNodeById('1')!.setPropValue('__condition__', false);
+    await sleep();
+    expect(inst.find('button').exists()).toBeFalsy();
+
+    doc.getNodeById('1')!.setPropValue('__condition__', true);
+    await sleep();
+    expect(inst.find('button').exists()).toBeTruthy();
+  });
 });
 
 describe('test for slot update', () => {

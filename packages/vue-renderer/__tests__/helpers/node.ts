@@ -9,8 +9,10 @@ import type {
 import * as uuid from 'uuid';
 import { INode } from '@knxcloud/lowcode-hooks';
 import { set, get, cloneDeep } from 'lodash';
-import { isArray, isNodeSchema } from '@knxcloud/lowcode-utils';
+import { isArray, isNodeSchema, isString } from '@knxcloud/lowcode-utils';
 import { Ref, shallowRef } from 'vue';
+
+const internalPropsRegexp = /^__(\w+)__$/;
 
 export function createNode(
   rootSchema: Ref<IPublicTypeContainerSchema | IPublicTypeSlotSchema>,
@@ -101,10 +103,19 @@ export function createNode(
     },
     setPropValue(path, value) {
       const schema = this.schema;
-      const props = cloneDeep(schema.props ?? {});
-      const oldValue = get(props, path);
-      set(props, path, value);
-      set(rootSchema.value, schemaPath, { ...schema, props });
+      const internalPropMatched = isString(path) ? internalPropsRegexp.exec(path) : null;
+      let oldValue: any;
+      if (internalPropMatched) {
+        const internalPropName = internalPropMatched[1];
+        oldValue = schema[internalPropName];
+        set(schema, internalPropName, value);
+        set(rootSchema.value, schemaPath, { ...schema });
+      } else {
+        const props = cloneDeep(schema.props ?? {});
+        oldValue = get(props, path);
+        set(props, path, value);
+        set(rootSchema.value, schemaPath, { ...schema, props });
+      }
       const parts = path.toString().split('.');
       const info = {
         key: parts[parts.length - 1],
