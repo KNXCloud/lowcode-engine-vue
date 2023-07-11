@@ -1,4 +1,5 @@
 import type {
+  RequestHandler,
   IPublicTypeNodeSchema as NodeSchema,
   IPublicTypeContainerSchema as ContainerSchema,
 } from '@alilc/lowcode-types';
@@ -54,6 +55,10 @@ export const rendererProps = {
   __thisRequiredInJSE: {
     type: Boolean,
     default: true,
+  },
+  __requestHandlersMap: {
+    type: Object as PropType<Record<string, RequestHandler>>,
+    default: () => ({}),
   },
   __props: {
     type: Object,

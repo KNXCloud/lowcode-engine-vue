@@ -660,6 +660,7 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
     __scope: extraScope,
     __parser: parser,
     __appHelper: appHelper,
+    __requestHandlersMap: requestHandlersMap,
   } = rendererProps;
 
   const {
@@ -736,7 +737,8 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
   const { dataSource, dataSourceMap, reloadDataSource, shouldInit } =
     createDataSourceEngine(
       schema.dataSource ?? { list: [], dataHandler: undefined },
-      scope
+      scope,
+      requestHandlersMap
     );
   const dataSourceData = Object.keys(dataSourceMap)
     .filter((key) => !(key in scope))

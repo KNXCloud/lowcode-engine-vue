@@ -11,7 +11,11 @@ import { DataSourceConfig, createDataSourceEngine } from '@knxcloud/lowcode-data
 import { AccessTypes, RuntimeScope, SchemaParser, addToScope } from '../utils';
 import { isJSExpression, isJSFunction } from '@knxcloud/lowcode-utils';
 
-export function create(config: InterpretDataSource, scope: RuntimeScope) {
+export function create(
+  config: InterpretDataSource,
+  scope: RuntimeScope,
+  requestHandlerMaps?: Record<string, RequestHandler>
+) {
   const parser = scope.__parser;
 
   const dataHandler = parser.parseSchema<DataHandler>(config.dataHandler, scope);
@@ -57,7 +61,8 @@ export function create(config: InterpretDataSource, scope: RuntimeScope) {
         }
       },
       forceUpdate: () => scope.$forceUpdate(),
-    }
+    },
+    requestHandlerMaps
   );
 }
 

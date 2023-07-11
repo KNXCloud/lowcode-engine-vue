@@ -1451,11 +1451,21 @@ describe('lifecycles', () => {
               value: `function() { return { name: 'Tom' } }`,
             },
           },
+          children: {
+            componentName: 'TButton',
+            props: {
+              content: {
+                type: 'JSExpression',
+                value: 'this.name',
+              },
+            },
+          },
         },
       },
     });
 
     expect($$(inst.vm).name).contain('Tom');
+    expect(inst.find('.t-button').text()).contain('Tom');
 
     const inst2 = mount(VueRenderer, {
       props: {
@@ -1692,5 +1702,170 @@ describe('this do not require', () => {
     expect(textList[0].text()).toContain('aaa0');
     expect(textList[1].text()).toContain('bbb1');
     expect(textList[2].text()).toContain('ccc2');
+  });
+});
+
+describe('request handler maps', async () => {
+  const components = {
+    TText: defineComponent({
+      name: 'TText',
+      render() {
+        const vnode = renderSlot(this.$slots, 'default', this.$props);
+        return <span class="t-text">{vnode}</span>;
+      },
+    }),
+    TButton: defineComponent({
+      name: 'TButton',
+      props: {
+        content: {
+          type: String,
+          default: 'TButton',
+        },
+      },
+      render() {
+        return <button class="t-button">{this.content}</button>;
+      },
+    }),
+  };
+
+  test('fetch', async () => {
+    const mockedFetch = vi.fn();
+    const fetch = window.fetch;
+    mockedFetch.mockResolvedValueOnce({
+      json: () => Promise.resolve(1),
+      status: 200,
+      statusText: 'OK',
+    });
+    window.fetch = mockedFetch;
+
+    const WrappedSuspense = defineComponent({
+      props: VueRenderer.props,
+      render() {
+        return (
+          <Suspense>
+            {/* @ts-ignore */}
+            <VueRenderer {...this.$props}></VueRenderer>
+          </Suspense>
+        );
+      },
+    });
+
+    const inst = mount(WrappedSuspense, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          state: {
+            message: 'hello',
+          },
+          children: {
+            componentName: 'TButton',
+            props: {
+              content: {
+                type: 'JSExpression',
+                value: 'this.info',
+              },
+            },
+          },
+          dataSource: {
+            list: [
+              {
+                id: 'info',
+                isInit: true,
+                options: {
+                  uri: 'http://test.uri/path/to/xxx',
+                  params: {
+                    a: 1,
+                  },
+                },
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    await sleep(100);
+
+    expect(inst.find('button').text()).toBe('1');
+
+    expect(mockedFetch).toHaveBeenCalledOnce();
+
+    window.fetch = fetch;
+  });
+
+  test('requestHandlersMap', async () => {
+    const customFetch = vi.fn();
+    customFetch.mockResolvedValueOnce({
+      code: 200,
+      data: 1,
+    });
+    const WrappedSuspense = defineComponent({
+      props: VueRenderer.props,
+      render() {
+        return (
+          <Suspense>
+            {/* @ts-ignore */}
+            <VueRenderer {...this.$props}></VueRenderer>
+          </Suspense>
+        );
+      },
+    });
+
+    const inst = mount(WrappedSuspense, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          state: {
+            message: 'hello',
+          },
+          children: {
+            componentName: 'TButton',
+            props: {
+              content: {
+                type: 'JSExpression',
+                value: 'this.info',
+              },
+            },
+          },
+          dataSource: {
+            list: [
+              {
+                id: 'info',
+                type: 'custom',
+                isInit: true,
+                options: {
+                  uri: 'http://test.uri/path/to/xxx',
+                  params: {
+                    a: 1,
+                  },
+                },
+              },
+            ],
+          },
+        },
+        requestHandlersMap: {
+          custom: customFetch,
+        },
+      },
+    });
+
+    await sleep(100);
+
+    expect(inst.find('button').text()).toBe('1');
+
+    expect(customFetch).toHaveBeenCalledWith(
+      {
+        uri: 'http://test.uri/path/to/xxx',
+        params: {
+          a: 1,
+        },
+        headers: {},
+      },
+      expect.any(Object)
+    );
   });
 });

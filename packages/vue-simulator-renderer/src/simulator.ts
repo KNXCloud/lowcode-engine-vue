@@ -395,7 +395,7 @@ function createSimulatorRenderer() {
       designMode.value = host.designMode;
 
       // sync requestHandlersMap
-      requestHandlersMap.value = host.requestHandlersMap;
+      requestHandlersMap.value = host.requestHandlersMap ?? {};
 
       thisRequiredInJSE.value = host.thisRequiredInJSE ?? false;
 

@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [VueJsx(), LibTypes({ fileName: 'vue-simulator-renderer.d.ts' })],
   build: {
     sourcemap: true,
+    minify: false,
     target: 'ES2018',
     lib: {
       entry: 'src/index.ts',

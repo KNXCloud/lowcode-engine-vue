@@ -56,7 +56,7 @@ export const Renderer = defineComponent({
   render() {
     const { documentInstance, simulator } = this;
     const { schema, scope, messages, appHelper } = documentInstance;
-    const { designMode, device, locale, components } = simulator;
+    const { designMode, device, locale, components, requestHandlersMap } = simulator;
 
     return h(Suspense, null, {
       default: () =>
@@ -70,6 +70,7 @@ export const Renderer = defineComponent({
           appHelper: appHelper,
           components: components,
           designMode: designMode,
+          requestHandlersMap: requestHandlersMap,
           disableCompMock: simulator.disableCompMock,
           thisRequiredInJSE: simulator.thisRequiredInJSE,
           getNode: (id) => documentInstance.getNode(id) as any,

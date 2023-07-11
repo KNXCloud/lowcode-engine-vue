@@ -121,7 +121,6 @@ const VueRenderer = defineComponent({
         ...props.components,
       })),
       thisRequiredInJSE: computed(() => props.thisRequiredInJSE),
-      requestHandlersMap: computed(() => props.requestHandlersMap ?? {}),
       getNode: (id: string) => (props.getNode?.(id) as any) ?? null,
       triggerCompGetCtx: (schema: NodeSchema, inst: ComponentPublicInstance) => {
         props.onCompGetCtx?.(schema, inst);
@@ -177,6 +176,7 @@ const VueRenderer = defineComponent({
         messages,
         designMode,
         thisRequiredInJSE,
+        requestHandlersMap,
         passProps,
         appHelper,
       } = props;
@@ -209,6 +209,7 @@ const VueRenderer = defineComponent({
               __components: components,
               __designMode: designMode,
               __thisRequiredInJSE: thisRequiredInJSE,
+              __requestHandlersMap: requestHandlersMap,
               __getNode: getNode,
               __triggerCompGetCtx: triggerCompGetCtx,
             } as any,
