@@ -12,6 +12,7 @@ import {
   computed,
   markRaw,
   onUnmounted,
+  shallowReactive,
 } from 'vue';
 import * as VueRouter from 'vue-router';
 import type {
@@ -69,6 +70,7 @@ export interface ProjectContext {
     constants?: Record<string, unknown>;
     [x: string]: unknown;
   };
+  suspense: boolean;
 }
 
 function createDocumentInstance(
@@ -193,7 +195,9 @@ function createDocumentInstance(
   return reactive({
     id: computed(() => document.id),
     path: computed(() => parseFileNameToPath(schema.value.fileName ?? '')),
-    key: computed(() => `${document.id}:${timestamp.value}`),
+    get key() {
+      return `${document.id}:${timestamp.value}`;
+    },
     scope: computed(() => ({})),
     schema: schema,
     appHelper: computed(() => {
@@ -222,10 +226,18 @@ function createDocumentInstance(
     instancesMap: computed(() => instancesMap),
     getNode,
     mountInstance,
-    unmountIntance,
+    unmountInstance,
     getComponentInstance,
     rerender: () => {
-      timestamp.value = Date.now();
+      const now = Date.now();
+      if (context.suspense) {
+        Object.assign(timestamp, {
+          _value: now,
+          _rawValue: now,
+        });
+      } else {
+        timestamp.value = now;
+      }
       SchemaParser.cleanCachedModules();
     },
   }) as DocumentInstance;
@@ -245,12 +257,13 @@ function createSimulatorRenderer() {
   const documentInstances: Ref<DocumentInstance[]> = shallowRef([]);
   const thisRequiredInJSE: Ref<boolean> = shallowRef(false);
 
-  const context: ProjectContext = reactive({
+  const context: ProjectContext = shallowReactive({
     i18n: {},
     appHelper: {
       utils: {},
       constants: {},
     },
+    suspense: false,
   });
 
   const disposeFunctions: Array<() => void> = [];
@@ -409,7 +422,7 @@ function createSimulatorRenderer() {
   );
 
   disposeFunctions.push(
-    host.autorun(() => {
+    host.autorun(async () => {
       const { router } = simulator;
       documentInstances.value = host.project.documents.map((doc) => {
         let documentInstance = documentInstanceMap.get(doc.id);
@@ -428,7 +441,6 @@ function createSimulatorRenderer() {
           },
           component: Renderer,
           props: ((doc, sim) => () => ({
-            key: doc.key,
             simulator: sim,
             documentInstance: doc,
           }))(documentInstance, simulator),
@@ -444,7 +456,14 @@ function createSimulatorRenderer() {
         }
       });
       const inst = simulator.getCurrentDocument();
-      inst && router.replace({ name: inst.id, force: true });
+      if (inst) {
+        try {
+          context.suspense = true;
+          await router.replace({ name: inst.id, force: true });
+        } finally {
+          context.suspense = false;
+        }
+      }
     })
   );
 
