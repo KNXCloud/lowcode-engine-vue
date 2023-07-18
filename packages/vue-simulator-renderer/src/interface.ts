@@ -44,7 +44,7 @@ export interface DocumentInstance {
     id: string,
     instance: ComponentInstance | HTMLElement
   ): (() => void) | void;
-  unmountIntance(id: string, instance: ComponentInstance): void;
+  unmountInstance(id: string, instance: ComponentInstance): void;
   rerender(): void;
   getNode(id: string): INode | null;
 }

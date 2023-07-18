@@ -145,10 +145,10 @@ function createDocumentInstance(
     const origId = getCompRootData(el).nodeId;
     if (origId && origId !== id) {
       // 另外一个节点的 instance 在此被复用了，需要从原来地方卸载
-      unmountIntance(origId, instance);
+      unmountInstance(origId, instance);
     }
 
-    onUnmounted(() => unmountIntance(id, instance), instance.$);
+    onUnmounted(() => unmountInstance(id, instance), instance.$);
 
     setCompRootData(el, {
       nodeId: id,
@@ -173,7 +173,7 @@ function createDocumentInstance(
     setHostInstance(docId, id, instances);
   };
 
-  const unmountIntance = (id: string, instance: ComponentInstance) => {
+  const unmountInstance = (id: string, instance: ComponentInstance) => {
     const instances = instancesMap.get(id);
     if (instances) {
       const i = instances.indexOf(instance);
