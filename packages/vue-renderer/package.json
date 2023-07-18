@@ -37,7 +37,6 @@
     "vue-router": "~4.1.6"
   },
   "peerDependencies": {
-    "@alilc/lowcode-designer": ">= 1.1.x < 2",
     "@alilc/lowcode-types": ">= 1.1.x < 2",
     "vue": ">= 3.x < 4",
     "vue-router": ">= 4.x < 5"
