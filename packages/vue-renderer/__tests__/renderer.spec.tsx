@@ -605,6 +605,39 @@ describe('loop and condition', () => {
     expect(textList[2].text()).toContain('ccc');
   });
 
+  test('normal loop with empty value args', () => {
+    const inst = mount(VueRenderer, {
+      props: {
+        components,
+        schema: {
+          fileName: '/',
+          componentName: 'Page',
+          children: {
+            componentName: 'Slot',
+            children: {
+              componentName: 'TText',
+              loop: {
+                type: 'JSExpression',
+                value: `['aaa', 'bbb', 'ccc']`,
+              },
+              loopArgs: ['', null],
+              children: {
+                type: 'JSExpression',
+                value: 'this.item',
+              },
+            },
+          },
+        } as IPublicTypePageSchema,
+      },
+    });
+
+    const textList = inst.findAll('.t-text');
+    expect(textList.length).toBe(3);
+    expect(textList[0].text()).toContain('aaa');
+    expect(textList[1].text()).toContain('bbb');
+    expect(textList[2].text()).toContain('ccc');
+  });
+
   test('custom loop arg name', () => {
     const inst = mount(VueRenderer, {
       props: {

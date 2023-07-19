@@ -587,7 +587,7 @@ export function useLeaf(
     if (schema.loop) loop = schema.loop;
     if (schema.loopArgs) {
       schema.loopArgs.forEach((v, i) => {
-        loopArgs[i] = v;
+        v != null && v !== '' && (loopArgs[i] = v);
       });
     }
 
