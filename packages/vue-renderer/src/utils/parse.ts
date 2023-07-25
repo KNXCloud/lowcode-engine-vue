@@ -49,7 +49,7 @@ export class SchemaParser {
   }
 
   initModule(schema: IPublicTypeContainerSchema) {
-    const initModuleSchema = schema.lifeCycles?.initModule;
+    const initModuleSchema = schema?.lifeCycles?.initModule;
     const res = initModuleSchema
       ? this.parseSchema(initModuleSchema, false)
       : initModuleSchema;
