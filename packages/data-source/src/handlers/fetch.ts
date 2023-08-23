@@ -1,10 +1,13 @@
 import { RuntimeOptionsConfig } from '@alilc/lowcode-types';
-import { isPlainObject, isString } from '@knxcloud/lowcode-utils';
+import { isPlainObject, isString, toString } from '@knxcloud/lowcode-utils';
+
+function isFormData(o: unknown): o is FormData {
+  return toString(o) === '[object FormData]';
+}
 
 function serializeParams(obj: Record<string, unknown>) {
   const result: string[] = [];
-  Object.keys(obj).forEach((key) => {
-    const val = obj[key];
+  const applyItem = (key: string, val: unknown) => {
     if (val === null || val === undefined || val === '') {
       return;
     }
@@ -13,7 +16,12 @@ function serializeParams(obj: Record<string, unknown>) {
     } else {
       result.push(`${key}=${encodeURIComponent(String(val))}`);
     }
-  });
+  };
+  if (isFormData(obj)) {
+    obj.forEach((val, key) => applyItem(key, val));
+  } else {
+    Object.keys(obj).forEach((key) => applyItem(key, obj[key]));
+  }
   return result.join('&');
 }
 
