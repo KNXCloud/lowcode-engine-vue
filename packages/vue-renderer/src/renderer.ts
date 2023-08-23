@@ -28,7 +28,7 @@ import {
 import config from './config';
 import { RENDERER_COMPS } from './renderers';
 import {
-  createObjectSpliter,
+  createObjectSplitter,
   debounce,
   exportSchema,
   isBoolean,
@@ -77,7 +77,9 @@ const vueRendererProps = {
 
 type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
 
-const splitOptions = createObjectSpliter((prop) => !prop.match(/^[a-z]+([A-Z][a-z]+)*$/));
+const splitOptions = createObjectSplitter(
+  (prop) => !prop.match(/^[a-z]+([A-Z][a-z]+)*$/)
+);
 
 const isAsyncComp = (comp: any) => {
   return comp && comp.name === 'AsyncComponentWrapper';

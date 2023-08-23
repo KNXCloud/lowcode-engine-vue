@@ -64,7 +64,7 @@ import {
   fromPairs,
   isPromise,
   toString,
-  createObjectSpliter,
+  createObjectSplitter,
   isArray,
   isI18nData,
 } from '@knxcloud/lowcode-utils';
@@ -76,7 +76,7 @@ import { createHookCaller } from './lifecycles';
 
 const currentNodeKey = getCurrentNodeKey();
 
-const VUE_LIFTCYCLES_MAP = {
+const VUE_LIFT_CYCLES_MAP = {
   beforeMount: onBeforeMount,
   mounted: onMounted,
   beforeUpdate: onBeforeUpdate,
@@ -92,41 +92,41 @@ const VUE_LIFTCYCLES_MAP = {
 };
 
 // 适配 react lifecycle
-const REACT_ADATPOR_LIFTCYCLES_MAP = {
+const REACT_ADAPT_LIFT_CYCLES_MAP = {
   componentDidMount: onMounted,
   componentDidCatch: onErrorCaptured,
   shouldComponentUpdate: onBeforeUpdate,
   componentWillUnmount: onBeforeUnmount,
 } as const;
 
-const LIFTCYCLES_MAP = {
-  ...VUE_LIFTCYCLES_MAP,
-  ...REACT_ADATPOR_LIFTCYCLES_MAP,
+const LIFT_CYCLES_MAP = {
+  ...VUE_LIFT_CYCLES_MAP,
+  ...REACT_ADAPT_LIFT_CYCLES_MAP,
 };
 
 export function isFragment(val: unknown): val is typeof Fragment {
   return val === Fragment;
 }
 
-export function isLifecycleKey(key: string): key is keyof typeof LIFTCYCLES_MAP {
-  return key in LIFTCYCLES_MAP;
+export function isLifecycleKey(key: string): key is keyof typeof LIFT_CYCLES_MAP {
+  return key in LIFT_CYCLES_MAP;
 }
 
-export function isVueLifecycleKey(key: string): key is keyof typeof VUE_LIFTCYCLES_MAP {
-  return key in VUE_LIFTCYCLES_MAP;
+export function isVueLifecycleKey(key: string): key is keyof typeof VUE_LIFT_CYCLES_MAP {
+  return key in VUE_LIFT_CYCLES_MAP;
 }
 
 export function isReactLifecycleKey(
   key: string
-): key is keyof typeof REACT_ADATPOR_LIFTCYCLES_MAP {
-  return key in REACT_ADATPOR_LIFTCYCLES_MAP;
+): key is keyof typeof REACT_ADAPT_LIFT_CYCLES_MAP {
+  return key in REACT_ADAPT_LIFT_CYCLES_MAP;
 }
 
 export function pickLifeCycles(lifeCycles: unknown) {
   const res: Record<string, unknown> = {};
   if (isObject(lifeCycles)) {
     for (const key in lifeCycles) {
-      if (key in LIFTCYCLES_MAP) {
+      if (key in LIFT_CYCLES_MAP) {
         res[key] = lifeCycles[key];
       }
     }
@@ -233,9 +233,9 @@ export function useLeaf(
       return createTextVNode(toDisplayString(result));
     }
 
-    const { show, scence } = buildShow(schema, scope, isDesignMode);
+    const { show, scene } = buildShow(schema, scope, isDesignMode);
     if (!show) {
-      return createCommentVNode(`${scence} ${show}`);
+      return createCommentVNode(`${scene} ${show}`);
     }
 
     const node = schema.id ? getNode(schema.id) : null;
@@ -616,9 +616,9 @@ export function useLeaf(
     const hidden = isDesignMode ? schema.hidden ?? false : false;
     const condition = schema.condition ?? true;
 
-    if (hidden) return { scence: 'hidden', show: false };
+    if (hidden) return { scene: 'hidden', show: false };
     return {
-      scence: 'condition',
+      scene: 'condition',
       show:
         typeof condition === 'boolean'
           ? condition
@@ -714,7 +714,7 @@ export function useRootScope(rendererProps: RendererProps, setupConext: object) 
       if (isLifecycleKey(lifeCycle)) {
         const callback = lifeCycles[lifeCycle];
         if (isFunction(callback)) {
-          LIFTCYCLES_MAP[lifeCycle](callback, instance);
+          LIFT_CYCLES_MAP[lifeCycle](callback, instance);
         }
       }
     });
@@ -896,6 +896,15 @@ export const buildSchema = (schema: NodeSchema, node?: INode | null) => {
   return { props: normalProps, slots: slotProps };
 };
 
+export const splitProps = createObjectSplitter(
+  'key,ref,ref_for,ref_key,' +
+    'onVnodeBeforeMount,onVnodeMounted,' +
+    'onVnodeBeforeUpdate,onVnodeUpdated,' +
+    'onVnodeBeforeUnmount,onVnodeUnmounted'
+);
+
+export const splitLeafProps = createObjectSplitter(leafPropKeys);
+
 const keepParam = <T, R>(param: T, cb: (param: T) => R) => {
   return cb(param);
 };
@@ -981,12 +990,3 @@ const decorateDefaultSlot = (slot: Slot, locked: Ref<boolean>): Slot => {
     return vnodes;
   };
 };
-
-const splitProps = createObjectSpliter(
-  'key,ref,ref_for,ref_key,' +
-    'onVnodeBeforeMount,onVnodeMounted,' +
-    'onVnodeBeforeUpdate,onVnodeUpdated,' +
-    'onVnodeBeforeUnmount,onVnodeUnmounted'
-);
-
-export const splitLeafProps = createObjectSpliter(leafPropKeys);
