@@ -4,6 +4,7 @@ import type {
 } from '@alilc/lowcode-types';
 import { Component, DefineComponent, defineComponent, h } from 'vue';
 import { isComponentSchema, isESModule, isFunction, isObject } from './check';
+import { cached } from './misc';
 
 function isVueComponent(val: unknown): val is Component | DefineComponent {
   if (isFunction(val)) return true;
@@ -13,13 +14,13 @@ function isVueComponent(val: unknown): val is Component | DefineComponent {
   return false;
 }
 
-function generateHtmlComp(library: string) {
+const generateHtmlComp = cached((library: string) => {
   if (/^[a-z-]+$/.test(library)) {
     return defineComponent((_, { attrs, slots }) => {
       return () => h(library, attrs, slots);
     });
   }
-}
+});
 
 export function accessLibrary(library: string | Record<string, unknown>) {
   if (typeof library !== 'string') {
