@@ -160,6 +160,9 @@ importers:
       '@alilc/lowcode-types':
         specifier: ^1.1.10
         version: 1.1.10
+      '@vitejs/plugin-vue-jsx':
+        specifier: ^3.0.2
+        version: 3.0.2(vite@4.4.9)(vue@3.3.4)
       vite:
         specifier: ^4.4.9
         version: 4.4.9(@types/node@20.5.7)(less@4.2.0)
@@ -3598,6 +3601,22 @@ packages:
     resolution: {integrity: sha512-Gzo+7Qsq5jmBxcW/B9EF0l77nneBeuHuCBUIVSetSTCQtjdxoF9LF/K3UZE2Z20Raq7/MLrtaDa2KqeLmwWu8A==}
     dependencies:
       '@uni/action-sheet': 1.0.8
+    dev: true
+
+  /@vitejs/plugin-vue-jsx@3.0.2(vite@4.4.9)(vue@3.3.4):
+    resolution: {integrity: sha512-obF26P2Z4Ogy3cPp07B4VaW6rpiu0ue4OT2Y15UxT5BZZ76haUY9guOsZV3uWh/I6xc+VeiW+ZVabRE82FyzWw==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    peerDependencies:
+      vite: ^4.0.0
+      vue: ^3.0.0
+    dependencies:
+      '@babel/core': 7.22.11
+      '@babel/plugin-transform-typescript': 7.22.11(@babel/core@7.22.11)
+      '@vue/babel-plugin-jsx': 1.1.5(@babel/core@7.22.11)
+      vite: 4.4.9(@types/node@20.5.7)(less@4.2.0)
+      vue: 3.3.4
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /@vitest/coverage-istanbul@0.31.4(vitest@0.31.4):

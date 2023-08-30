@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@alilc/lowcode-types": "^1.1.10",
+    "@vitejs/plugin-vue-jsx": "^3.0.2",
     "vite": "^4.4.9",
     "vite-plugin-lib-types": "^2.0.4",
     "vue": "^3.3.4"

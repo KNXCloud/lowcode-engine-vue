@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config';
 import types from 'vite-plugin-lib-types';
+import vueJsx from '@vitejs/plugin-vue-jsx';
 import pkg from './package.json';
 
 export default defineConfig({
@@ -16,6 +17,7 @@ export default defineConfig({
       fileName: 'vue-renderer.d.ts',
       tsconfigPath: './tsconfig.build.json',
     }),
+    vueJsx(),
   ],
   build: {
     target: 'ES2018',
