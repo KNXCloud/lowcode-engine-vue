@@ -10,8 +10,6 @@
     "lowcode-engine"
   ],
   "files": [
-    "es",
-    "lib",
     "dist"
   ],
   "scripts": {
