@@ -18,25 +18,28 @@ export type UtilsMetadata = UtilsNpmMetadata | UtilsFunctionMetadata;
 
 export function buildUtils(
   libraryMap: Record<string, string>,
-  utilsMetadata: UtilsMetadata[]
+  utilsMetadata: UtilsMetadata[],
 ): Record<string, unknown> {
   return utilsMetadata
     .filter((meta) => meta && meta.name)
-    .reduce((utils, meta) => {
-      const { name, content, type } = meta;
-      if (type === 'npm') {
-        const { package: pkg, exportName, destructuring } = content ?? {};
-        if (libraryMap[pkg]) {
-          const library = accessLibrary(libraryMap[pkg]);
-          if (library) {
-            utils[name] = destructuring && exportName ? library[exportName] : library;
+    .reduce(
+      (utils, meta) => {
+        const { name, content, type } = meta;
+        if (type === 'npm') {
+          const { package: pkg, exportName, destructuring } = content ?? {};
+          if (libraryMap[pkg]) {
+            const library = accessLibrary(libraryMap[pkg]);
+            if (library) {
+              utils[name] = destructuring && exportName ? library[exportName] : library;
+            }
           }
+        } else if (type === 'function') {
+          utils[name] = isJSFunction(content)
+            ? new Function(`return ${content.value}`)()
+            : meta.content;
         }
-      } else if (type === 'function') {
-        utils[name] = isJSFunction(content)
-          ? new Function(`return ${content.value}`)()
-          : meta.content;
-      }
-      return utils;
-    }, {} as Record<string, unknown>);
+        return utils;
+      },
+      {} as Record<string, unknown>,
+    );
 }

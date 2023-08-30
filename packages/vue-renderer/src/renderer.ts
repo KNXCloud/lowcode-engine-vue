@@ -1,9 +1,8 @@
 import type {
-  IPublicModelNode as Node,
   IPublicTypeNodeSchema as NodeSchema,
   IPublicTypeContainerSchema as ContainerSchema,
 } from '@alilc/lowcode-types';
-import { getRendererContextKey, type DesignMode } from '@knxcloud/lowcode-hooks';
+import { getRendererContextKey, type DesignMode, INode } from '@knxcloud/lowcode-hooks';
 import {
   type PropType,
   type Component,
@@ -29,7 +28,7 @@ import {
 import config from './config';
 import { RENDERER_COMPS } from './renderers';
 import {
-  createObjectSpliter,
+  createObjectSplitter,
   debounce,
   exportSchema,
   isBoolean,
@@ -59,7 +58,7 @@ const vueRendererProps = {
     type: Object as PropType<I18nMessages>,
     default: () => ({}),
   },
-  getNode: Function as PropType<(id: string) => Node | null>,
+  getNode: Function as PropType<(id: string) => INode | null>,
   /** 组件获取 ref 时触发的钩子 */
   onCompGetCtx: Function as PropType<
     (schema: NodeSchema, ref: ComponentPublicInstance) => void
@@ -72,11 +71,19 @@ const vueRendererProps = {
     type: [Array, Boolean] as PropType<string[] | boolean>,
     default: false,
   },
+  appHelper: Object,
+  requestHandlersMap: Object,
 } as const;
 
 type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
 
-const splitOptions = createObjectSpliter((prop) => !prop.match(/^[a-z]+([A-Z][a-z]+)*$/));
+const splitOptions = createObjectSplitter(
+  (prop) => !prop.match(/^[a-z]+([A-Z][a-z]+)*$/),
+);
+
+const isAsyncComp = (comp: any) => {
+  return comp && comp.name === 'AsyncComponentWrapper';
+};
 
 const VueRenderer = defineComponent({
   props: vueRendererProps,
@@ -93,7 +100,7 @@ const VueRenderer = defineComponent({
     const schemaRef = shallowRef(props.schema);
     watch(
       () => props.schema,
-      () => (schemaRef.value = props.schema)
+      () => (schemaRef.value = props.schema),
     );
 
     let needWrapComp: (name: string) => boolean = () => true;
@@ -115,6 +122,7 @@ const VueRenderer = defineComponent({
         ...config.getRenderers(),
         ...props.components,
       })),
+      thisRequiredInJSE: computed(() => props.thisRequiredInJSE),
       getNode: (id: string) => (props.getNode?.(id) as any) ?? null,
       triggerCompGetCtx: (schema: NodeSchema, inst: ComponentPublicInstance) => {
         props.onCompGetCtx?.(schema, inst);
@@ -133,7 +141,7 @@ const VueRenderer = defineComponent({
       wrapLeafComp: <T extends object, L extends object>(
         name: string,
         comp: T,
-        leaf: L
+        leaf: L,
       ): L => {
         let record = wrapCached.get(leaf);
         if (record) {
@@ -145,7 +153,7 @@ const VueRenderer = defineComponent({
           wrapCached.set(leaf, record);
         }
 
-        if (needWrapComp(name)) {
+        if (needWrapComp(name) && !isAsyncComp(comp)) {
           const [privateOptions, _, privateOptionsCount] = splitOptions(comp as any);
           if (privateOptionsCount) {
             leaf = Object.create(leaf, Object.getOwnPropertyDescriptors(privateOptions));
@@ -164,7 +172,16 @@ const VueRenderer = defineComponent({
 
     const renderContent = () => {
       const { components } = rendererContext;
-      const { scope, locale, messages, designMode, thisRequiredInJSE, passProps } = props;
+      const {
+        scope,
+        locale,
+        messages,
+        designMode,
+        thisRequiredInJSE,
+        requestHandlersMap,
+        passProps,
+        appHelper,
+      } = props;
       const { value: schema } = schemaRef;
 
       if (!schema) return null;
@@ -190,13 +207,15 @@ const VueRenderer = defineComponent({
               __schema: schema,
               __locale: locale,
               __messages: messages,
+              __appHelper: appHelper,
               __components: components,
               __designMode: designMode,
               __thisRequiredInJSE: thisRequiredInJSE,
+              __requestHandlersMap: requestHandlersMap,
               __getNode: getNode,
               __triggerCompGetCtx: triggerCompGetCtx,
             } as any,
-            slots
+            slots,
           )
         : null;
     };
@@ -211,8 +230,8 @@ const VueRenderer = defineComponent({
   },
 });
 
-export const cleanCacledModules = () => {
-  SchemaParser.cleanCacheModules();
+export const cleanCachedModules = () => {
+  SchemaParser.cleanCachedModules();
 };
 
 export { VueRenderer, vueRendererProps };

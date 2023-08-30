@@ -3,20 +3,16 @@ import type { Config, I18nMessages } from '@knxcloud/lowcode-vue-renderer';
 import type { DesignMode } from '@knxcloud/lowcode-hooks';
 import type { Component, ComponentPublicInstance, App } from 'vue';
 import type {
-  AssetList,
+  IPublicTypeSimulatorRenderer,
+  IPublicModelNode as INode,
+  IPublicModelDocumentModel as IDocumentModel,
   IPublicTypeNpmInfo as NpmInfo,
   IPublicTypeRootSchema as RootSchema,
-  IPublicTypeContainerSchema as ContainerSchema,
   IPublicTypeComponentSchema as ComponentSchema,
-  IPublicTypeNodeInstance,
+  IPublicTypeNodeInstance as NodeInstance,
 } from '@alilc/lowcode-types';
-import type {
-  INode,
-  DocumentModel,
-  BuiltinSimulatorRenderer,
-} from '@alilc/lowcode-designer';
 
-export type MinxedComponent = NpmInfo | Component | ComponentSchema;
+export type MixedComponent = NpmInfo | Component | ComponentSchema;
 
 export type ComponentInstance = ComponentPublicInstance;
 
@@ -37,22 +33,23 @@ export interface DocumentInstance {
   readonly key: string;
   readonly path: string;
   readonly scope: Record<string, unknown>;
-  readonly document: DocumentModel;
+  readonly document: IDocumentModel;
   readonly instancesMap: Map<string, ComponentInstance[]>;
   readonly schema: RootSchema;
   readonly messages: I18nMessages;
+  readonly appHelper: Record<string, unknown>;
   getComponentInstance(id: number): ComponentInstance | null;
   mountInstance(
     id: string,
-    instance: ComponentInstance | HTMLElement
+    instance: ComponentInstance | HTMLElement,
   ): (() => void) | void;
-  unmountIntance(id: string, instance: ComponentInstance): void;
+  unmountInstance(id: string, instance: ComponentInstance): void;
   rerender(): void;
   getNode(id: string): INode | null;
 }
 
-export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
-  readonly isSimulatorRenderer: true;
+export interface VueSimulatorRenderer
+  extends IPublicTypeSimulatorRenderer<ComponentInstance, ComponentRecord> {
   app: App;
   config: Config;
   router: Router;
@@ -62,22 +59,15 @@ export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
   designMode: DesignMode;
   libraryMap: Record<string, string>;
   thisRequiredInJSE: boolean;
-  components: Record<string, Component>;
   autoRender: boolean;
-  componentsMap: Record<string, MinxedComponent>;
+  componentsMap: Record<string, MixedComponent>;
   disableCompMock: boolean | string[];
   documentInstances: DocumentInstance[];
   requestHandlersMap: Record<string, CallableFunction>;
-  load(assets: AssetList): Promise<void>;
   dispose(): void;
-  rerender(): void;
   getCurrentDocument(): DocumentInstance | null;
-  rerender: () => void;
-  createComponent(schema: ContainerSchema): Component | null;
-  getComponent(componentName: string): Component;
   getClosestNodeInstance(
     from: ComponentRecord | Element,
-    nodeId?: string
-  ): IPublicTypeNodeInstance<ComponentRecord> | null;
-  findDOMNodes(instance: ComponentRecord): Array<Element | Text> | null;
+    nodeId?: string,
+  ): NodeInstance<ComponentRecord> | null;
 }

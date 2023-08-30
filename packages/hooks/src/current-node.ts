@@ -1,17 +1,34 @@
-import type { Node } from '@alilc/lowcode-designer';
+import type {
+  GlobalEvent,
+  IPublicModelNode,
+  IPublicTypeDisposable,
+} from '@alilc/lowcode-types';
 import type { InjectionKey } from 'vue';
 import type { DesignMode } from './renderer-context';
 import { inject } from 'vue';
 
+export type IPublicTypePropChangeOptions = Omit<
+  GlobalEvent.Node.Prop.ChangeOptions,
+  'node'
+>;
+
+export interface INode extends IPublicModelNode {
+  onVisibleChange(func: (flag: boolean) => any): () => void;
+  onPropChange(func: (info: IPublicTypePropChangeOptions) => void): IPublicTypeDisposable;
+  onChildrenChange(
+    fn: (param?: { type: string; node: INode } | undefined) => void,
+  ): IPublicTypeDisposable | undefined;
+}
+
 export interface EnvNode {
   mode: DesignMode;
-  node: Node | null;
+  node: INode | null;
   isDesignerEnv: boolean;
 }
 
 export interface DesignerEnvNode extends EnvNode {
   mode: 'design';
-  node: Node;
+  node: INode;
   isDesignerEnv: true;
 }
 
@@ -43,6 +60,6 @@ export function useCurrentNode(): CurrentNode {
         isDesignerEnv: false,
       } as LiveEnvNode;
     },
-    true
+    true,
   );
 }

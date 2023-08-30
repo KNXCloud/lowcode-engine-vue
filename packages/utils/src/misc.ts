@@ -3,7 +3,7 @@ import { isArray, isFunction, isString } from './check';
 export const noop: (...args: any[]) => any = () => void 0;
 
 export function fromPairs<E extends Iterable<unknown>>(
-  entries: E
+  entries: E,
 ): E extends Iterable<infer T>
   ? T extends [infer K, infer V]
     ? K extends string
@@ -53,19 +53,19 @@ export function sleep(ms?: number) {
   });
 }
 
-export const createObjectSpliter = (
-  speicalProps: string | string[] | ((prop: string) => boolean)
+export const createObjectSplitter = (
+  specialProps: string | string[] | ((prop: string) => boolean),
 ) => {
   const propsSet = new Set(
-    isString(speicalProps)
-      ? speicalProps.split(',')
-      : isArray(speicalProps)
-      ? speicalProps
-      : []
+    isString(specialProps)
+      ? specialProps.split(',')
+      : isArray(specialProps)
+      ? specialProps
+      : [],
   );
 
-  const has = isFunction(speicalProps)
-    ? speicalProps
+  const has = isFunction(specialProps)
+    ? specialProps
     : (prop: string) => propsSet.has(prop);
 
   return <T>(o: Record<string, T>): [Record<string, T>, Record<string, T>, number] => {
@@ -86,5 +86,14 @@ export const createObjectSpliter = (
     }
 
     return [left, right, count];
+  };
+};
+
+export const cached = <R>(fn: (param: string) => R): ((param: string) => R) => {
+  const cacheStore: Record<string, any> = {};
+  return function (this: unknown, param: string) {
+    return param in cacheStore
+      ? cacheStore[param]
+      : (cacheStore[param] = fn.call(this, param));
   };
 };

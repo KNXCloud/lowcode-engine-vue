@@ -1,10 +1,9 @@
-import type { DocumentModel } from '@alilc/lowcode-designer';
-import type { IPublicTypeContainerSchema } from '@alilc/lowcode-types';
+import type {
+  IPublicTypeContainerSchema,
+  IPublicModelDocumentModel,
+} from '@alilc/lowcode-types';
 import {
   type Ref,
-  type Component,
-  defineComponent,
-  h,
   createApp,
   ref,
   shallowRef,
@@ -12,17 +11,18 @@ import {
   computed,
   markRaw,
   onUnmounted,
+  shallowReactive,
 } from 'vue';
 import * as VueRouter from 'vue-router';
 import type {
   ComponentInstance,
   ComponentRecord,
   DocumentInstance,
-  MinxedComponent,
+  MixedComponent,
   SimulatorViewLayout,
   VueSimulatorRenderer,
 } from './interface';
-import VueRenderer, {
+import {
   config,
   LOWCODE_ROUTE_META,
   SchemaParser,
@@ -52,7 +52,6 @@ import {
   setNativeSelection,
   createComponentRecord,
   parseFileNameToPath,
-  parseFileNameToCompName,
   isVNodeHTMLElement,
   CompRootHTMLElement,
 } from './utils';
@@ -70,11 +69,12 @@ export interface ProjectContext {
     constants?: Record<string, unknown>;
     [x: string]: unknown;
   };
+  suspense: boolean;
 }
 
 function createDocumentInstance(
-  document: DocumentModel,
-  context: ProjectContext
+  document: IPublicModelDocumentModel,
+  context: ProjectContext,
 ): DocumentInstance {
   /** 记录单个节点的组件实例列表 */
   const instancesMap = new Map<string, ComponentInstance[]>();
@@ -100,7 +100,7 @@ function createDocumentInstance(
   const setHostInstance = (
     docId: string,
     nodeId: string,
-    instances: ComponentInstance[] | null
+    instances: ComponentInstance[] | null,
   ) => {
     const instanceRecords = !instances
       ? null
@@ -146,10 +146,10 @@ function createDocumentInstance(
     const origId = getCompRootData(el).nodeId;
     if (origId && origId !== id) {
       // 另外一个节点的 instance 在此被复用了，需要从原来地方卸载
-      unmountIntance(origId, instance);
+      unmountInstance(origId, instance);
     }
 
-    onUnmounted(() => unmountIntance(id, instance), instance.$);
+    onUnmounted(() => unmountInstance(id, instance), instance.$);
 
     setCompRootData(el, {
       nodeId: id,
@@ -174,7 +174,7 @@ function createDocumentInstance(
     setHostInstance(docId, id, instances);
   };
 
-  const unmountIntance = (id: string, instance: ComponentInstance) => {
+  const unmountInstance = (id: string, instance: ComponentInstance) => {
     const instances = instancesMap.get(id);
     if (instances) {
       const i = instances.indexOf(instance);
@@ -187,14 +187,19 @@ function createDocumentInstance(
   };
 
   const getNode: DocumentInstance['getNode'] = (id) => {
+    // @ts-expect-error getNodeById 不存在，使用 getNode 代替，这里的 ts 类型声明不正确
     return id ? document.getNode(id) : null;
   };
 
   return reactive({
     id: computed(() => document.id),
     path: computed(() => parseFileNameToPath(schema.value.fileName ?? '')),
-    key: computed(() => `${document.id}:${timestamp.value}`),
-    scope: computed(() => {
+    get key() {
+      return `${document.id}:${timestamp.value}`;
+    },
+    scope: computed(() => ({})),
+    schema: schema,
+    appHelper: computed(() => {
       const _schema = schema.value;
 
       const {
@@ -215,17 +220,24 @@ function createDocumentInstance(
         ...otherHelpers,
       };
     }),
-    schema: schema,
     document: computed(() => document),
     messages: computed(() => deepMerge(context.i18n, Reflect.get(schema.value, 'i18n'))),
     instancesMap: computed(() => instancesMap),
     getNode,
     mountInstance,
-    unmountIntance,
+    unmountInstance,
     getComponentInstance,
     rerender: () => {
-      timestamp.value = Date.now();
-      SchemaParser.cleanCacheModules();
+      const now = Date.now();
+      if (context.suspense) {
+        Object.assign(timestamp, {
+          _value: now,
+          _rawValue: now,
+        });
+      } else {
+        timestamp.value = now;
+      }
+      SchemaParser.cleanCachedModules();
     },
   }) as DocumentInstance;
 }
@@ -237,19 +249,20 @@ function createSimulatorRenderer() {
   const autoRender = shallowRef(host.autoRender);
   const designMode: Ref<string> = shallowRef('design');
   const libraryMap: Ref<Record<string, string>> = shallowRef({});
-  const components: Ref<Record<string, Component>> = shallowRef({});
-  const componentsMap: Ref<Record<string, MinxedComponent>> = shallowRef({});
+  const components: Ref<Record<string, ComponentInstance>> = shallowRef({});
+  const componentsMap: Ref<Record<string, MixedComponent>> = shallowRef({});
   const disableCompMock: Ref<boolean | string[]> = shallowRef(true);
   const requestHandlersMap: Ref<Record<string, CallableFunction>> = shallowRef({});
   const documentInstances: Ref<DocumentInstance[]> = shallowRef([]);
-  const thisRequiredInJSE: Ref<boolean> = shallowRef(true);
+  const thisRequiredInJSE: Ref<boolean> = shallowRef(false);
 
-  const context: ProjectContext = reactive({
+  const context: ProjectContext = shallowReactive({
     i18n: {},
     appHelper: {
       utils: {},
       constants: {},
     },
+    suspense: false,
   });
 
   const disposeFunctions: Array<() => void> = [];
@@ -259,11 +272,7 @@ function createSimulatorRenderer() {
   function _buildComponents() {
     components.value = {
       ...builtinComponents,
-      ...buildComponents(
-        libraryMap.value,
-        componentsMap.value,
-        simulator.createComponent
-      ),
+      ...buildComponents(libraryMap.value, componentsMap.value),
     };
   }
 
@@ -289,7 +298,7 @@ function createSimulatorRenderer() {
     VueRouter.createRouter({
       history: VueRouter.createMemoryHistory('/'),
       routes: [],
-    })
+    }),
   );
 
   simulator.getComponent = (componentName) => {
@@ -329,44 +338,6 @@ function createSimulatorRenderer() {
   };
   simulator.getComponent = (componentName) => components.value[componentName];
 
-  let createdCount = 0;
-  simulator.createComponent = ({ css, ...schema }) => {
-    const compId = `Component-${schema.id || createdCount++}`;
-    const CreatedComponent = defineComponent({
-      props: VueRenderer.props,
-      setup: (props, { slots }) => {
-        let styleEl = document.getElementById(compId);
-        if (css && !styleEl) {
-          const doc = window.document;
-          styleEl = doc.createElement('style');
-          styleEl.setAttribute('type', 'text/css');
-          styleEl.setAttribute('id', compId);
-          styleEl.appendChild(doc.createTextNode(css));
-          doc.head.appendChild(styleEl);
-        }
-        return () => {
-          return h(
-            VueRenderer,
-            {
-              schema,
-              locale: simulator.locale,
-              device: simulator.device,
-              passProps: props,
-              components: components.value,
-            },
-            slots
-          );
-        };
-      },
-    });
-    if (schema.fileName) {
-      CreatedComponent.name = parseFileNameToCompName(schema.fileName);
-    }
-    if (schema.props) {
-      CreatedComponent.props = Object.keys(schema.props);
-    }
-    return CreatedComponent;
-  };
   simulator.getClientRects = (element) => getClientRects(element);
   simulator.setNativeSelection = (enable) => setNativeSelection(enable);
   simulator.setDraggingState = (state) => cursor.setDragging(state);
@@ -407,12 +378,14 @@ function createSimulatorRenderer() {
 
   disposeFunctions.push(
     host.connect(simulator, () => {
-      const config = host.project.get('config');
+      const config = host.project.get('config') || {};
 
       // sync layout config
       layout.value = config.layout ?? {};
       // sync disableCompMock
-      disableCompMock.value = config.disableCompMock ?? false;
+      disableCompMock.value = isArray(config.disableCompMock)
+        ? config.disableCompMock
+        : Boolean(config.disableCompMock);
 
       // todo: split with others, not all should recompute
       if (
@@ -433,9 +406,9 @@ function createSimulatorRenderer() {
       designMode.value = host.designMode;
 
       // sync requestHandlersMap
-      requestHandlersMap.value = host.requestHandlersMap;
+      requestHandlersMap.value = host.requestHandlersMap ?? {};
 
-      thisRequiredInJSE.value = host.thisRequiredInJSE ?? true;
+      thisRequiredInJSE.value = host.thisRequiredInJSE ?? false;
 
       documentInstances.value.forEach((doc) => doc.rerender());
 
@@ -443,11 +416,11 @@ function createSimulatorRenderer() {
         thisRequired: thisRequiredInJSE.value,
         scopePath: 'renderer.runtimeScope',
       });
-    })
+    }),
   );
 
   disposeFunctions.push(
-    host.autorun(() => {
+    host.autorun(async () => {
       const { router } = simulator;
       documentInstances.value = host.project.documents.map((doc) => {
         let documentInstance = documentInstanceMap.get(doc.id);
@@ -466,7 +439,6 @@ function createSimulatorRenderer() {
           },
           component: Renderer,
           props: ((doc, sim) => () => ({
-            key: doc.key,
             simulator: sim,
             documentInstance: doc,
           }))(documentInstance, simulator),
@@ -482,8 +454,15 @@ function createSimulatorRenderer() {
         }
       });
       const inst = simulator.getCurrentDocument();
-      inst && router.replace({ name: inst.id, force: true });
-    })
+      if (inst) {
+        try {
+          context.suspense = true;
+          await router.replace({ name: inst.id, force: true });
+        } finally {
+          context.suspense = false;
+        }
+      }
+    }),
   );
 
   host.componentsConsumer.consume(async (componentsAsset) => {

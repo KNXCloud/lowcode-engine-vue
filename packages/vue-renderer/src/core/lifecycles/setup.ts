@@ -18,7 +18,7 @@ export function setup(
   parser: SchemaParser,
   schema: unknown,
   scope: RuntimeScope,
-  [props, ctx]: [object, object]
+  [props, ctx]: [object, object],
 ): void | Promise<void> {
   const setupFn = parser.parseSchema(schema, false);
   if (!isFunction(setupFn)) return;

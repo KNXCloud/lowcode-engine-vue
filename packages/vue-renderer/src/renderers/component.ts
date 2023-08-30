@@ -21,6 +21,6 @@ export const ComponentRenderer = defineComponent({
       });
     }
 
-    return wrapRender(() => renderComp(schemaRef.value, null, Component));
+    return wrapRender(() => renderComp(schemaRef.value, scope, Component));
   },
 });

@@ -1,3 +1,5 @@
+/* istanbul ignore file */
+
 export function warn(message: string) {
   console.warn('[vue-renderer]: ' + message);
 }

@@ -1,5 +1,5 @@
 import type {
-  IPublicModelNode as INode,
+  RequestHandler,
   IPublicTypeNodeSchema as NodeSchema,
   IPublicTypeContainerSchema as ContainerSchema,
 } from '@alilc/lowcode-types';
@@ -11,6 +11,7 @@ import type {
   PropType,
 } from 'vue';
 import type { BlockScope, I18nMessages, SchemaParser } from '../utils';
+import { INode } from '@knxcloud/lowcode-hooks';
 
 export const rendererProps = {
   __scope: {
@@ -20,6 +21,10 @@ export const rendererProps = {
   __schema: {
     type: Object as PropType<ContainerSchema>,
     required: true,
+  },
+  __appHelper: {
+    type: Object as PropType<Record<string, unknown>>,
+    default: () => ({}),
   },
   __designMode: {
     type: String as PropType<'live' | 'design'>,
@@ -51,6 +56,10 @@ export const rendererProps = {
     type: Boolean,
     default: true,
   },
+  __requestHandlersMap: {
+    type: Object as PropType<Record<string, RequestHandler>>,
+    default: () => ({}),
+  },
   __props: {
     type: Object,
     default: () => ({}),
@@ -68,10 +77,7 @@ export const baseRendererPropKeys = Object.keys(rendererProps) as (keyof Rendere
 export type RendererComponent = DefineComponent<RendererProps, any, any>;
 
 export const leafProps = {
-  __comp: {
-    type: [Object, Function] as PropType<Component | null>,
-    required: true,
-  },
+  __comp: null,
   __scope: null,
   __schema: {
     type: Object as PropType<NodeSchema>,

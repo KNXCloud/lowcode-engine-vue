@@ -1,6 +1,6 @@
 {
   "name": "@knxcloud/lowcode-hooks",
-  "version": "1.6.0-beta.4",
+  "version": "1.6.0",
   "main": "dist/lowcode-hooks.js",
   "module": "dist/lowcode-hooks.mjs",
   "typings": "dist/lowcode-hooks.d.ts",
@@ -19,27 +19,14 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@alilc/lowcode-designer": "^1.1.3",
-    "@alilc/lowcode-types": "^1.1.3",
-    "vite": "^4.1.4",
-    "vite-plugin-lib-types": "^0.1.2",
-    "vue": "^3.2.47"
+    "@alilc/lowcode-types": "^1.1.10",
+    "vite": "^4.4.9",
+    "vite-plugin-lib-types": "^2.0.4",
+    "vue": "^3.3.4"
   },
   "peerDependencies": {
-    "@alilc/lowcode-designer": ">= 1.1.x < 2",
-    "@alilc/lowcode-types": ">= 1.1.x < 2",
-    "vue": ">= 3.x < 4"
-  },
-  "peerDependenciesMeta": {
-    "vue-router": {
-      "optional": true
-    },
-    "@alilc/lowcode-designer": {
-      "optional": true
-    },
-    "@alilc/lowcode-types": {
-      "optional": true
-    }
+    "@alilc/lowcode-types": "^1.0.0",
+    "vue": "^3.0.0"
   },
   "publishConfig": {
     "access": "public",

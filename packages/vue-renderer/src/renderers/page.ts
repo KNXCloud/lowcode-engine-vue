@@ -14,7 +14,7 @@ export const PageRenderer = defineComponent({
     const { renderComp, componentsRef, schemaRef } = useRenderer(props, scope);
 
     return wrapRender(() => {
-      return renderComp(schemaRef.value, null, componentsRef.value.Page || Page);
+      return renderComp(schemaRef.value, scope, componentsRef.value.Page || Page);
     });
   },
 });

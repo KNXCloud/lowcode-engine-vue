@@ -37,7 +37,13 @@ export const SimulatorRendererView = defineComponent({
   },
   render() {
     const { simulator } = this;
-    return h(Layout, { simulator }, { default: () => h(RouterView) });
+    return h(Layout, { simulator }, () => {
+      return h(RouterView, null, {
+        default: ({ Component }) => {
+          return Component && h(Suspense, null, () => h(Component));
+        },
+      });
+    });
   },
 });
 
@@ -55,25 +61,25 @@ export const Renderer = defineComponent({
   setup: () => ({ renderer: ref() }),
   render() {
     const { documentInstance, simulator } = this;
-    const { schema, scope, messages } = documentInstance;
-    const { designMode, device, locale, components } = simulator;
+    const { schema, scope, messages, appHelper, key } = documentInstance;
+    const { designMode, device, locale, components, requestHandlersMap } = simulator;
 
-    return h(Suspense, null, {
-      default: () =>
-        h(LowCodeRenderer, {
-          ref: 'renderer',
-          scope: scope,
-          schema: schema,
-          locale: locale,
-          device: device,
-          messages: messages,
-          components: components,
-          designMode: designMode,
-          disableCompMock: simulator.disableCompMock,
-          thisRequiredInJSE: simulator.thisRequiredInJSE,
-          getNode: (id) => documentInstance.getNode(id) as any,
-          onCompGetCtx: (schema, ref) => documentInstance.mountInstance(schema.id!, ref),
-        }),
+    return h(LowCodeRenderer, {
+      ref: 'renderer',
+      key: key,
+      scope: scope,
+      schema: schema,
+      locale: locale,
+      device: device,
+      messages: messages,
+      appHelper: appHelper,
+      components: components,
+      designMode: designMode,
+      requestHandlersMap: requestHandlersMap,
+      disableCompMock: simulator.disableCompMock,
+      thisRequiredInJSE: simulator.thisRequiredInJSE,
+      getNode: (id) => documentInstance.getNode(id) as any,
+      onCompGetCtx: (schema, ref) => documentInstance.mountInstance(schema.id!, ref),
     });
   },
 });

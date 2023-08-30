@@ -1,23 +1,19 @@
 import { defineConfig } from 'vite';
-import LibTypes from 'vite-plugin-lib-types';
-import VueJsx from '@vitejs/plugin-vue-jsx';
+import types from 'vite-plugin-lib-types';
 import pkg from './package.json';
 
 export default defineConfig({
-  plugins: [VueJsx(), LibTypes({ fileName: 'vue-simulator-renderer.d.ts' })],
+  plugins: [types()],
   build: {
     sourcemap: true,
+    minify: false,
     target: 'ES2018',
     lib: {
-      entry: 'src/index.ts',
-      fileName: () => 'vue-simulator-renderer.mjs',
+      entry: { 'vue-simulator-renderer': 'src/index.ts' },
       formats: ['es'],
     },
     rollupOptions: {
-      external: [
-        ...Object.keys(pkg.dependencies),
-        ...Object.keys(pkg.peerDependencies),
-      ].filter((item) => !item.includes('@alilc')),
+      external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)],
       output: {
         assetFileNames({ name }) {
           return name === 'style.css' ? 'vue-simulator-renderer.css' : name!;

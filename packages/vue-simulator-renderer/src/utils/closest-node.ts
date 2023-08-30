@@ -10,7 +10,7 @@ import {
 
 export function getClosestNodeInstance(
   el: Element,
-  specId: string | undefined
+  specId: string | undefined,
 ): NodeInstance<ComponentRecord> | null {
   if (!document.contains(el)) {
     return null;
@@ -20,7 +20,7 @@ export function getClosestNodeInstance(
 
 export function getClosestNodeInstanceByElement(
   el: Element,
-  specId: string | undefined
+  specId: string | undefined,
 ): NodeInstance<ComponentRecord> | null {
   while (el) {
     if (isVNodeHTMLElement(el)) {
@@ -45,7 +45,7 @@ export function getClosestNodeInstanceByElement(
 
 export function getClosestNodeInstanceByComponent(
   instance: ComponentInternalInstance | null,
-  specId: string | undefined
+  specId: string | undefined,
 ): NodeInstance<ComponentRecord> | null {
   while (instance) {
     const el = instance.vnode.el as Element;

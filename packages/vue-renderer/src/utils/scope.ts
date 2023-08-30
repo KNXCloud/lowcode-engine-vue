@@ -1,12 +1,13 @@
 import { isReactive, proxyRefs, type ComponentPublicInstance } from 'vue';
 import type { MaybeArray } from './array';
-import type { DataSourceItem } from '../data-source';
 import { isProxy, reactive } from 'vue';
 import { isBoolean, isObject, isUndefined } from '@knxcloud/lowcode-utils';
 import { warn } from './warn';
+import { SchemaParser } from './parse';
+import { DataSource } from '@knxcloud/lowcode-data-source';
 
 export interface BlockScope {
-  [x: string]: unknown;
+  [x: string | symbol]: unknown;
 }
 
 declare module 'vue' {
@@ -16,14 +17,16 @@ declare module 'vue' {
     emitsOptions: Record<string, ((...args: any[]) => unknown) | null>;
     propsOptions: [Record<string, object>, string[]];
     accessCache: Record<string, AccessTypes>;
+    propsDefaults: Record<string, unknown>;
   }
 }
 
 export interface RuntimeScope extends BlockScope, ComponentPublicInstance {
   i18n(key: string, values: any): string;
   currentLocale: string;
-  dataSourceMap: Record<string, DataSourceItem>;
+  dataSourceMap: Record<string, DataSource>;
   reloadDataSource(): Promise<any[]>;
+  __parser: SchemaParser;
   __thisRequired: boolean;
   __loopScope?: boolean;
   __loopRefIndex?: number;
@@ -40,7 +43,7 @@ export const enum AccessTypes {
 
 export function getAccessTarget(
   scope: RuntimeScope,
-  accessType: AccessTypes
+  accessType: AccessTypes,
 ): Record<string, unknown> {
   switch (accessType) {
     case AccessTypes.SETUP:
@@ -53,7 +56,7 @@ export function getAccessTarget(
                 enumerable: false,
                 configurable: false,
               },
-            })
+            }),
           ));
     case AccessTypes.DATA:
       return isReactive(scope.$.data) ? scope.$.data : (scope.$.data = reactive({}));
@@ -68,7 +71,8 @@ export function addToScope(
   scope: RuntimeScope,
   accessType: AccessTypes,
   source: object,
-  useDefineProperty?: boolean
+  useDefineProperty?: boolean,
+  buildPropsOptions = true,
 ): void {
   const instance = scope.$;
   const target = getAccessTarget(scope, accessType);
@@ -92,7 +96,11 @@ export function addToScope(
       instance.accessCache[key] = accessType;
     }
   }
-  if (accessType === AccessTypes.PROPS && Object.keys(source).length > 0) {
+  if (
+    accessType === AccessTypes.PROPS &&
+    Object.keys(source).length > 0 &&
+    buildPropsOptions
+  ) {
     const {
       propsOptions: [rawPropsOptions, rawNeedCastKeys],
     } = instance;

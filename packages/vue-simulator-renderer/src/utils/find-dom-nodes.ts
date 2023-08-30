@@ -31,7 +31,7 @@ function appendSiblingElement(
   target: (Element | Text)[],
   instance: ComponentInternalInstance,
   el: Element | Text,
-  next: (el: Node) => Node | null
+  next: (el: Node) => Node | null,
 ) {
   let nextNode = next(el);
   while (nextNode) {
@@ -53,7 +53,7 @@ function appendSiblingElement(
 
 function appendDescendantComponent(
   target: (Element | Text)[],
-  instance: ComponentInternalInstance
+  instance: ComponentInternalInstance,
 ): boolean {
   const subNode = instance.subTree;
   const current = subNode.el as Element | Text;
@@ -71,7 +71,7 @@ function appendDescendantComponent(
 
 function appendDescendantChildren(
   target: (Element | Text)[],
-  children: VNode[]
+  children: VNode[],
 ): boolean {
   const validElements = children.map(({ el }) => el).filter(isValidElement);
   if (validElements.length > 0) {
@@ -85,8 +85,8 @@ function appendDescendantChildren(
           return appendDescendantChildren(
             target,
             item.children.filter((child): child is VNode<Element | Text> =>
-              isVNode(child)
-            )
+              isVNode(child),
+            ),
           );
         } else if (item.component) {
           return appendDescendantComponent(target, item.component);
@@ -107,7 +107,7 @@ function isValidElement(el: unknown): el is Element | Text {
 
 function isChildInstance(
   target: ComponentInternalInstance,
-  source: ComponentInternalInstance | null
+  source: ComponentInternalInstance | null,
 ): boolean {
   if (source == null) return false;
   if (target.uid > source.uid) return false;

@@ -8,12 +8,5 @@
   "css.validate": false,
   "less.validate": false,
   "scss.validate": false,
-  "prettier.enable": true,
-  "eslint.validate": ["vue", "ts", "tsx"],
-  "volar.autoCompleteRefs": false,
-  "volar.codeLens.scriptSetupTools": false,
-  "volar.codeLens.references": false,
-  "volar.completion.autoImportComponent": false,
-  "volar.completion.preferredTagNameCase": "kebab",
-  "stylelint.validate": ["css", "less", "postcss", "vue"]
+  "prettier.enable": true
 }

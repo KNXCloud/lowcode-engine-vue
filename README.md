@@ -40,6 +40,11 @@ const editorInit = (ctx: ILowCodePluginContext) => {
   - `componentWillUnmount` -> `onBeforeUnmount`
 - 其余方法自动转化为 vue methods
 
+appHelper 暴露给 `this` 的属性都会加上 `$` 前缀，区别于其他属性，如
+
+- `utils` -> `this.$utils`
+- `constants` -> `this.$constants`
+
 ## Vue 代码编辑器
 
 现已支持 [Vue 代码编辑器 @knxcloud/lowcode-plugin-vue-code-editor](https://github.com/KNXCloud/lowcode-engine-plugins/tree/main/packages/plugin-vue-code-editor)，支持情况如下
@@ -59,7 +64,7 @@ const editorInit = (ctx: ILowCodePluginContext) => {
   - [x] async setup
   - [x] return void
   - [x] return object
-  - [ ] ~~return functiom~~
+  - [ ] ~~return function~~
 - [x] beforeCreate
 - [x] created
 - [x] beforeMount
@@ -68,8 +73,8 @@ const editorInit = (ctx: ILowCodePluginContext) => {
 - [x] updated
 - [x] beforeUnmount
 - [x] unmounted
-- [x] activated
-- [x] deactivated
+- [ ] activated
+- [ ] deactivated
 - [x] errorCaptured
 - [x] renderTracked
 - [x] renderTriggered

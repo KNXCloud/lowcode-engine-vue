@@ -1,15 +1,15 @@
-import type { Node } from '@alilc/lowcode-designer';
 import type { IPublicTypeNodeSchema } from '@alilc/lowcode-types';
 import type { Component, ComponentPublicInstance, InjectionKey } from 'vue';
+import type { INode } from './current-node';
 import { inject, getCurrentInstance } from 'vue';
 
 export type DesignMode = 'live' | 'design';
 
 export interface RendererContext {
-  readonly components: Record<string, Component>;
+  readonly components: Record<string, Component<any, any, any>>;
   readonly designMode: DesignMode;
   readonly thisRequiredInJSE: boolean;
-  getNode(id: string): Node | null;
+  getNode(id: string): INode | null;
   rerender(): void;
   wrapLeafComp<C extends object, L extends object>(name: string, comp: C, leaf: L): L;
   triggerCompGetCtx(schema: IPublicTypeNodeSchema, val: ComponentPublicInstance): void;
@@ -41,14 +41,14 @@ export function useRendererContext(): RendererContext {
         triggerCompGetCtx: getPropValue(props, 'triggerCompGetCtx', () => void 0),
       };
     },
-    true
+    true,
   );
 }
 
 function getPropValue<T>(
   props: Record<string, unknown>,
   key: string,
-  defaultValue: T
+  defaultValue: T,
 ): T {
   return (props[key] || props[`__${key}`] || defaultValue) as T;
 }
