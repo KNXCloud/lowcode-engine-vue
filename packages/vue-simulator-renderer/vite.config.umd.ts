@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   define: {
+    __VUE_PROD_DEVTOOLS__: JSON.stringify('false'),
     'process.env.NODE_ENV': JSON.stringify('production'),
   },
   build: {
