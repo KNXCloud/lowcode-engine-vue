@@ -16,7 +16,7 @@ export interface INode extends IPublicModelNode {
   onVisibleChange(func: (flag: boolean) => any): () => void;
   onPropChange(func: (info: IPublicTypePropChangeOptions) => void): IPublicTypeDisposable;
   onChildrenChange(
-    fn: (param?: { type: string; node: INode } | undefined) => void
+    fn: (param?: { type: string; node: INode } | undefined) => void,
   ): IPublicTypeDisposable | undefined;
 }
 
@@ -60,6 +60,6 @@ export function useCurrentNode(): CurrentNode {
         isDesignerEnv: false,
       } as LiveEnvNode;
     },
-    true
+    true,
   );
 }

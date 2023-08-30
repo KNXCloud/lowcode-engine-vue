@@ -41,14 +41,14 @@ export function useRendererContext(): RendererContext {
         triggerCompGetCtx: getPropValue(props, 'triggerCompGetCtx', () => void 0),
       };
     },
-    true
+    true,
   );
 }
 
 function getPropValue<T>(
   props: Record<string, unknown>,
   key: string,
-  defaultValue: T
+  defaultValue: T,
 ): T {
   return (props[key] || props[`__${key}`] || defaultValue) as T;
 }

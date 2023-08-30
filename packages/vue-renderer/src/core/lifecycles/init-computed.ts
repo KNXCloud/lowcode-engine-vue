@@ -10,7 +10,7 @@ import {
 export function initComputed(
   parser: SchemaParser,
   schema: unknown,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): void {
   const options = parser.parseSchema(schema, false);
   if (!isPlainObject(options)) return;

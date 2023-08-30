@@ -1,9 +1,6 @@
 import { defineConfig } from 'vite';
-import Vue from '@vitejs/plugin-vue';
-import VueJsx from '@vitejs/plugin-vue-jsx';
 
 export default defineConfig({
-  plugins: [Vue(), VueJsx()],
   define: {
     'process.env.NODE_ENV': JSON.stringify('production'),
   },
@@ -24,9 +21,7 @@ export default defineConfig({
         globals: {
           vue: 'Vue',
         },
-        assetFileNames({ name }) {
-          return name === 'style.css' ? 'vue-simulator-renderer.css' : name!;
-        },
+        assetFileNames: 'vue-simulator-renderer.css',
       },
     },
   },

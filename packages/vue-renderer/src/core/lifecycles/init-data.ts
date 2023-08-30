@@ -9,7 +9,7 @@ import {
 export function initData(
   parser: SchemaParser,
   schema: unknown,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): void {
   const dataOptions = parser.parseSchema(schema, false);
 

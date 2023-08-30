@@ -3,7 +3,7 @@ import type { Config, I18nMessages } from '@knxcloud/lowcode-vue-renderer';
 import type { DesignMode } from '@knxcloud/lowcode-hooks';
 import type { Component, ComponentPublicInstance, App } from 'vue';
 import type {
-  AssetList,
+  IPublicTypeSimulatorRenderer,
   IPublicModelNode as INode,
   IPublicModelDocumentModel as IDocumentModel,
   IPublicTypeNpmInfo as NpmInfo,
@@ -11,9 +11,8 @@ import type {
   IPublicTypeComponentSchema as ComponentSchema,
   IPublicTypeNodeInstance as NodeInstance,
 } from '@alilc/lowcode-types';
-import type { BuiltinSimulatorRenderer } from '@alilc/lowcode-designer';
 
-export type MinxedComponent = NpmInfo | Component | ComponentSchema;
+export type MixedComponent = NpmInfo | Component | ComponentSchema;
 
 export type ComponentInstance = ComponentPublicInstance;
 
@@ -42,15 +41,15 @@ export interface DocumentInstance {
   getComponentInstance(id: number): ComponentInstance | null;
   mountInstance(
     id: string,
-    instance: ComponentInstance | HTMLElement
+    instance: ComponentInstance | HTMLElement,
   ): (() => void) | void;
   unmountInstance(id: string, instance: ComponentInstance): void;
   rerender(): void;
   getNode(id: string): INode | null;
 }
 
-export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
-  readonly isSimulatorRenderer: true;
+export interface VueSimulatorRenderer
+  extends IPublicTypeSimulatorRenderer<ComponentInstance, ComponentRecord> {
   app: App;
   config: Config;
   router: Router;
@@ -60,21 +59,15 @@ export interface VueSimulatorRenderer extends BuiltinSimulatorRenderer {
   designMode: DesignMode;
   libraryMap: Record<string, string>;
   thisRequiredInJSE: boolean;
-  components: Record<string, Component>;
   autoRender: boolean;
-  componentsMap: Record<string, MinxedComponent>;
+  componentsMap: Record<string, MixedComponent>;
   disableCompMock: boolean | string[];
   documentInstances: DocumentInstance[];
   requestHandlersMap: Record<string, CallableFunction>;
-  load(assets: AssetList): Promise<void>;
   dispose(): void;
-  rerender(): void;
   getCurrentDocument(): DocumentInstance | null;
-  rerender: () => void;
-  getComponent(componentName: string): Component;
   getClosestNodeInstance(
     from: ComponentRecord | Element,
-    nodeId?: string
+    nodeId?: string,
   ): NodeInstance<ComponentRecord> | null;
-  findDOMNodes(instance: ComponentRecord): Array<Element | Text> | null;
 }

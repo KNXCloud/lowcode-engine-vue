@@ -3,7 +3,7 @@ import { isArray, isFunction, isString } from './check';
 export const noop: (...args: any[]) => any = () => void 0;
 
 export function fromPairs<E extends Iterable<unknown>>(
-  entries: E
+  entries: E,
 ): E extends Iterable<infer T>
   ? T extends [infer K, infer V]
     ? K extends string
@@ -54,14 +54,14 @@ export function sleep(ms?: number) {
 }
 
 export const createObjectSplitter = (
-  specialProps: string | string[] | ((prop: string) => boolean)
+  specialProps: string | string[] | ((prop: string) => boolean),
 ) => {
   const propsSet = new Set(
     isString(specialProps)
       ? specialProps.split(',')
       : isArray(specialProps)
       ? specialProps
-      : []
+      : [],
   );
 
   const has = isFunction(specialProps)

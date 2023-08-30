@@ -54,7 +54,7 @@ function createPathGetter(path: string) {
 
 export function setupLowCodeRouteGuard(
   router: Router,
-  options?: SetupLowCodeRouteGuardOptions
+  options?: SetupLowCodeRouteGuardOptions,
 ) {
   if (isAdded(router)) return;
   markAdded(router);
@@ -67,7 +67,7 @@ export function setupLowCodeRouteGuard(
     route: RouteRecordNormalized,
     component: RouteComponent,
     schema: unknown,
-    parser: SchemaParser
+    parser: SchemaParser,
   ): RouteComponent {
     if (!isObject(schema) || !isObject(schema.lifeCycles)) return component;
 
@@ -88,7 +88,7 @@ export function setupLowCodeRouteGuard(
 
   function wrapGuardFn(
     route: RouteRecordNormalized,
-    guardFn: (...args: unknown[]) => unknown
+    guardFn: (...args: unknown[]) => unknown,
   ): NavigationGuardWithThis<unknown> {
     if (guardFn.length < 3) {
       return function (from, to) {
@@ -146,12 +146,12 @@ export function setupLowCodeRouteGuard(
             route,
             addedView,
             schema,
-            parser.initModule(schema)
+            parser.initModule(schema),
           );
         }
 
         markAdded(route);
-      })
+      }),
     ).then(() => next());
   });
 }

@@ -43,7 +43,7 @@ export const enum AccessTypes {
 
 export function getAccessTarget(
   scope: RuntimeScope,
-  accessType: AccessTypes
+  accessType: AccessTypes,
 ): Record<string, unknown> {
   switch (accessType) {
     case AccessTypes.SETUP:
@@ -56,7 +56,7 @@ export function getAccessTarget(
                 enumerable: false,
                 configurable: false,
               },
-            })
+            }),
           ));
     case AccessTypes.DATA:
       return isReactive(scope.$.data) ? scope.$.data : (scope.$.data = reactive({}));
@@ -72,7 +72,7 @@ export function addToScope(
   accessType: AccessTypes,
   source: object,
   useDefineProperty?: boolean,
-  buildPropsOptions = true
+  buildPropsOptions = true,
 ): void {
   const instance = scope.$;
   const target = getAccessTarget(scope, accessType);

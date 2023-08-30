@@ -21,7 +21,7 @@ export function assetItem(
   type: AssetType,
   content?: string | null,
   level?: AssetLevel,
-  id?: string
+  id?: string,
 ): AssetItem | null {
   return content ? { type, content, level, id } : null;
 }
@@ -30,7 +30,7 @@ function parseAssetList(
   scripts: any,
   styles: any,
   assets: AssetList,
-  level?: AssetLevel
+  level?: AssetLevel,
 ) {
   for (const asset of assets) {
     parseAsset(scripts, styles, asset, level);
@@ -41,7 +41,7 @@ function parseAsset(
   scripts: any,
   styles: any,
   asset: Asset | undefined | null,
-  level?: AssetLevel
+  level?: AssetLevel,
 ) {
   if (!asset) {
     return;
@@ -66,7 +66,7 @@ function parseAsset(
     asset = assetItem(
       isCSSUrl(asset) ? AssetType.CSSUrl : AssetType.JSUrl,
       asset,
-      level
+      level,
     )!;
   }
 
@@ -91,7 +91,10 @@ export class StylePoint {
 
   private placeholder: Node;
 
-  constructor(public readonly level: number, public readonly id?: string) {
+  constructor(
+    public readonly level: number,
+    public readonly id?: string,
+  ) {
     let placeholder: Node | null = null;
     if (id) {
       placeholder = document.head.querySelector(`style[data-id="${id}"]`);
@@ -122,7 +125,7 @@ export class StylePoint {
     element.appendChild(document.createTextNode(content));
     document.head.insertBefore(
       element,
-      this.placeholder.parentNode === document.head ? this.placeholder.nextSibling : null
+      this.placeholder.parentNode === document.head ? this.placeholder.nextSibling : null,
     );
     document.head.removeChild(this.placeholder);
     this.placeholder = element;
@@ -156,7 +159,7 @@ export class StylePoint {
     }
     document.head.insertBefore(
       element,
-      this.placeholder.parentNode === document.head ? this.placeholder.nextSibling : null
+      this.placeholder.parentNode === document.head ? this.placeholder.nextSibling : null,
     );
     document.head.removeChild(this.placeholder);
     this.placeholder = element;
@@ -177,23 +180,23 @@ export class AssetLoader {
       styles[AssetLevel.Library],
       styles[AssetLevel.Theme],
       styles[AssetLevel.Runtime],
-      styles[AssetLevel.App]
+      styles[AssetLevel.App],
     );
     const scriptQueue: AssetItem[] = scripts[AssetLevel.Environment].concat(
       scripts[AssetLevel.Library],
       scripts[AssetLevel.Theme],
       scripts[AssetLevel.Runtime],
-      scripts[AssetLevel.App]
+      scripts[AssetLevel.App],
     );
     await Promise.all(
       styleQueue.map(({ content, level, type, id }) =>
-        this.loadStyle(content, level!, type === AssetType.CSSUrl, id)
-      )
+        this.loadStyle(content, level!, type === AssetType.CSSUrl, id),
+      ),
     );
     await Promise.all(
       scriptQueue.map(({ content, type }) =>
-        this.loadScript(content, type === AssetType.JSUrl)
-      )
+        this.loadScript(content, type === AssetType.JSUrl),
+      ),
     );
   }
 
@@ -203,7 +206,7 @@ export class AssetLoader {
     content: string | undefined | null,
     level: AssetLevel,
     isUrl?: boolean,
-    id?: string
+    id?: string,
   ) {
     if (!content) {
       return;

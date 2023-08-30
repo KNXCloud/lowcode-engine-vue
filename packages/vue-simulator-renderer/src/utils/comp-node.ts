@@ -30,7 +30,7 @@ export function isVNodeHTMLElement(el: unknown): el is VNodeHTMLElement {
 }
 
 export function isCompRootHTMLElement(
-  el: Element | null | undefined
+  el: Element | null | undefined,
 ): el is CompRootHTMLElement {
   return isObject(el) && SYMBOL_VDID in el;
 }

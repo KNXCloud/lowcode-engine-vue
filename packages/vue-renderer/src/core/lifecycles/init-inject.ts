@@ -10,7 +10,7 @@ import {
 export function initInject(
   parser: SchemaParser,
   schema: unknown,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): void {
   const injectOptions = parser.parseSchema(schema, false);
 
@@ -37,7 +37,7 @@ export function initInject(
         injected = inject(
           injectionKey,
           opt.default,
-          true /* treat default function as factory */
+          true /* treat default function as factory */,
         );
       } else {
         injected = inject(injectionKey);

@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite';
-import LibTypes from 'vite-plugin-lib-types';
+import types from 'vite-plugin-lib-types';
 
 import pkg from './package.json';
 
 export default defineConfig({
-  plugins: [LibTypes()],
+  plugins: [types()],
   build: {
     target: 'ES2018',
     sourcemap: true,
@@ -15,7 +15,7 @@ export default defineConfig({
     },
     emptyOutDir: true,
     rollupOptions: {
-      external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)],
+      external: Object.keys(pkg.peerDependencies),
     },
   },
 });

@@ -1,9 +1,9 @@
-import { defineConfig } from 'vite';
-import LibTypes from 'vite-plugin-lib-types';
+import { defineConfig } from 'vitest/config';
+import types from 'vite-plugin-lib-types';
 
 import pkg from './package.json';
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
@@ -13,8 +13,7 @@ export default defineConfig(({ command }) => ({
     },
   },
   plugins: [
-    LibTypes({
-      enable: command === 'build',
+    types({
       tsconfigPath: './tsconfig.build.json',
     }),
   ],
@@ -31,4 +30,4 @@ export default defineConfig(({ command }) => ({
       external: [...Object.keys(pkg.dependencies), ...Object.keys(pkg.peerDependencies)],
     },
   },
-}));
+});

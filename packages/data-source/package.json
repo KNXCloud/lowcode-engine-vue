@@ -1,6 +1,6 @@
 {
   "name": "@knxcloud/lowcode-data-source",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0",
   "main": "dist/lowcode-data-source.js",
   "module": "dist/lowcode-data-source.mjs",
   "typings": "dist/lowcode-data-source.d.ts",
@@ -22,14 +22,14 @@
     "@knxcloud/lowcode-utils": "workspace:*"
   },
   "devDependencies": {
-    "@alilc/lowcode-types": "^1.1.6",
-    "vite": "^4.3.5",
-    "vite-plugin-lib-types": "^0.1.2",
-    "vue": "~3.2.47"
+    "@alilc/lowcode-types": "^1.1.10",
+    "vite": "^4.4.9",
+    "vite-plugin-lib-types": "^2.0.4",
+    "vue": "^3.3.4"
   },
   "peerDependencies": {
-    "@alilc/lowcode-types": ">= 1.1.x",
-    "vue": ">= 3.x"
+    "@alilc/lowcode-types": "^1.0.0",
+    "vue": "^3.0.0"
   },
   "publishConfig": {
     "access": "public",

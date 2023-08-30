@@ -70,7 +70,7 @@ const bodyParseStrategies: Record<string, (data: Record<string, unknown>) => Bod
 
 function parseRequestBody(contentType: string, data: Record<string, unknown>): BodyInit {
   const parser = Object.keys(bodyParseStrategies).find((key) =>
-    contentType.includes(key)
+    contentType.includes(key),
   );
   return parser ? bodyParseStrategies[parser](data) : (data as unknown as BodyInit);
 }
@@ -82,13 +82,20 @@ export type RequestMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS';
 export type RequestParams = Record<string, unknown>;
 
 export class RequestError<T = unknown> extends Error {
-  constructor(message: string, public code: number, public data?: T) {
+  constructor(
+    message: string,
+    public code: number,
+    public data?: T,
+  ) {
     super(message);
   }
 }
 
 export class Response<T = unknown> {
-  constructor(public code: number, public data: T) {}
+  constructor(
+    public code: number,
+    public data: T,
+  ) {}
 }
 
 export async function request(options: RuntimeOptionsConfig): Promise<Response> {

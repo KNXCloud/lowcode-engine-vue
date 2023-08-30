@@ -22,7 +22,7 @@ export function createWatcher(
   raw: unknown,
   ctx: Record<string, unknown>,
   scope: RuntimeScope,
-  key: string
+  key: string,
 ) {
   const getter = key.includes('.') ? createPathGetter(scope, key) : () => scope[key];
   if (isString(raw)) {
@@ -57,7 +57,7 @@ export function createWatcher(
 export function initWatch(
   parser: SchemaParser,
   schema: unknown,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): void {
   const watchConfigs = parser.parseSchema(schema, false);
   if (!watchConfigs || !isObject(watchConfigs) || Object.keys(watchConfigs).length === 0)

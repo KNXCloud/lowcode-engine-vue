@@ -78,7 +78,7 @@ const vueRendererProps = {
 type VueRendererProps = ExtractPublicPropTypes<typeof vueRendererProps>;
 
 const splitOptions = createObjectSplitter(
-  (prop) => !prop.match(/^[a-z]+([A-Z][a-z]+)*$/)
+  (prop) => !prop.match(/^[a-z]+([A-Z][a-z]+)*$/),
 );
 
 const isAsyncComp = (comp: any) => {
@@ -100,7 +100,7 @@ const VueRenderer = defineComponent({
     const schemaRef = shallowRef(props.schema);
     watch(
       () => props.schema,
-      () => (schemaRef.value = props.schema)
+      () => (schemaRef.value = props.schema),
     );
 
     let needWrapComp: (name: string) => boolean = () => true;
@@ -141,7 +141,7 @@ const VueRenderer = defineComponent({
       wrapLeafComp: <T extends object, L extends object>(
         name: string,
         comp: T,
-        leaf: L
+        leaf: L,
       ): L => {
         let record = wrapCached.get(leaf);
         if (record) {
@@ -215,7 +215,7 @@ const VueRenderer = defineComponent({
               __getNode: getNode,
               __triggerCompGetCtx: triggerCompGetCtx,
             } as any,
-            slots
+            slots,
           )
         : null;
     };

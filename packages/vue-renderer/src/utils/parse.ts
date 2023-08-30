@@ -43,7 +43,7 @@ export class SchemaParser {
             new Function(
               '__exports__',
               '__scope__',
-              `with(__exports__) { with(__scope__) { ${code} } }`
+              `with(__exports__) { with(__scope__) { ${code} } }`,
             )
         : (code) => new Function('__exports__', `with(__exports__) { ${code} }`);
   }
@@ -70,7 +70,7 @@ export class SchemaParser {
         type: EXPRESSION_TYPE.JSEXPRESSION,
         value: `this.$t(${JSON.stringify(i18nInfo.key)})`,
       },
-      scope
+      scope,
     ) as string | undefined;
   }
 
@@ -79,7 +79,7 @@ export class SchemaParser {
   parseSchema(schema: JSExpression, scope?: RuntimeScope | boolean): unknown;
   parseSchema<T extends object>(
     schema: T,
-    scope: RuntimeScope | boolean
+    scope: RuntimeScope | boolean,
   ): {
     [K in keyof T]: T[K] extends I18nData
       ? string
@@ -125,11 +125,14 @@ export class SchemaParser {
     } else if (isArray(schema)) {
       return schema.map((item) => this.parseOnlyJsValue(item));
     } else if (isPlainObject(schema)) {
-      return Object.keys(schema).reduce((res, key) => {
-        if (key.startsWith('__')) return res;
-        res[key] = this.parseOnlyJsValue(schema[key]);
-        return res;
-      }, {} as Record<string, unknown>);
+      return Object.keys(schema).reduce(
+        (res, key) => {
+          if (key.startsWith('__')) return res;
+          res[key] = this.parseOnlyJsValue(schema[key]);
+          return res;
+        },
+        {} as Record<string, unknown>,
+      );
     }
     return schema;
   }
@@ -138,11 +141,11 @@ export class SchemaParser {
   parseExpression(str: JSExpression, scope?: RuntimeScope | boolean): unknown;
   parseExpression(
     str: JSExpression | JSFunction,
-    scope?: RuntimeScope | boolean
+    scope?: RuntimeScope | boolean,
   ): CallableFunction | unknown;
   parseExpression(
     str: JSExpression | JSFunction,
-    scope?: RuntimeScope | boolean
+    scope?: RuntimeScope | boolean,
   ): CallableFunction | unknown {
     try {
       const contextArr = ['"use strict";'];

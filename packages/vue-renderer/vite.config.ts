@@ -1,9 +1,8 @@
-import { defineConfig } from 'vite';
-import LibTypes from 'vite-plugin-lib-types';
-import VueJsx from '@vitejs/plugin-vue-jsx';
+import { defineConfig } from 'vitest/config';
+import types from 'vite-plugin-lib-types';
 import pkg from './package.json';
 
-export default defineConfig(({ command }) => ({
+export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
@@ -13,10 +12,8 @@ export default defineConfig(({ command }) => ({
     },
   },
   plugins: [
-    VueJsx(),
-    LibTypes({
+    types({
       fileName: 'vue-renderer.d.ts',
-      enable: command === 'build',
       tsconfigPath: './tsconfig.build.json',
     }),
   ],
@@ -36,4 +33,4 @@ export default defineConfig(({ command }) => ({
       ].filter((item) => !item.includes('@alilc')),
     },
   },
-}));
+});

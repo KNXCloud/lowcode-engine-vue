@@ -4,7 +4,6 @@ import type {
 } from '@alilc/lowcode-types';
 import {
   type Ref,
-  type Component,
   createApp,
   ref,
   shallowRef,
@@ -19,7 +18,7 @@ import type {
   ComponentInstance,
   ComponentRecord,
   DocumentInstance,
-  MinxedComponent,
+  MixedComponent,
   SimulatorViewLayout,
   VueSimulatorRenderer,
 } from './interface';
@@ -75,7 +74,7 @@ export interface ProjectContext {
 
 function createDocumentInstance(
   document: IPublicModelDocumentModel,
-  context: ProjectContext
+  context: ProjectContext,
 ): DocumentInstance {
   /** 记录单个节点的组件实例列表 */
   const instancesMap = new Map<string, ComponentInstance[]>();
@@ -101,7 +100,7 @@ function createDocumentInstance(
   const setHostInstance = (
     docId: string,
     nodeId: string,
-    instances: ComponentInstance[] | null
+    instances: ComponentInstance[] | null,
   ) => {
     const instanceRecords = !instances
       ? null
@@ -250,8 +249,8 @@ function createSimulatorRenderer() {
   const autoRender = shallowRef(host.autoRender);
   const designMode: Ref<string> = shallowRef('design');
   const libraryMap: Ref<Record<string, string>> = shallowRef({});
-  const components: Ref<Record<string, Component>> = shallowRef({});
-  const componentsMap: Ref<Record<string, MinxedComponent>> = shallowRef({});
+  const components: Ref<Record<string, ComponentInstance>> = shallowRef({});
+  const componentsMap: Ref<Record<string, MixedComponent>> = shallowRef({});
   const disableCompMock: Ref<boolean | string[]> = shallowRef(true);
   const requestHandlersMap: Ref<Record<string, CallableFunction>> = shallowRef({});
   const documentInstances: Ref<DocumentInstance[]> = shallowRef([]);
@@ -299,7 +298,7 @@ function createSimulatorRenderer() {
     VueRouter.createRouter({
       history: VueRouter.createMemoryHistory('/'),
       routes: [],
-    })
+    }),
   );
 
   simulator.getComponent = (componentName) => {
@@ -374,7 +373,6 @@ function createSimulatorRenderer() {
     document.documentElement.classList.add('engine-page');
     document.body.classList.add('engine-document');
     simulator.app.use(simulator.router).mount(container);
-    // @ts-expect-error
     host.project.setRendererReady(simulator);
   };
 
@@ -418,7 +416,7 @@ function createSimulatorRenderer() {
         thisRequired: thisRequiredInJSE.value,
         scopePath: 'renderer.runtimeScope',
       });
-    })
+    }),
   );
 
   disposeFunctions.push(
@@ -464,7 +462,7 @@ function createSimulatorRenderer() {
           context.suspense = false;
         }
       }
-    })
+    }),
   );
 
   host.componentsConsumer.consume(async (componentsAsset) => {

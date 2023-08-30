@@ -25,7 +25,7 @@ function isSameType(a: Prop<any>, b: Prop<any>): boolean {
 
 function getTypeIndex(
   type: Prop<any>,
-  expectedTypes: PropType<any> | void | null | true
+  expectedTypes: PropType<any> | void | null | true,
 ): number {
   if (isArray(expectedTypes)) {
     return expectedTypes.findIndex((t) => isSameType(t, type));
@@ -38,7 +38,7 @@ function getTypeIndex(
 export function initProps(
   parser: SchemaParser,
   schema: unknown,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): void {
   const propsConfig = parser.parseSchema(schema, false);
   if (
@@ -98,17 +98,20 @@ export function initProps(
     ];
 
     const { props, attrs } = instance;
-    const propValues = Object.keys(propsOptions).reduce((res, key) => {
-      res[key] = resolvePropValue(
-        propsOptions,
-        { ...props, ...res },
-        key,
-        attrs[key],
-        instance,
-        needCastKeys.includes(key)
-      );
-      return res;
-    }, {} as Record<string, unknown>);
+    const propValues = Object.keys(propsOptions).reduce(
+      (res, key) => {
+        res[key] = resolvePropValue(
+          propsOptions,
+          { ...props, ...res },
+          key,
+          attrs[key],
+          instance,
+          needCastKeys.includes(key),
+        );
+        return res;
+      },
+      {} as Record<string, unknown>,
+    );
 
     if (Object.keys(propValues).length > 0) {
       addToScope(scope, AccessTypes.PROPS, propValues, false, false);
@@ -122,7 +125,7 @@ function resolvePropValue(
   key: string,
   value: unknown,
   instance: ComponentInternalInstance,
-  isAbsent: boolean
+  isAbsent: boolean,
 ) {
   const opt = options[key];
   if (opt != null) {
@@ -136,7 +139,7 @@ function resolvePropValue(
         } else {
           value = propsDefaults[key] = withCtx(
             () => defaultValue.call(null, props),
-            instance
+            instance,
           )();
         }
       } else {
@@ -166,5 +169,5 @@ const cacheStringFunction = <T extends (str: string) => string>(fn: T): T => {
 const hyphenateRE = /\B([A-Z])/g;
 
 const hyphenate = cacheStringFunction((str: string) =>
-  str.replace(hyphenateRE, '-$1').toLowerCase()
+  str.replace(hyphenateRE, '-$1').toLowerCase(),
 );

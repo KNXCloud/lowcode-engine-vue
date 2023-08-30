@@ -30,14 +30,14 @@ export type LowCodeHook = keyof LowCodeHookMap;
 export function createHookCaller(
   schema: IPublicTypeContainerSchema,
   scope: RuntimeScope,
-  parser: SchemaParser
+  parser: SchemaParser,
 ) {
   function callHook(hook: 'setup', props: object, ctx: object): void | Promise<void>;
   function callHook<T extends Exclude<LowCodeHook, 'setup'>>(hook: T): void;
   function callHook<T extends LowCodeHook>(
     hook: T,
     param1?: object,
-    param2?: object
+    param2?: object,
   ): void | Promise<void> {
     const lifeCycles = schema.lifeCycles ?? {};
     const lifeCycleSchema = lifeCycles[hook];

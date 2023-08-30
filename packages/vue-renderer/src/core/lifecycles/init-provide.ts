@@ -5,7 +5,7 @@ import { type RuntimeScope, type SchemaParser } from '../../utils';
 export function initProvide(
   parser: SchemaParser,
   schema: unknown,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): void {
   const provideOptions = parser.parseSchema(schema, scope);
 

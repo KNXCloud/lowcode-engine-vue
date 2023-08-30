@@ -15,7 +15,7 @@ export function getI18n(
   key: string,
   values = {},
   locale = 'zh-CN',
-  messages: I18nMessages = {}
+  messages: I18nMessages = {},
 ) {
   if (!messages || !messages[locale] || !messages[locale][key]) {
     return '';

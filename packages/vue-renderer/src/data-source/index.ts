@@ -14,7 +14,7 @@ import { isJSExpression, isJSFunction } from '@knxcloud/lowcode-utils';
 export function create(
   config: InterpretDataSource,
   scope: RuntimeScope,
-  requestHandlerMaps?: Record<string, RequestHandler>
+  requestHandlerMaps?: Record<string, RequestHandler>,
 ) {
   const parser = scope.__parser;
 
@@ -40,7 +40,7 @@ export function create(
       willFetch: parser.parseSchema<WillFetch>(willFetch, scope),
       shouldFetch: parser.parseSchema<() => boolean>(shouldFetch, scope),
       options: () => parser.parseSchema(options, scope),
-    })
+    }),
   );
   return createDataSourceEngine(
     { list, dataHandler },
@@ -62,29 +62,29 @@ export function create(
       },
       forceUpdate: () => scope.$forceUpdate(),
     },
-    requestHandlerMaps
+    requestHandlerMaps,
   );
 }
 
 function transformToJSFunction<T>(
   val: IPublicTypeJSFunction | T,
   parser: SchemaParser,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): (() => T) | T;
 function transformToJSFunction<T>(
   val: IPublicTypeJSExpression | T,
   parser: SchemaParser,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): (() => T) | T;
 function transformToJSFunction<T>(
   val: IPublicTypeJSExpression | IPublicTypeJSFunction | T,
   parser: SchemaParser,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): (() => T) | T;
 function transformToJSFunction<T>(
   val: IPublicTypeJSExpression | IPublicTypeJSFunction | T,
   parser: SchemaParser,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): (() => T) | T {
   const res = isJSExpression(val)
     ? parser.parseSchema(
@@ -92,7 +92,7 @@ function transformToJSFunction<T>(
           type: 'JSFunction',
           value: `function () { return ${val.value} }`,
         },
-        scope
+        scope,
       )
     : isJSFunction(val)
     ? parser.parseSchema(val, scope)

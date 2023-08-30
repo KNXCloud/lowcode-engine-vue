@@ -14,17 +14,17 @@ import { fetchRequest } from '../handlers';
 export function createDataSource(
   config: DataSourceConfig,
   { state, setState }: DataSourceContext,
-  requestHandlersMap: RequestHandlersMap
+  requestHandlersMap: RequestHandlersMap,
 ): DataSource {
   const data = shallowRef<unknown>();
   const error = shallowRef<unknown>();
   const status = ref<DataSourceStatus>('init');
   const loading = computed(() => status.value === 'loading');
   const isInit = computed<boolean>(() =>
-    config.isInit ? exec(config.isInit, state) : false
+    config.isInit ? exec(config.isInit, state) : false,
   );
   const isSync = computed<boolean>(() =>
-    config.isSync ? exec(config.isSync, state) : false
+    config.isSync ? exec(config.isSync, state) : false,
   );
 
   const {
@@ -112,7 +112,7 @@ function exec<T = unknown>(val: MaybyFunc<T>, state?: unknown): T {
 
 function getRequestHandler(
   config: DataSourceConfig,
-  requestHandlersMap: RequestHandlersMap
+  requestHandlersMap: RequestHandlersMap,
 ): RequestHandler | null {
   const { type, requestHandler } = config;
   if (type) {

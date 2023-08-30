@@ -10,7 +10,7 @@ import { createDataSource } from './data-source';
 export function createDataSourceEngine(
   config: DataSourceOptions,
   context: DataSourceContext,
-  requestHandlersMap: RequestHandlersMap = {}
+  requestHandlersMap: RequestHandlersMap = {},
 ) {
   const dataSource: Record<string, DataSourceLoader> = {};
   const dataSourceMap: Record<string, DataSource> = {};
@@ -42,7 +42,7 @@ export function createDataSourceEngine(
   const reloadDataSource = (
     id?: string,
     params?: Record<string, unknown>,
-    otherOptions?: Record<string, unknown>
+    otherOptions?: Record<string, unknown>,
   ) => {
     if (id) {
       const dataSource = dataSourceMap[id];
@@ -65,7 +65,7 @@ export function createDataSourceEngine(
       ...asyncItems.map((ds) => ds.load()),
       syncItems.reduce(
         (res, next) => res.then(() => next.load()),
-        Promise.resolve<unknown>(null)
+        Promise.resolve<unknown>(null),
       ),
     ];
     return Promise.all(promises);

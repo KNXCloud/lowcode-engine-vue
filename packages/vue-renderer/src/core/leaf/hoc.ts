@@ -72,7 +72,7 @@ export const Hoc = defineComponent({
       Object.keys(listenRecord).forEach((k) => {
         listenRecord[k]();
         delete listenRecord[k];
-      })
+      }),
     );
 
     const { locked, node, buildSlots, getNode, isRootNode } = useLeaf(
@@ -95,7 +95,7 @@ export const Hoc = defineComponent({
             }
           }
         }
-      }
+      },
     );
 
     if (node) {
@@ -122,7 +122,7 @@ export const Hoc = defineComponent({
             // 普通属性更新，通知父级重新渲染
             rerenderParent();
           }
-        })
+        }),
       );
       onUnmounted(
         node.onVisibleChange((visible: boolean) => {
@@ -131,14 +131,14 @@ export const Hoc = defineComponent({
               (showNode.value = visible)
             : // 当前节点显示隐藏发生改变，通知父级组件重新渲染子组件
               rerenderParent();
-        })
+        }),
       );
       updateSchema(exportSchema(node));
     }
 
     watch(
       () => props.__schema,
-      (newSchema) => updateSchema(newSchema)
+      (newSchema) => updateSchema(newSchema),
     );
 
     return () => {

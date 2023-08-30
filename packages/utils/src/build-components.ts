@@ -63,7 +63,7 @@ export function getSubComponent(library: any, paths: string[]) {
 export function findComponent(
   libraryMap: Record<string, string>,
   componentName: string,
-  npm?: IPublicTypeNpmInfo
+  npm?: IPublicTypeNpmInfo,
 ) {
   if (!npm) {
     return accessLibrary(componentName);
@@ -86,7 +86,7 @@ export function buildComponents(
     string,
     IPublicTypeNpmInfo | IPublicTypeComponentSchema | unknown
   >,
-  createComponent?: (schema: IPublicTypeComponentSchema) => any
+  createComponent?: (schema: IPublicTypeComponentSchema) => any,
 ) {
   const components: any = {};
   Object.keys(componentsMap).forEach((componentName) => {
@@ -94,7 +94,7 @@ export function buildComponents(
     if (isComponentSchema(component)) {
       if (createComponent) {
         components[componentName] = createComponent(
-          component as IPublicTypeComponentSchema
+          component as IPublicTypeComponentSchema,
         );
       }
     } else if (isVueComponent(component)) {
@@ -103,7 +103,7 @@ export function buildComponents(
       component = findComponent(
         libraryMap,
         componentName,
-        component as IPublicTypeNpmInfo
+        component as IPublicTypeNpmInfo,
       );
       if (component) {
         components[componentName] = component;

@@ -4,7 +4,7 @@ import type { RuntimeScope, SchemaParser } from '../../utils';
 export function initEmits(
   parser: SchemaParser,
   schema: unknown,
-  scope: RuntimeScope
+  scope: RuntimeScope,
 ): void {
   const emitsOptions = parser.parseSchema(schema, false);
 
@@ -18,6 +18,6 @@ export function initEmits(
 
   scope.$.emitsOptions = Object.create(
     scope.$.emitsOptions,
-    Object.getOwnPropertyDescriptors(dataResult)
+    Object.getOwnPropertyDescriptors(dataResult),
   );
 }

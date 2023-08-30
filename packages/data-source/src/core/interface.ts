@@ -33,7 +33,7 @@ export type DataSourceStatus = 'init' | 'loading' | 'loaded' | 'error';
 
 export type DataSourceLoader<T = unknown> = (
   params?: Record<string, unknown>,
-  options?: Record<string, unknown>
+  options?: Record<string, unknown>,
 ) => Promise<T>;
 
 export interface DataSource<T = unknown> {
