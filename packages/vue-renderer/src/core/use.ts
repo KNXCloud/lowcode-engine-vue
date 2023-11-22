@@ -930,7 +930,7 @@ const keepParam = <T, R>(param: T, cb: (param: T) => R) => {
 const processProp = (target: Record<string, unknown>, key: string, val: unknown) => {
   if (key.startsWith('v-model')) {
     // 双向绑定逻辑
-    const matched = key.match(/v-model(?::(\w+))?$/);
+    const matched = key.match(/v-model(?::([\w-]+))?$/);
     if (!matched) return target;
 
     const valueProp = camelCase(matched[1] ?? 'modelValue');
