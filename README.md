@@ -15,7 +15,7 @@ const editorInit = (ctx: ILowCodePluginContext) => {
     async init() {
       const { material, project } = ctx;
       const assets = await fetch('http://127.0.0.1:9000/assets.json').then((res) =>
-        res.json()
+        res.json(),
       );
       material.setAssets(assets);
     },
@@ -157,7 +157,7 @@ init(document.getElementById('lce'), {
 ```bash
 git clone git@github.com:KNXCloud/lowcode-engine-vue.git
 cd lowcode-engine-vue
-pnpm install
+pnpm install && pnpm -r build
 pnpm start
 ```
 
